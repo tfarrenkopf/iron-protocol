@@ -13,6 +13,9 @@ import AuthPage from "./pages/Auth";
 import ProfilePage from "./pages/Profile";
 import ExerciseManager from "./pages/ExerciseManager";
 import CreateMission from "./pages/CreateMission";
+import FrontLines from "./pages/FrontLines";
+import Legal from "./pages/Legal";
+import Why from "./pages/Why";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -34,6 +37,9 @@ const App = () => (
             <Route path="/stats" element={<Stats />} />
             <Route path="/exercises" element={<ExerciseManager />} />
             <Route path="/create-mission" element={<CreateMission />} />
+            <Route path="/front-lines" element={<FrontLines />} />
+            <Route path="/legal" element={<Legal />} />
+            <Route path="/why" element={<Why />} />
             {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
             <Route path="*" element={<NotFound />} />
           </Routes>
