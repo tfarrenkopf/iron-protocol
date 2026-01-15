@@ -43,10 +43,21 @@ const AssignmentWorkout = () => {
   const [showLore, setShowLore] = useState<'intro' | 'outro' | null>(null);
   const [statsSaved, setStatsSaved] = useState(false);
   const [showAuthPrompt, setShowAuthPrompt] = useState(false);
+  const hasInitialized = useRef(false);
   
   // Cache assignment data to prevent it from disappearing when marked complete
   const [cachedAssignment, setCachedAssignment] = useState<typeof assignments extends (infer T)[] | undefined ? T : never>();
   const [cachedMissionSnapshot, setCachedMissionSnapshot] = useState<any>(null);
+
+  // Reset game state when entering a new assignment
+  useEffect(() => {
+    // Reset on mount to clear any leftover state from previous sessions
+    resetGame();
+    hasInitialized.current = false;
+    setStatsSaved(false);
+    setShowLore(null);
+    setShowAuthPrompt(false);
+  }, [assignmentId, resetGame]);
 
   // Find the assignment (or use cached)
   const liveAssignment = assignments?.find(a => a.id === assignmentId);
@@ -86,9 +97,11 @@ const AssignmentWorkout = () => {
     })),
   } : null;
 
-  // Start mission when loaded
+  // Start mission when loaded (with initialization guard)
   useEffect(() => {
-    if (mission && !currentSession) {
+    if (mission && !hasInitialized.current && !currentSession) {
+      hasInitialized.current = true;
+      
       // Mark assignment as in progress if user is logged in
       if (user && assignment && assignment.status === 'NOT_STARTED') {
         updateAssignmentStatus.mutate({

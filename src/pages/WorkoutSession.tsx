@@ -42,15 +42,25 @@ const WorkoutSession = () => {
   const [showLore, setShowLore] = useState<'intro' | 'outro' | null>(null);
   const [statsSaved, setStatsSaved] = useState(false);
   const prevStatsRef = useRef(stats);
+  const hasInitialized = useRef(false);
 
-  // Start mission when data is loaded
+  // Reset game state when entering a new mission
   useEffect(() => {
-    if (mission && missionId && !currentSession) {
+    // Reset on mount to clear any leftover state from previous sessions
+    resetGame();
+    hasInitialized.current = false;
+    setStatsSaved(false);
+    setShowLore(null);
+  }, [missionId, resetGame]);
+
+  // Show intro lore when mission is loaded (after reset)
+  useEffect(() => {
+    if (mission && missionId && !hasInitialized.current && !currentSession) {
+      hasInitialized.current = true;
       // Show intro lore if available
       if (mission.intro_lore) {
         setShowLore('intro');
       }
-      // We'll use a custom session tracking since we're using DB missions
     }
   }, [mission, missionId, currentSession]);
 
