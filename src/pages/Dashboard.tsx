@@ -144,7 +144,7 @@ const Dashboard = () => {
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.3 }}
-          className={`grid gap-4 mb-10 ${isHandler ? 'grid-cols-4' : 'grid-cols-3'}`}
+          className={`grid gap-4 mb-10 ${isHandler ? 'grid-cols-2 sm:grid-cols-4' : 'grid-cols-3'}`}
         >
           <button 
             onClick={() => navigate('/missions')}
@@ -152,7 +152,7 @@ const Dashboard = () => {
           >
             <div className="absolute inset-0 bg-primary/5 group-hover:bg-primary/10 transition-colors rounded" />
             <Dumbbell className="w-8 h-8 text-primary mb-3 relative z-10" />
-            <h2 className="font-display text-xl text-primary relative z-10">MISSIONS</h2>
+            <h2 className="font-display text-lg sm:text-xl text-primary relative z-10">MISSIONS</h2>
             <p className="text-xs text-muted-foreground mt-1 relative z-10">Strength</p>
           </button>
           
@@ -162,7 +162,7 @@ const Dashboard = () => {
           >
             <div className="absolute inset-0 bg-secondary/5 group-hover:bg-secondary/10 transition-colors rounded" />
             <Timer className="w-8 h-8 text-secondary mb-3 relative z-10" />
-            <h2 className="font-display text-xl text-secondary relative z-10">HIIT</h2>
+            <h2 className="font-display text-lg sm:text-xl text-secondary relative z-10">HIIT</h2>
             <p className="text-xs text-muted-foreground mt-1 relative z-10">Timer</p>
           </button>
           
@@ -175,7 +175,7 @@ const Dashboard = () => {
           >
             <div className="absolute inset-0 bg-accent/5 group-hover:bg-accent/10 transition-colors rounded" />
             <Trophy className="w-8 h-8 text-accent mb-3 relative z-10" />
-            <h2 className="font-display text-xl text-accent relative z-10">STATS</h2>
+            <h2 className="font-display text-lg sm:text-xl text-accent relative z-10">STATS</h2>
             <p className="text-xs text-muted-foreground mt-1 relative z-10">Rankings</p>
           </button>
 
@@ -189,7 +189,7 @@ const Dashboard = () => {
             >
               <div className="absolute inset-0 bg-warning/5 group-hover:bg-warning/10 transition-colors rounded" />
               <Users className="w-8 h-8 text-warning mb-3 relative z-10" />
-              <h2 className="font-display text-xl text-warning relative z-10">HANDLER</h2>
+              <h2 className="font-display text-lg sm:text-xl text-warning relative z-10">HANDLER</h2>
               <p className="text-xs text-muted-foreground mt-1 relative z-10">Squads</p>
             </button>
           )}
