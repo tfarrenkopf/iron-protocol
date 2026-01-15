@@ -15,7 +15,7 @@ import ExerciseManager from "./pages/ExerciseManager";
 import CreateMission from "./pages/CreateMission";
 import FrontLines from "./pages/FrontLines";
 import Legal from "./pages/Legal";
-import Why from "./pages/Why";
+import Donate from "./pages/Donate";
 import HandlerDashboard from "./pages/HandlerDashboard";
 import JoinSquad from "./pages/JoinSquad";
 import AssignMission from "./pages/AssignMission";
@@ -44,7 +44,7 @@ const App = () => (
             <Route path="/create-mission" element={<CreateMission />} />
             <Route path="/front-lines" element={<FrontLines />} />
             <Route path="/legal" element={<Legal />} />
-            <Route path="/why" element={<Why />} />
+            <Route path="/donate" element={<Donate />} />
             <Route path="/handler" element={<HandlerDashboard />} />
             <Route path="/handler/assign/:squadId" element={<AssignMission />} />
             <Route path="/join/:inviteCode" element={<JoinSquad />} />
