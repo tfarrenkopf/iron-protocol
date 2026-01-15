@@ -43,10 +43,23 @@ const AssignmentWorkout = () => {
   const [showLore, setShowLore] = useState<'intro' | 'outro' | null>(null);
   const [statsSaved, setStatsSaved] = useState(false);
   const [showAuthPrompt, setShowAuthPrompt] = useState(false);
+  
+  // Cache assignment data to prevent it from disappearing when marked complete
+  const [cachedAssignment, setCachedAssignment] = useState<typeof assignments extends (infer T)[] | undefined ? T : never>();
+  const [cachedMissionSnapshot, setCachedMissionSnapshot] = useState<any>(null);
 
-  // Find the assignment
-  const assignment = assignments?.find(a => a.id === assignmentId);
-  const missionSnapshot = assignment?.mission_snapshot;
+  // Find the assignment (or use cached)
+  const liveAssignment = assignments?.find(a => a.id === assignmentId);
+  const assignment = liveAssignment || cachedAssignment;
+  const missionSnapshot = assignment?.mission_snapshot || cachedMissionSnapshot;
+  
+  // Cache assignment when first loaded
+  useEffect(() => {
+    if (liveAssignment && !cachedAssignment) {
+      setCachedAssignment(liveAssignment);
+      setCachedMissionSnapshot(liveAssignment.mission_snapshot);
+    }
+  }, [liveAssignment, cachedAssignment]);
 
   // Convert mission snapshot to DBMission format
   const mission: DBMission | null = missionSnapshot ? {
@@ -182,7 +195,8 @@ const AssignmentWorkout = () => {
     }
   }, [currentSession?.status, statsSaved, mission, stats, user, assignment]);
 
-  if (assignmentsLoading || !assignment || !mission) {
+  // Only show loading if no cached data exists yet
+  if ((assignmentsLoading && !cachedAssignment) || !assignment || !mission) {
     return (
       <div className="min-h-screen bg-background flex items-center justify-center">
         <div className="font-display text-2xl text-primary animate-neon-pulse">LOADING ORDERS...</div>
