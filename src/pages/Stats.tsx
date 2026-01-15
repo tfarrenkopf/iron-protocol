@@ -130,12 +130,9 @@ const Stats = () => {
                   className="bg-card border border-border rounded-lg p-4"
                 >
                   <div className="flex items-center justify-between">
-                    <div>
-                      <div className="font-display text-sm text-secondary">
-                        EXERCISE
-                      </div>
-                      <div className="text-xs text-muted-foreground mt-1">
-                        ID: {entry.exerciseId.slice(0, 8)}...
+                    <div className="flex-1 min-w-0 mr-4">
+                      <div className="font-display text-sm text-secondary truncate">
+                        {entry.exerciseName}
                       </div>
                     </div>
                     
