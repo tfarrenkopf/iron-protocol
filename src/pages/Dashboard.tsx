@@ -1,10 +1,15 @@
 import { motion } from 'framer-motion';
 import { useNavigate } from 'react-router-dom';
-import { Zap, Target, Dumbbell, Timer, TrendingUp } from 'lucide-react';
+import { Zap, Target, Dumbbell, Timer, TrendingUp, Trophy } from 'lucide-react';
 import { defaultMissions } from '@/data/missions';
+import { useGameStore } from '@/stores/gameStore';
 
 const Dashboard = () => {
   const navigate = useNavigate();
+  const { stats } = useGameStore();
+  
+  // Calculate level from XP (simple formula: level = sqrt(xp/100))
+  const level = Math.max(1, Math.floor(Math.sqrt(stats.xp / 100)) + 1);
 
   return (
     <div className="min-h-screen bg-background relative overflow-hidden">
@@ -45,16 +50,17 @@ const Dashboard = () => {
           className="grid grid-cols-3 gap-4 mb-10"
         >
           {[
-            { label: 'STREAK', value: '7', icon: Zap, color: 'text-accent' },
-            { label: 'XP', value: '12,450', icon: TrendingUp, color: 'text-secondary' },
-            { label: 'LEVEL', value: '14', icon: Target, color: 'text-primary' },
+            { label: 'SETS', value: stats.setsCompleted.toString(), icon: Zap, color: 'text-accent' },
+            { label: 'XP', value: stats.xp.toLocaleString(), icon: TrendingUp, color: 'text-secondary' },
+            { label: 'LEVEL', value: level.toString(), icon: Target, color: 'text-primary' },
           ].map((stat, i) => (
             <motion.div
               key={stat.label}
               initial={{ opacity: 0, scale: 0.9 }}
               animate={{ opacity: 1, scale: 1 }}
               transition={{ delay: 0.2 + i * 0.1 }}
-              className="bg-card border border-border rounded p-4 text-center"
+              className="bg-card border border-border rounded p-4 text-center cursor-pointer hover:border-primary/50 transition-colors"
+              onClick={() => navigate('/stats')}
             >
               <stat.icon className={`w-5 h-5 mx-auto mb-2 ${stat.color}`} />
               <div className={`font-display text-3xl ${stat.color}`}>{stat.value}</div>
@@ -68,7 +74,7 @@ const Dashboard = () => {
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.3 }}
-          className="grid grid-cols-2 gap-4 mb-10"
+          className="grid grid-cols-3 gap-4 mb-10"
         >
           <button 
             onClick={() => navigate('/missions')}
@@ -76,8 +82,8 @@ const Dashboard = () => {
           >
             <div className="absolute inset-0 bg-primary/5 group-hover:bg-primary/10 transition-colors rounded" />
             <Dumbbell className="w-8 h-8 text-primary mb-3 relative z-10" />
-            <h2 className="font-display text-2xl text-primary relative z-10">MISSIONS</h2>
-            <p className="text-xs text-muted-foreground mt-1 relative z-10">Strength Training</p>
+            <h2 className="font-display text-xl text-primary relative z-10">MISSIONS</h2>
+            <p className="text-xs text-muted-foreground mt-1 relative z-10">Strength</p>
           </button>
           
           <button 
@@ -86,8 +92,21 @@ const Dashboard = () => {
           >
             <div className="absolute inset-0 bg-secondary/5 group-hover:bg-secondary/10 transition-colors rounded" />
             <Timer className="w-8 h-8 text-secondary mb-3 relative z-10" />
-            <h2 className="font-display text-2xl text-secondary relative z-10">HIIT</h2>
-            <p className="text-xs text-muted-foreground mt-1 relative z-10">Interval Timer</p>
+            <h2 className="font-display text-xl text-secondary relative z-10">HIIT</h2>
+            <p className="text-xs text-muted-foreground mt-1 relative z-10">Timer</p>
+          </button>
+          
+          <button 
+            onClick={() => navigate('/stats')}
+            className="group relative bg-card border-2 border-accent rounded p-6 text-left transition-all hover:border-accent"
+            style={{ boxShadow: 'none' }}
+            onMouseEnter={(e) => e.currentTarget.style.boxShadow = '0 0 20px hsl(20 100% 60% / 0.6)'}
+            onMouseLeave={(e) => e.currentTarget.style.boxShadow = 'none'}
+          >
+            <div className="absolute inset-0 bg-accent/5 group-hover:bg-accent/10 transition-colors rounded" />
+            <Trophy className="w-8 h-8 text-accent mb-3 relative z-10" />
+            <h2 className="font-display text-xl text-accent relative z-10">STATS</h2>
+            <p className="text-xs text-muted-foreground mt-1 relative z-10">Rankings</p>
           </button>
         </motion.div>
 

@@ -1,16 +1,22 @@
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useNavigate } from 'react-router-dom';
 import { ArrowLeft, Play, Pause, RotateCcw, Volume2, VolumeX } from 'lucide-react';
 import { useGameStore } from '@/stores/gameStore';
 import { defaultHIITConfigs } from '@/data/missions';
 import { HIITConfig } from '@/types/game';
+import { ExplosionEffect } from '@/components/ExplosionEffect';
+import { XPPopup } from '@/components/XPPopup';
 
 const HIITTimer = () => {
   const navigate = useNavigate();
   const [selectedConfig, setSelectedConfig] = useState<HIITConfig | null>(null);
   const [isPaused, setIsPaused] = useState(false);
   const [soundEnabled, setSoundEnabled] = useState(true);
+  const [showExplosion, setShowExplosion] = useState(false);
+  const [showXPPopup, setShowXPPopup] = useState(false);
+  const [lastXPGain, setLastXPGain] = useState({ xp: 0, score: 0, combo: 0 });
+  const prevRoundRef = useRef(0);
 
   const {
     hiitConfig,
@@ -47,6 +53,22 @@ const HIITTimer = () => {
       }
     };
   }, [timerPhase]);
+
+  // Track round changes for XP popup
+  useEffect(() => {
+    if (currentRound > prevRoundRef.current && currentRound > 1) {
+      // Round completed - show XP popup
+      const xpGain = Math.floor(100 * (1 + stats.combo * 0.1) / 10);
+      setLastXPGain({
+        xp: xpGain,
+        score: Math.floor(100 * (1 + stats.combo * 0.1)),
+        combo: stats.combo,
+      });
+      setShowExplosion(true);
+      setTimeout(() => setShowXPPopup(true), 300);
+    }
+    prevRoundRef.current = currentRound;
+  }, [currentRound, stats.combo]);
 
   // Timer logic
   useEffect(() => {
@@ -192,6 +214,21 @@ const HIITTimer = () => {
           {soundEnabled ? <Volume2 className="w-5 h-5" /> : <VolumeX className="w-5 h-5" />}
         </button>
       </header>
+
+      {/* Explosion Effect */}
+      <ExplosionEffect 
+        trigger={showExplosion} 
+        onComplete={() => setShowExplosion(false)} 
+      />
+      
+      {/* XP Popup */}
+      <XPPopup
+        show={showXPPopup}
+        xp={lastXPGain.xp}
+        score={lastXPGain.score}
+        combo={lastXPGain.combo}
+        onComplete={() => setShowXPPopup(false)}
+      />
 
       {/* Main timer display */}
       <main className="flex-1 relative z-10 flex flex-col items-center justify-center px-4">

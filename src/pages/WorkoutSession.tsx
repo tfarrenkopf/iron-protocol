@@ -1,10 +1,12 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useParams, useNavigate } from 'react-router-dom';
 import { X, Plus, Minus, Check, ChevronRight, Info } from 'lucide-react';
 import { useGameStore } from '@/stores/gameStore';
 import { getMissionById } from '@/data/missions';
 import { getExerciseById } from '@/data/exercises';
+import { ExplosionEffect } from '@/components/ExplosionEffect';
+import { XPPopup } from '@/components/XPPopup';
 
 const WorkoutSession = () => {
   const { missionId } = useParams();
@@ -24,6 +26,10 @@ const WorkoutSession = () => {
   const [weight, setWeight] = useState(0);
   const [showInstructions, setShowInstructions] = useState(false);
   const [isCompleting, setIsCompleting] = useState(false);
+  const [showExplosion, setShowExplosion] = useState(false);
+  const [showXPPopup, setShowXPPopup] = useState(false);
+  const [lastXPGain, setLastXPGain] = useState({ xp: 0, score: 0, combo: 0, damage: 0 });
+  const prevStatsRef = useRef(stats);
 
   const mission = missionId ? getMissionById(missionId) : null;
   
@@ -120,9 +126,28 @@ const WorkoutSession = () => {
 
   const handleCompleteSet = () => {
     setIsCompleting(true);
+    
+    // Capture stats before completing
+    const prevStats = { ...stats };
+    
     setTimeout(() => {
       completeSet(reps, weight);
       setIsCompleting(false);
+      
+      // Trigger explosion
+      setShowExplosion(true);
+      
+      // Calculate gains for popup
+      setTimeout(() => {
+        const newStats = useGameStore.getState().stats;
+        setLastXPGain({
+          xp: newStats.xp - prevStats.xp,
+          score: newStats.score - prevStats.score,
+          combo: newStats.combo,
+          damage: newStats.damageDealt - prevStats.damageDealt,
+        });
+        setShowXPPopup(true);
+      }, 300);
     }, 200);
   };
 
@@ -172,6 +197,22 @@ const WorkoutSession = () => {
 
       {/* Main content */}
       <main className="flex-1 relative z-10 flex flex-col p-4">
+        {/* Explosion Effect */}
+        <ExplosionEffect 
+          trigger={showExplosion} 
+          onComplete={() => setShowExplosion(false)} 
+        />
+        
+        {/* XP Popup */}
+        <XPPopup
+          show={showXPPopup}
+          xp={lastXPGain.xp}
+          score={lastXPGain.score}
+          combo={lastXPGain.combo}
+          damage={lastXPGain.damage}
+          onComplete={() => setShowXPPopup(false)}
+        />
+
         {/* Exercise Info */}
         <motion.div 
           key={currentExerciseIndex}
@@ -179,18 +220,18 @@ const WorkoutSession = () => {
           animate={{ opacity: 1, y: 0 }}
           className="text-center mb-6"
         >
-          <h2 className="font-display text-3xl md:text-4xl text-primary text-glow-primary mb-2">
+          <h2 className="font-display text-5xl md:text-7xl text-primary text-glow-primary mb-3 leading-tight">
             {exercise?.name.toUpperCase()}
           </h2>
-          <p className="text-muted-foreground text-sm">
+          <p className="text-muted-foreground text-base md:text-lg">
             Set {currentSetIndex + 1} of {missionExercise.targetSets} • Target: {missionExercise.targetReps} reps
           </p>
           
           <button
             onClick={() => setShowInstructions(!showInstructions)}
-            className="mt-2 inline-flex items-center gap-1 text-xs text-muted-foreground hover:text-secondary transition-colors"
+            className="mt-3 inline-flex items-center gap-1 text-sm text-muted-foreground hover:text-secondary transition-colors"
           >
-            <Info className="w-3 h-3" />
+            <Info className="w-4 h-4" />
             {showInstructions ? 'Hide' : 'Show'} Instructions
           </button>
         </motion.div>
