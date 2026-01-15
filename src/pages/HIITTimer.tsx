@@ -196,12 +196,20 @@ const HIITTimer = () => {
 
       {/* Header */}
       <header className="relative z-10 flex items-center justify-between p-4">
-        <button 
-          onClick={handleReset}
-          className="p-3 bg-background/20 backdrop-blur rounded-full"
-        >
-          <RotateCcw className="w-5 h-5" />
-        </button>
+        <div className="flex items-center gap-2">
+          <button 
+            onClick={() => navigate('/')}
+            className="p-3 bg-background/20 backdrop-blur rounded-full"
+          >
+            <ArrowLeft className="w-5 h-5" />
+          </button>
+          <button 
+            onClick={handleReset}
+            className="p-3 bg-background/20 backdrop-blur rounded-full"
+          >
+            <RotateCcw className="w-5 h-5" />
+          </button>
+        </div>
 
         <div className="font-display text-lg">
           ROUND {currentRound}/{hiitConfig?.rounds}
