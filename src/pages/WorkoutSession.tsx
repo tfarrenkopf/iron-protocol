@@ -7,6 +7,7 @@ import { useMission } from '@/hooks/useMissions';
 import { useWeightHistory, useUpdateWeight } from '@/hooks/useWeightHistory';
 import { useAuth } from '@/hooks/useAuth';
 import { useUpdateProfileStats } from '@/hooks/useProfile';
+import { useCreateWorkoutSession } from '@/hooks/useWorkoutSessions';
 import { ExplosionEffect } from '@/components/ExplosionEffect';
 import { XPPopup } from '@/components/XPPopup';
 
@@ -18,6 +19,7 @@ const WorkoutSession = () => {
   const { data: weightHistory } = useWeightHistory();
   const updateWeight = useUpdateWeight();
   const updateProfileStats = useUpdateProfileStats();
+  const createWorkoutSession = useCreateWorkoutSession();
 
   const { 
     currentSession, 
@@ -73,10 +75,12 @@ const WorkoutSession = () => {
     }
   }, [mission, missionId, currentSession, showLore, startMission]);
 
-  // Save stats when mission completes (only once)
+  // Save stats and session when mission completes (only once)
   useEffect(() => {
     if (user && currentSession?.status === 'COMPLETED' && !statsSaved && mission) {
       setStatsSaved(true);
+      
+      // Save profile stats
       updateProfileStats.mutate({
         score: stats.score,
         xp: stats.xp,
@@ -85,11 +89,28 @@ const WorkoutSession = () => {
         weight: stats.totalWeight,
         maxCombo: stats.maxCombo,
       });
+      
+      // Save workout session to database
+      createWorkoutSession.mutate({
+        missionId: mission.id,
+        missionSnapshot: {
+          name: mission.name,
+          code_name: mission.code_name,
+        },
+        scoreEarned: stats.score,
+        xpEarned: stats.xp,
+        setsCompleted: stats.setsCompleted,
+        totalReps: stats.totalReps,
+        totalWeight: stats.totalWeight,
+        maxCombo: stats.maxCombo,
+        damageDealt: stats.damageDealt,
+      });
+      
       if (mission.outro_lore) {
         setShowLore('outro');
       }
     }
-  }, [currentSession?.status, user, statsSaved, mission, stats, updateProfileStats]);
+  }, [currentSession?.status, user, statsSaved, mission, stats, updateProfileStats, createWorkoutSession]);
 
   if (missionLoading || !mission) {
     return (

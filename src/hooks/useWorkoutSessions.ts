@@ -39,6 +39,55 @@ export function useCompletedSessions() {
   });
 }
 
+export function useCreateWorkoutSession() {
+  const queryClient = useQueryClient();
+  const { user } = useAuth();
+
+  return useMutation({
+    mutationFn: async (sessionData: {
+      missionId: string;
+      missionSnapshot: {
+        name: string;
+        code_name: string;
+      };
+      scoreEarned: number;
+      xpEarned: number;
+      setsCompleted: number;
+      totalReps: number;
+      totalWeight: number;
+      maxCombo: number;
+      damageDealt: number;
+    }) => {
+      if (!user) throw new Error('Must be logged in');
+      
+      const { data, error } = await supabase
+        .from('workout_sessions')
+        .insert({
+          user_id: user.id,
+          mission_id: sessionData.missionId,
+          mission_snapshot: sessionData.missionSnapshot,
+          score_earned: sessionData.scoreEarned,
+          xp_earned: sessionData.xpEarned,
+          sets_completed: sessionData.setsCompleted,
+          total_reps: sessionData.totalReps,
+          total_weight: sessionData.totalWeight,
+          max_combo: sessionData.maxCombo,
+          damage_dealt: sessionData.damageDealt,
+          status: 'COMPLETED',
+          completed_at: new Date().toISOString(),
+        })
+        .select()
+        .single();
+      
+      if (error) throw error;
+      return data;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['completed-sessions'] });
+    },
+  });
+}
+
 export function useDeleteSession() {
   const queryClient = useQueryClient();
   const { user } = useAuth();
