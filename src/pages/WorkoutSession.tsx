@@ -101,10 +101,22 @@ const WorkoutSession = () => {
     );
   }
 
-  const missionExercise = mission.exercises[currentExerciseIndex];
+  // Guard against out-of-bounds access
+  const safeExerciseIndex = Math.min(currentExerciseIndex, mission.exercises.length - 1);
+  const missionExercise = mission.exercises[safeExerciseIndex];
+  
+  if (!missionExercise) {
+    return (
+      <div className="min-h-screen bg-background flex items-center justify-center">
+        <div className="font-display text-2xl text-primary animate-neon-pulse">LOADING...</div>
+      </div>
+    );
+  }
+  
   const exercise = getExerciseById(missionExercise.exerciseId);
-  const progress = ((currentExerciseIndex * missionExercise.targetSets + currentSetIndex) / 
-    (mission.exercises.reduce((acc, e) => acc + e.targetSets, 0))) * 100;
+  const totalSets = mission.exercises.reduce((acc, e) => acc + e.targetSets, 0);
+  const completedSets = mission.exercises.slice(0, safeExerciseIndex).reduce((acc, e) => acc + e.targetSets, 0) + currentSetIndex;
+  const progress = (completedSets / totalSets) * 100;
 
   const handleCompleteSet = () => {
     setIsCompleting(true);
@@ -138,7 +150,7 @@ const WorkoutSession = () => {
         <div className="text-center">
           <div className="font-display text-lg text-primary">{mission.codeName}</div>
           <div className="text-xs text-muted-foreground">
-            {currentExerciseIndex + 1}/{mission.exercises.length}
+            {safeExerciseIndex + 1}/{mission.exercises.length}
           </div>
         </div>
 
