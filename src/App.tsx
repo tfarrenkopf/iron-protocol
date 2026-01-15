@@ -6,6 +6,7 @@ import { BrowserRouter, Routes, Route } from "react-router-dom";
 import { AuthProvider } from "@/hooks/useAuth";
 import Dashboard from "./pages/Dashboard";
 import MissionSelect from "./pages/MissionSelect";
+import MissionDetail from "./pages/MissionDetail";
 import WorkoutSession from "./pages/WorkoutSession";
 import HIITTimer from "./pages/HIITTimer";
 import Stats from "./pages/Stats";
@@ -36,6 +37,7 @@ const App = () => (
             <Route path="/auth" element={<AuthPage />} />
             <Route path="/profile" element={<ProfilePage />} />
             <Route path="/missions" element={<MissionSelect />} />
+            <Route path="/mission/:missionId" element={<MissionDetail />} />
             <Route path="/workout/:missionId" element={<WorkoutSession />} />
             <Route path="/workout/assignment/:assignmentId" element={<AssignmentWorkout />} />
             <Route path="/hiit" element={<HIITTimer />} />
