@@ -164,6 +164,32 @@ export function useUpdateAssignmentStatus() {
   });
 }
 
+// Update assignment mission snapshot (for handlers only)
+export function useUpdateAssignmentSnapshot() {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: async ({ 
+      assignmentId, 
+      missionSnapshot 
+    }: { 
+      assignmentId: string; 
+      missionSnapshot: object;
+    }) => {
+      const { error } = await supabase
+        .from('mission_assignments')
+        .update({ mission_snapshot: missionSnapshot as unknown as import('@/integrations/supabase/types').Json })
+        .eq('id', assignmentId);
+      
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['handler-assignments'] });
+      queryClient.invalidateQueries({ queryKey: ['my-assignments'] });
+    },
+  });
+}
+
 // Delete assignment
 export function useDeleteAssignment() {
   const queryClient = useQueryClient();
