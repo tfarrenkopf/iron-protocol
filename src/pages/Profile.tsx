@@ -1,10 +1,12 @@
 import { useState, useEffect } from 'react';
-import { motion } from 'framer-motion';
+import { motion, AnimatePresence } from 'framer-motion';
 import { useNavigate } from 'react-router-dom';
-import { ArrowLeft, User, Save, AlertCircle, Check, Trophy, Zap, Target, Dumbbell } from 'lucide-react';
+import { ArrowLeft, User, Save, AlertCircle, Check, Trophy, Zap, Target, Dumbbell, Trash2, Calendar, X } from 'lucide-react';
 import { useAuth } from '@/hooks/useAuth';
 import { useProfile, useUpdateProfile } from '@/hooks/useProfile';
+import { useCompletedSessions, useDeleteSession } from '@/hooks/useWorkoutSessions';
 import { z } from 'zod';
+import { format } from 'date-fns';
 
 const displayNameSchema = z.string().min(3, { message: 'Display name must be at least 3 characters' }).max(15, { message: 'Display name must be 15 characters or less' }).regex(/^[a-zA-Z0-9_-]+$/, { message: 'Only letters, numbers, underscores and dashes allowed' });
 
@@ -12,11 +14,14 @@ const ProfilePage = () => {
   const navigate = useNavigate();
   const { user, isAnonymous } = useAuth();
   const { data: profile, isLoading } = useProfile();
+  const { data: sessions, isLoading: sessionsLoading } = useCompletedSessions();
   const updateProfile = useUpdateProfile();
+  const deleteSession = useDeleteSession();
   
   const [displayName, setDisplayName] = useState('');
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState(false);
+  const [deleteConfirmId, setDeleteConfirmId] = useState<string | null>(null);
 
   useEffect(() => {
     if (profile?.display_name) {
@@ -68,6 +73,15 @@ const ProfilePage = () => {
       setTimeout(() => setSuccess(false), 3000);
     } catch (err) {
       setError('Failed to update profile. Try again.');
+    }
+  };
+
+  const handleDeleteSession = async (sessionId: string) => {
+    try {
+      await deleteSession.mutateAsync(sessionId);
+      setDeleteConfirmId(null);
+    } catch (err) {
+      console.error('Failed to delete session:', err);
     }
   };
 
@@ -164,7 +178,7 @@ const ProfilePage = () => {
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: 0.3 }}
               onSubmit={handleSubmit}
-              className="bg-card border border-border rounded-lg p-6"
+              className="bg-card border border-border rounded-lg p-6 mb-6"
             >
               <h2 className="font-display text-lg text-muted-foreground mb-4">CALL SIGN</h2>
               
@@ -210,6 +224,96 @@ const ProfilePage = () => {
                 </button>
               </div>
             </motion.form>
+
+            {/* Completed Missions */}
+            <motion.section
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.4 }}
+              className="bg-card border border-border rounded-lg p-6"
+            >
+              <h2 className="font-display text-lg text-muted-foreground mb-4">MISSION HISTORY</h2>
+              
+              {sessionsLoading ? (
+                <div className="text-center py-4">
+                  <div className="font-display text-sm text-primary animate-neon-pulse">LOADING...</div>
+                </div>
+              ) : !sessions || sessions.length === 0 ? (
+                <div className="text-center py-4">
+                  <Trophy className="w-8 h-8 mx-auto mb-3 text-muted-foreground" />
+                  <p className="text-muted-foreground text-sm">No completed missions yet.</p>
+                  <p className="text-muted-foreground/60 text-xs mt-1">Complete workouts to build your history.</p>
+                </div>
+              ) : (
+                <div className="space-y-3">
+                  {sessions.map((session) => (
+                    <div key={session.id} className="relative">
+                      <div className="bg-background border border-border rounded-lg p-4">
+                        <div className="flex items-start justify-between">
+                          <div className="flex-1 min-w-0">
+                            <div className="font-display text-sm text-primary truncate">
+                              {session.missions?.code_name || (session.mission_snapshot as any)?.code_name || 'UNKNOWN MISSION'}
+                            </div>
+                            <div className="flex items-center gap-2 mt-1 text-xs text-muted-foreground">
+                              <Calendar className="w-3 h-3" />
+                              {session.completed_at ? format(new Date(session.completed_at), 'MMM d, yyyy h:mm a') : 'Unknown date'}
+                            </div>
+                            <div className="flex items-center gap-4 mt-2 text-xs">
+                              <span className="text-accent">{session.score_earned.toLocaleString()} pts</span>
+                              <span className="text-success">{session.xp_earned} XP</span>
+                              <span className="text-secondary">{session.sets_completed} sets</span>
+                            </div>
+                          </div>
+                          
+                          <button
+                            onClick={() => setDeleteConfirmId(session.id)}
+                            className="p-2 text-muted-foreground hover:text-destructive transition-colors"
+                            title="Delete this mission"
+                          >
+                            <Trash2 className="w-4 h-4" />
+                          </button>
+                        </div>
+                      </div>
+
+                      {/* Delete Confirmation Modal */}
+                      <AnimatePresence>
+                        {deleteConfirmId === session.id && (
+                          <motion.div
+                            initial={{ opacity: 0, scale: 0.95 }}
+                            animate={{ opacity: 1, scale: 1 }}
+                            exit={{ opacity: 0, scale: 0.95 }}
+                            className="absolute inset-0 bg-card border-2 border-destructive rounded-lg p-4 flex flex-col justify-center z-10"
+                          >
+                            <div className="text-center">
+                              <AlertCircle className="w-8 h-8 mx-auto mb-2 text-destructive" />
+                              <p className="text-sm font-display text-destructive mb-1">DELETE MISSION?</p>
+                              <p className="text-xs text-muted-foreground mb-4">
+                                This will remove {session.score_earned.toLocaleString()} pts and {session.xp_earned} XP from your profile. This cannot be undone.
+                              </p>
+                              <div className="flex gap-2 justify-center">
+                                <button
+                                  onClick={() => setDeleteConfirmId(null)}
+                                  className="px-4 py-2 border border-border rounded text-sm hover:bg-muted transition-colors"
+                                >
+                                  <X className="w-4 h-4" />
+                                </button>
+                                <button
+                                  onClick={() => handleDeleteSession(session.id)}
+                                  disabled={deleteSession.isPending}
+                                  className="px-4 py-2 bg-destructive text-destructive-foreground rounded text-sm font-display hover:bg-destructive/90 transition-colors disabled:opacity-50"
+                                >
+                                  {deleteSession.isPending ? 'DELETING...' : 'DELETE'}
+                                </button>
+                              </div>
+                            </div>
+                          </motion.div>
+                        )}
+                      </AnimatePresence>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </motion.section>
           </>
         )}
       </div>

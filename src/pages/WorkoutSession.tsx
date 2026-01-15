@@ -114,10 +114,12 @@ const WorkoutSession = () => {
   }
 
   const missionExercises = mission.mission_exercises || [];
+  const [statsSaved, setStatsSaved] = useState(false);
 
-  if (currentSession?.status === 'COMPLETED' || showLore === 'outro') {
-    // Save stats to profile if logged in
-    if (user && currentSession?.status === 'COMPLETED' && showLore !== 'outro') {
+  // Save stats when mission completes (only once)
+  useEffect(() => {
+    if (user && currentSession?.status === 'COMPLETED' && !statsSaved) {
+      setStatsSaved(true);
       updateProfileStats.mutate({
         score: stats.score,
         xp: stats.xp,
@@ -126,45 +128,45 @@ const WorkoutSession = () => {
         weight: stats.totalWeight,
         maxCombo: stats.maxCombo,
       });
-      if (mission.outro_lore) {
+      if (mission?.outro_lore) {
         setShowLore('outro');
-        return null;
       }
     }
+  }, [currentSession?.status, user, statsSaved]);
 
-    // Show outro lore
-    if (showLore === 'outro' && mission.outro_lore) {
-      return (
-        <motion.div 
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          className="min-h-screen bg-background flex flex-col items-center justify-center p-6"
+  // Show outro lore
+  if (showLore === 'outro' && mission.outro_lore) {
+    return (
+      <motion.div 
+        initial={{ opacity: 0 }}
+        animate={{ opacity: 1 }}
+        className="min-h-screen bg-background flex flex-col items-center justify-center p-6"
+      >
+        <div className="fixed inset-0 pointer-events-none scanlines opacity-30" />
+        <motion.div
+          initial={{ scale: 0.9, opacity: 0 }}
+          animate={{ scale: 1, opacity: 1 }}
+          transition={{ delay: 0.2 }}
+          className="max-w-lg text-center relative z-10"
         >
-          <div className="fixed inset-0 pointer-events-none scanlines opacity-30" />
-          <motion.div
-            initial={{ scale: 0.9, opacity: 0 }}
-            animate={{ scale: 1, opacity: 1 }}
-            transition={{ delay: 0.2 }}
-            className="max-w-lg text-center relative z-10"
+          <h1 className="font-display text-5xl md:text-6xl text-success text-glow-primary mb-4">
+            MISSION COMPLETE
+          </h1>
+          <p className="text-muted-foreground leading-relaxed mb-8 text-lg">
+            {mission.outro_lore}
+          </p>
+          <button
+            onClick={() => setShowLore(null)}
+            className="px-8 py-4 bg-success text-success-foreground font-display text-xl rounded transition-all hover:opacity-90"
           >
-            <h1 className="font-display text-5xl md:text-6xl text-success text-glow-primary mb-4">
-              MISSION COMPLETE
-            </h1>
-            <p className="text-muted-foreground leading-relaxed mb-8 text-lg">
-              {mission.outro_lore}
-            </p>
-            <button
-              onClick={() => {
-                setShowLore(null);
-              }}
-              className="px-8 py-4 bg-success text-success-foreground font-display text-xl rounded transition-all"
-            >
-              VIEW RESULTS
-            </button>
-          </motion.div>
+            VIEW RESULTS
+          </button>
         </motion.div>
-      );
-    }
+      </motion.div>
+    );
+  }
+
+  if (currentSession?.status === 'COMPLETED') {
 
     return (
       <motion.div 
