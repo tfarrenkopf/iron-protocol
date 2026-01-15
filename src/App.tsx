@@ -16,6 +16,9 @@ import CreateMission from "./pages/CreateMission";
 import FrontLines from "./pages/FrontLines";
 import Legal from "./pages/Legal";
 import Why from "./pages/Why";
+import HandlerDashboard from "./pages/HandlerDashboard";
+import JoinSquad from "./pages/JoinSquad";
+import AssignMission from "./pages/AssignMission";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -40,6 +43,9 @@ const App = () => (
             <Route path="/front-lines" element={<FrontLines />} />
             <Route path="/legal" element={<Legal />} />
             <Route path="/why" element={<Why />} />
+            <Route path="/handler" element={<HandlerDashboard />} />
+            <Route path="/handler/assign/:squadId" element={<AssignMission />} />
+            <Route path="/join/:inviteCode" element={<JoinSquad />} />
             {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
             <Route path="*" element={<NotFound />} />
           </Routes>

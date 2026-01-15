@@ -1,12 +1,13 @@
 import { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useNavigate } from 'react-router-dom';
-import { ArrowLeft, User, Save, AlertCircle, Check, Trophy, Zap, Target, Dumbbell, Trash2, Calendar, X, ChevronDown, ChevronUp, Skull, AlertTriangle } from 'lucide-react';
+import { ArrowLeft, User, Save, AlertCircle, Check, Trophy, Zap, Target, Dumbbell, Trash2, Calendar, X, ChevronDown, ChevronUp, Skull, AlertTriangle, Shield, ChevronRight, Users } from 'lucide-react';
 import { useAuth } from '@/hooks/useAuth';
 import { useProfile, useUpdateProfile } from '@/hooks/useProfile';
 import { useCompletedSessions, useDeleteSession } from '@/hooks/useWorkoutSessions';
 import { useUserExercises, useDeleteExercise } from '@/hooks/useExercises';
 import { useWipeAllData } from '@/hooks/useWipeData';
+import { useIsHandler, useToggleHandlerMode, useMySquads, useLeaveSquad, useUpdateMemberStats } from '@/hooks/useHandlerMode';
 import { z } from 'zod';
 import { format } from 'date-fns';
 
@@ -18,10 +19,15 @@ const ProfilePage = () => {
   const { data: profile, isLoading } = useProfile();
   const { data: sessions, isLoading: sessionsLoading } = useCompletedSessions();
   const { data: userExercises, isLoading: exercisesLoading } = useUserExercises();
+  const { data: isHandler, isLoading: handlerLoading } = useIsHandler();
+  const { data: mySquads, isLoading: squadsLoading } = useMySquads();
   const updateProfile = useUpdateProfile();
   const deleteSession = useDeleteSession();
   const deleteExercise = useDeleteExercise();
   const wipeAllData = useWipeAllData();
+  const toggleHandler = useToggleHandlerMode();
+  const leaveSquad = useLeaveSquad();
+  const updateMemberStats = useUpdateMemberStats();
   
   const [displayName, setDisplayName] = useState('');
   const [error, setError] = useState<string | null>(null);
@@ -32,6 +38,7 @@ const ProfilePage = () => {
   const [showExercises, setShowExercises] = useState(true);
   const [showWipeConfirm, setShowWipeConfirm] = useState(false);
   const [wipeConfirmText, setWipeConfirmText] = useState('');
+  const [showSquads, setShowSquads] = useState(true);
 
   useEffect(() => {
     if (profile?.display_name) {
@@ -254,6 +261,109 @@ const ProfilePage = () => {
                 </button>
               </div>
             </motion.form>
+
+            {/* Handler Mode Toggle */}
+            <motion.section
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.35 }}
+              className="bg-card border border-secondary/50 rounded-lg p-6 mb-6"
+            >
+              <div className="flex items-center justify-between mb-4">
+                <div className="flex items-center gap-3">
+                  <Shield className="w-5 h-5 text-secondary" />
+                  <h2 className="font-display text-lg text-secondary">HANDLER MODE</h2>
+                </div>
+                <button
+                  onClick={() => toggleHandler.mutateAsync(!isHandler)}
+                  disabled={toggleHandler.isPending || handlerLoading}
+                  className={`w-12 h-6 rounded-full transition-colors relative ${
+                    isHandler ? 'bg-secondary' : 'bg-muted'
+                  }`}
+                >
+                  <div className={`absolute top-1 w-4 h-4 rounded-full bg-white transition-transform ${
+                    isHandler ? 'left-7' : 'left-1'
+                  }`} />
+                </button>
+              </div>
+              <p className="text-xs text-muted-foreground mb-4">
+                Enable to create squads and assign missions to other agents.
+              </p>
+              {isHandler && (
+                <button
+                  onClick={() => navigate('/handler')}
+                  className="w-full py-2 bg-secondary/10 border border-secondary/30 text-secondary font-display text-sm rounded flex items-center justify-center gap-2 hover:bg-secondary/20 transition-colors"
+                >
+                  OPEN HANDLER OPS
+                  <ChevronRight className="w-4 h-4" />
+                </button>
+              )}
+            </motion.section>
+
+            {/* My Squads (as athlete) */}
+            {mySquads && mySquads.length > 0 && (
+              <motion.section
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: 0.38 }}
+                className="bg-card border border-border rounded-lg p-6 mb-6"
+              >
+                <button 
+                  onClick={() => setShowSquads(!showSquads)}
+                  className="w-full flex items-center justify-between font-display text-lg text-muted-foreground mb-4"
+                >
+                  <span className="flex items-center gap-2">
+                    <Users className="w-4 h-4" />
+                    MY SQUADS ({mySquads.length})
+                  </span>
+                  {showSquads ? <ChevronUp className="w-5 h-5" /> : <ChevronDown className="w-5 h-5" />}
+                </button>
+                
+                <AnimatePresence>
+                  {showSquads && (
+                    <motion.div
+                      initial={{ height: 0, opacity: 0 }}
+                      animate={{ height: 'auto', opacity: 1 }}
+                      exit={{ height: 0, opacity: 0 }}
+                      className="overflow-hidden space-y-2"
+                    >
+                      {mySquads.map((membership: any) => (
+                        <div key={membership.id} className="bg-background border border-border rounded-lg p-3">
+                          <div className="flex items-center justify-between mb-2">
+                            <span className="font-display text-sm text-secondary">
+                              {membership.squads?.code_name}
+                            </span>
+                            <button
+                              onClick={() => leaveSquad.mutateAsync(membership.squads?.id)}
+                              className="text-xs text-muted-foreground hover:text-destructive"
+                            >
+                              Leave
+                            </button>
+                          </div>
+                          <div className="flex items-center justify-between text-xs">
+                            <span className="text-muted-foreground">
+                              Handler: {membership.squads?.profiles?.display_name || 'Unknown'}
+                            </span>
+                            <label className="flex items-center gap-2 cursor-pointer">
+                              <span className="text-muted-foreground">Share stats</span>
+                              <input
+                                type="checkbox"
+                                checked={membership.share_stats}
+                                onChange={(e) => updateMemberStats.mutateAsync({
+                                  squadId: membership.squads?.id,
+                                  shareStats: e.target.checked
+                                })}
+                                className="w-3 h-3 accent-secondary"
+                              />
+                            </label>
+                          </div>
+                        </div>
+                      ))}
+                    </motion.div>
+                  )}
+                </AnimatePresence>
+              </motion.section>
+            )}
 
             {/* Completed Missions */}
             <motion.section
