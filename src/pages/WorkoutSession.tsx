@@ -38,6 +38,7 @@ const WorkoutSession = () => {
   const [showXPPopup, setShowXPPopup] = useState(false);
   const [lastXPGain, setLastXPGain] = useState({ xp: 0, score: 0, combo: 0, damage: 0 });
   const [showLore, setShowLore] = useState<'intro' | 'outro' | null>(null);
+  const [statsSaved, setStatsSaved] = useState(false);
   const prevStatsRef = useRef(stats);
 
   // Start mission when data is loaded
@@ -114,7 +115,6 @@ const WorkoutSession = () => {
   }
 
   const missionExercises = mission.mission_exercises || [];
-  const [statsSaved, setStatsSaved] = useState(false);
 
   // Save stats when mission completes (only once)
   useEffect(() => {

@@ -22,6 +22,27 @@ export function useExercises() {
   });
 }
 
+export function useUserExercises() {
+  const { user } = useAuth();
+
+  return useQuery({
+    queryKey: ['exercises', 'user-created', user?.id],
+    queryFn: async () => {
+      if (!user) return [];
+      
+      const { data, error } = await supabase
+        .from('exercises')
+        .select('*')
+        .eq('created_by', user.id)
+        .order('created_at', { ascending: false });
+      
+      if (error) throw error;
+      return data as Exercise[];
+    },
+    enabled: !!user,
+  });
+}
+
 export function usePublicMissionExercises() {
   return useQuery({
     queryKey: ['exercises', 'public-mission-allowed'],
