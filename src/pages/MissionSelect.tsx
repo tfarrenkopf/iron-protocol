@@ -198,7 +198,7 @@ const MissionSelect = () => {
                 initial={{ opacity: 0, x: -30 }}
                 animate={{ opacity: 1, x: 0 }}
                 transition={{ delay: i * 0.05 }}
-                onClick={() => navigate(`/workout/${mission.id}`)}
+                onClick={() => navigate(`/mission/${mission.id}`)}
                 className="w-full group bg-card border border-border rounded-lg p-5 text-left hover:border-primary transition-all relative overflow-hidden"
               >
                 {/* Glow effect on hover */}
