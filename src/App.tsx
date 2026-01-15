@@ -7,6 +7,7 @@ import Dashboard from "./pages/Dashboard";
 import MissionSelect from "./pages/MissionSelect";
 import WorkoutSession from "./pages/WorkoutSession";
 import HIITTimer from "./pages/HIITTimer";
+import Stats from "./pages/Stats";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -22,6 +23,7 @@ const App = () => (
           <Route path="/missions" element={<MissionSelect />} />
           <Route path="/workout/:missionId" element={<WorkoutSession />} />
           <Route path="/hiit" element={<HIITTimer />} />
+          <Route path="/stats" element={<Stats />} />
           {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
           <Route path="*" element={<NotFound />} />
         </Routes>
