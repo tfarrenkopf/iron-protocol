@@ -1,9 +1,9 @@
-import { useState } from 'react';
+import { useState, useMemo } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useNavigate } from 'react-router-dom';
-import { ArrowLeft, Users, Target, Plus, Copy, Check, Trash2, ChevronRight, Send, Calendar, ChevronDown, ChevronUp, Edit3, X, Save, Dumbbell } from 'lucide-react';
+import { ArrowLeft, Users, Target, Plus, Copy, Check, Trash2, ChevronRight, Send, Calendar, ChevronDown, ChevronUp, Edit3, X, Save, Dumbbell, Percent } from 'lucide-react';
 import { useAuth } from '@/hooks/useAuth';
-import { useIsHandler, useSquads, useCreateSquad, useDeleteSquad } from '@/hooks/useHandlerMode';
+import { useIsHandler, useSquads, useCreateSquad, useDeleteSquad, useUpdateSquad } from '@/hooks/useHandlerMode';
 import { useHandlerAssignments, useDeleteAssignment, useUpdateAssignmentSnapshot } from '@/hooks/useAssignments';
 import { format } from 'date-fns';
 
@@ -15,6 +15,7 @@ const HandlerDashboard = () => {
   const { data: assignments, isLoading: assignmentsLoading } = useHandlerAssignments();
   const createSquad = useCreateSquad();
   const deleteSquad = useDeleteSquad();
+  const updateSquad = useUpdateSquad();
   const deleteAssignment = useDeleteAssignment();
   const updateSnapshot = useUpdateAssignmentSnapshot();
 
@@ -27,6 +28,44 @@ const HandlerDashboard = () => {
   const [expandedAssignment, setExpandedAssignment] = useState<string | null>(null);
   const [editingAssignment, setEditingAssignment] = useState<string | null>(null);
   const [editingExercises, setEditingExercises] = useState<any[]>([]);
+  
+  // Edit squad state
+  const [editingSquad, setEditingSquad] = useState<string | null>(null);
+  const [editSquadName, setEditSquadName] = useState('');
+  const [editSquadCodeName, setEditSquadCodeName] = useState('');
+  const [editSquadDescription, setEditSquadDescription] = useState('');
+
+  // Calculate assignments by squad
+  const assignmentsBySquad = useMemo(() => {
+    if (!assignments) return {};
+    const map: Record<string, { total: number; completed: number; missions: string[] }> = {};
+    
+    assignments.forEach((a: any) => {
+      if (a.assignee_type === 'SQUAD') {
+        const squadId = a.assignee_id;
+        if (!map[squadId]) {
+          map[squadId] = { total: 0, completed: 0, missions: [] };
+        }
+        map[squadId].total++;
+        if (a.status === 'COMPLETED') {
+          map[squadId].completed++;
+        }
+        const codeName = (a.mission_snapshot as any)?.code_name;
+        if (codeName && !map[squadId].missions.includes(codeName)) {
+          map[squadId].missions.push(codeName);
+        }
+      }
+    });
+    return map;
+  }, [assignments]);
+
+  // Calculate overall completion rate
+  const overallStats = useMemo(() => {
+    if (!assignments) return { total: 0, completed: 0, rate: 0 };
+    const total = assignments.length;
+    const completed = assignments.filter((a: any) => a.status === 'COMPLETED').length;
+    return { total, completed, rate: total > 0 ? Math.round((completed / total) * 100) : 0 };
+  }, [assignments]);
 
   const handleCreateSquad = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -65,6 +104,39 @@ const HandlerDashboard = () => {
       await deleteSquad.mutateAsync(squadId);
     } catch (err) {
       console.error('Failed to delete squad:', err);
+    }
+  };
+
+  const handleStartEditSquad = (squad: any) => {
+    setEditingSquad(squad.id);
+    setEditSquadName(squad.name);
+    setEditSquadCodeName(squad.code_name);
+    setEditSquadDescription(squad.description || '');
+  };
+
+  const handleCancelEditSquad = () => {
+    setEditingSquad(null);
+    setEditSquadName('');
+    setEditSquadCodeName('');
+    setEditSquadDescription('');
+  };
+
+  const handleSaveEditSquad = async (squadId: string) => {
+    if (!editSquadName.trim() || !editSquadCodeName.trim()) {
+      return;
+    }
+    try {
+      await updateSquad.mutateAsync({
+        squadId,
+        data: {
+          name: editSquadName.trim(),
+          code_name: editSquadCodeName.trim().toUpperCase(),
+          description: editSquadDescription.trim() || undefined,
+        },
+      });
+      handleCancelEditSquad();
+    } catch (err) {
+      console.error('Failed to update squad:', err);
     }
   };
 
@@ -163,7 +235,7 @@ const HandlerDashboard = () => {
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.1 }}
-          className="grid grid-cols-2 gap-4 mb-8"
+          className="grid grid-cols-3 gap-4 mb-8"
         >
           <div className="bg-card border border-border rounded-lg p-4 text-center">
             <Users className="w-6 h-6 mx-auto mb-2 text-secondary" />
@@ -175,9 +247,16 @@ const HandlerDashboard = () => {
           <div className="bg-card border border-border rounded-lg p-4 text-center">
             <Target className="w-6 h-6 mx-auto mb-2 text-accent" />
             <div className="font-display text-3xl text-accent">
-              {assignments?.filter(a => a.status !== 'COMPLETED').length || 0}
+              {assignments?.filter((a: any) => a.status !== 'COMPLETED').length || 0}
             </div>
             <div className="text-xs text-muted-foreground">ACTIVE ORDERS</div>
+          </div>
+          <div className="bg-card border border-border rounded-lg p-4 text-center">
+            <Percent className="w-6 h-6 mx-auto mb-2 text-success" />
+            <div className="font-display text-3xl text-success">
+              {overallStats.rate}%
+            </div>
+            <div className="text-xs text-muted-foreground">COMPLETION</div>
           </div>
         </motion.div>
 
@@ -213,94 +292,203 @@ const HandlerDashboard = () => {
             </div>
           ) : (
             <div className="space-y-3">
-              {squads.map((squad, i) => (
-                <motion.div
-                  key={squad.id}
-                  initial={{ opacity: 0, x: -20 }}
-                  animate={{ opacity: 1, x: 0 }}
-                  transition={{ delay: 0.3 + i * 0.05 }}
-                  className="bg-card border border-border rounded-lg p-4"
-                >
-                  <div className="flex items-start justify-between mb-3">
-                    <div>
-                      <div className="font-display text-lg text-secondary">{squad.code_name}</div>
-                      <div className="text-sm text-muted-foreground">{squad.name}</div>
-                    </div>
-                    <button
-                      onClick={() => handleDeleteSquad(squad.id)}
-                      className="p-2 text-muted-foreground hover:text-destructive transition-colors"
-                      title="Delete squad"
-                    >
-                      <Trash2 className="w-4 h-4" />
-                    </button>
-                  </div>
+              {squads.map((squad, i) => {
+                const squadStats = assignmentsBySquad[squad.id] || { total: 0, completed: 0, missions: [] };
+                const completionRate = squadStats.total > 0 ? Math.round((squadStats.completed / squadStats.total) * 100) : 0;
+                const isEditing = editingSquad === squad.id;
 
-                  {/* Invite Link Section */}
-                  <div className="bg-muted/50 border border-border rounded-lg p-3 mb-3">
-                    <div className="text-xs text-muted-foreground mb-2">INVITE LINK</div>
-                    <div className="flex items-center gap-2">
-                      <code className="flex-1 text-xs bg-background px-2 py-1.5 rounded border border-border text-primary font-mono overflow-hidden text-ellipsis">
-                        {`${window.location.origin}/join/${squad.invite_code}`}
-                      </code>
-                      <button
-                        onClick={() => handleCopyInvite(squad.invite_code)}
-                        className="flex items-center gap-1 px-3 py-1.5 bg-primary text-primary-foreground text-xs font-display rounded hover:box-glow-primary transition-all"
-                      >
-                        {copiedCode === squad.invite_code ? (
-                          <>
-                            <Check className="w-3 h-3" />
-                            COPIED!
-                          </>
-                        ) : (
-                          <>
-                            <Copy className="w-3 h-3" />
-                            COPY
-                          </>
-                        )}
-                      </button>
-                    </div>
-                    <p className="text-xs text-muted-foreground/60 mt-2">
-                      Share this link with athletes to join your squad
-                    </p>
-                  </div>
-                  
-                  <div className="flex items-center justify-between">
-                    <div className="flex items-center gap-2 text-xs text-muted-foreground">
-                      <Users className="w-3 h-3" />
-                      <span>{squad.squad_members?.length || 0} members</span>
-                    </div>
-                    <button
-                      onClick={() => navigate(`/handler/assign/${squad.id}`)}
-                      className="flex items-center gap-1 text-xs text-accent hover:text-glow-accent font-display"
-                    >
-                      ASSIGN MISSION
-                      <ChevronRight className="w-3 h-3" />
-                    </button>
-                  </div>
-
-                  {/* Member list preview */}
-                  {squad.squad_members && squad.squad_members.length > 0 && (
-                    <div className="mt-3 pt-3 border-t border-border">
-                      <div className="text-xs text-muted-foreground mb-2">SQUAD MEMBERS</div>
-                      <div className="flex flex-wrap gap-2">
-                        {squad.squad_members.slice(0, 5).map((member: { id: string; profiles?: { display_name?: string } }) => (
-                          <span
-                            key={member.id}
-                            className="text-xs px-2 py-1 bg-secondary/10 border border-secondary/20 rounded text-secondary"
+                return (
+                  <motion.div
+                    key={squad.id}
+                    initial={{ opacity: 0, x: -20 }}
+                    animate={{ opacity: 1, x: 0 }}
+                    transition={{ delay: 0.3 + i * 0.05 }}
+                    className="bg-card border border-border rounded-lg p-4"
+                  >
+                    {isEditing ? (
+                      /* Edit Mode */
+                      <div className="space-y-3">
+                        <div>
+                          <label className="text-xs text-muted-foreground tracking-wider">CODE NAME</label>
+                          <input
+                            type="text"
+                            value={editSquadCodeName}
+                            onChange={(e) => setEditSquadCodeName(e.target.value.toUpperCase())}
+                            className="w-full bg-background border border-border rounded px-3 py-2 mt-1 font-display focus:border-secondary focus:outline-none"
+                            maxLength={20}
+                          />
+                        </div>
+                        <div>
+                          <label className="text-xs text-muted-foreground tracking-wider">FULL NAME</label>
+                          <input
+                            type="text"
+                            value={editSquadName}
+                            onChange={(e) => setEditSquadName(e.target.value)}
+                            className="w-full bg-background border border-border rounded px-3 py-2 mt-1 focus:border-secondary focus:outline-none"
+                            maxLength={50}
+                          />
+                        </div>
+                        <div>
+                          <label className="text-xs text-muted-foreground tracking-wider">DESCRIPTION</label>
+                          <textarea
+                            value={editSquadDescription}
+                            onChange={(e) => setEditSquadDescription(e.target.value)}
+                            className="w-full bg-background border border-border rounded px-3 py-2 mt-1 focus:border-secondary focus:outline-none resize-none"
+                            rows={2}
+                            maxLength={200}
+                          />
+                        </div>
+                        <div className="flex gap-2">
+                          <button
+                            onClick={() => handleSaveEditSquad(squad.id)}
+                            disabled={updateSquad.isPending}
+                            className="flex items-center gap-1 px-3 py-2 bg-success text-success-foreground text-xs font-display rounded hover:opacity-90 transition-opacity disabled:opacity-50"
                           >
-                            {member.profiles?.display_name || 'Agent'}
-                          </span>
-                        ))}
-                        {squad.squad_members.length > 5 && (
-                          <span className="text-xs px-2 py-1 text-muted-foreground">
-                            +{squad.squad_members.length - 5} more
-                          </span>
-                        )}
+                            <Save className="w-3 h-3" />
+                            {updateSquad.isPending ? 'SAVING...' : 'SAVE'}
+                          </button>
+                          <button
+                            onClick={handleCancelEditSquad}
+                            className="flex items-center gap-1 px-3 py-2 bg-muted text-muted-foreground text-xs font-display rounded hover:bg-muted/80 transition-colors"
+                          >
+                            <X className="w-3 h-3" />
+                            CANCEL
+                          </button>
+                        </div>
                       </div>
-                    </div>
-                  )}
-                </motion.div>
-              ))}
+                    ) : (
+                      /* View Mode */
+                      <>
+                        <div className="flex items-start justify-between mb-3">
+                          <div>
+                            <div className="font-display text-lg text-secondary">{squad.code_name}</div>
+                            <div className="text-sm text-muted-foreground">{squad.name}</div>
+                          </div>
+                          <div className="flex items-center gap-1">
+                            <button
+                              onClick={() => handleStartEditSquad(squad)}
+                              className="p-2 text-muted-foreground hover:text-secondary transition-colors"
+                              title="Edit squad"
+                            >
+                              <Edit3 className="w-4 h-4" />
+                            </button>
+                            <button
+                              onClick={() => handleDeleteSquad(squad.id)}
+                              className="p-2 text-muted-foreground hover:text-destructive transition-colors"
+                              title="Delete squad"
+                            >
+                              <Trash2 className="w-4 h-4" />
+                            </button>
+                          </div>
+                        </div>
+
+                        {/* Squad Stats */}
+                        <div className="grid grid-cols-3 gap-2 mb-3 text-center">
+                          <div className="bg-muted/30 rounded p-2">
+                            <div className="font-display text-lg text-secondary">{squad.squad_members?.length || 0}</div>
+                            <div className="text-xs text-muted-foreground">Members</div>
+                          </div>
+                          <div className="bg-muted/30 rounded p-2">
+                            <div className="font-display text-lg text-accent">{squadStats.total}</div>
+                            <div className="text-xs text-muted-foreground">Orders</div>
+                          </div>
+                          <div className="bg-muted/30 rounded p-2">
+                            <div className="font-display text-lg text-success">{completionRate}%</div>
+                            <div className="text-xs text-muted-foreground">Complete</div>
+                          </div>
+                        </div>
+
+                        {/* Assigned Missions */}
+                        {squadStats.missions.length > 0 && (
+                          <div className="mb-3">
+                            <div className="text-xs text-muted-foreground mb-1">ASSIGNED MISSIONS</div>
+                            <div className="flex flex-wrap gap-1">
+                              {squadStats.missions.slice(0, 5).map((mission, idx) => (
+                                <span
+                                  key={idx}
+                                  className="text-xs px-2 py-0.5 bg-accent/10 border border-accent/20 rounded text-accent"
+                                >
+                                  {mission}
+                                </span>
+                              ))}
+                              {squadStats.missions.length > 5 && (
+                                <span className="text-xs px-2 py-0.5 text-muted-foreground">
+                                  +{squadStats.missions.length - 5} more
+                                </span>
+                              )}
+                            </div>
+                          </div>
+                        )}
+
+                        {/* Invite Link Section */}
+                        <div className="bg-muted/50 border border-border rounded-lg p-3 mb-3">
+                          <div className="text-xs text-muted-foreground mb-2">INVITE LINK</div>
+                          <div className="flex items-center gap-2">
+                            <code className="flex-1 text-xs bg-background px-2 py-1.5 rounded border border-border text-primary font-mono overflow-hidden text-ellipsis">
+                              {`${window.location.origin}/join/${squad.invite_code}`}
+                            </code>
+                            <button
+                              onClick={() => handleCopyInvite(squad.invite_code)}
+                              className="flex items-center gap-1 px-3 py-1.5 bg-primary text-primary-foreground text-xs font-display rounded hover:box-glow-primary transition-all"
+                            >
+                              {copiedCode === squad.invite_code ? (
+                                <>
+                                  <Check className="w-3 h-3" />
+                                  COPIED!
+                                </>
+                              ) : (
+                                <>
+                                  <Copy className="w-3 h-3" />
+                                  COPY
+                                </>
+                              )}
+                            </button>
+                          </div>
+                          <p className="text-xs text-muted-foreground/60 mt-2">
+                            Share this link with athletes to join your squad
+                          </p>
+                        </div>
+                        
+                        <div className="flex items-center justify-between">
+                          <div className="flex items-center gap-2 text-xs text-muted-foreground">
+                            <Users className="w-3 h-3" />
+                            <span>{squad.squad_members?.length || 0} members</span>
+                          </div>
+                          <button
+                            onClick={() => navigate(`/handler/assign/${squad.id}`)}
+                            className="flex items-center gap-1 text-xs text-accent hover:text-glow-accent font-display"
+                          >
+                            ASSIGN MISSIONS
+                            <ChevronRight className="w-3 h-3" />
+                          </button>
+                        </div>
+
+                        {/* Member list preview */}
+                        {squad.squad_members && squad.squad_members.length > 0 && (
+                          <div className="mt-3 pt-3 border-t border-border">
+                            <div className="text-xs text-muted-foreground mb-2">SQUAD MEMBERS</div>
+                            <div className="flex flex-wrap gap-2">
+                              {squad.squad_members.slice(0, 5).map((member: { id: string; profiles?: { display_name?: string } }) => (
+                                <span
+                                  key={member.id}
+                                  className="text-xs px-2 py-1 bg-secondary/10 border border-secondary/20 rounded text-secondary"
+                                >
+                                  {member.profiles?.display_name || 'Agent'}
+                                </span>
+                              ))}
+                              {squad.squad_members.length > 5 && (
+                                <span className="text-xs px-2 py-1 text-muted-foreground">
+                                  +{squad.squad_members.length - 5} more
+                                </span>
+                              )}
+                            </div>
+                          </div>
+                        )}
+                      </>
+                    )}
+                  </motion.div>
+                );
+              })}
             </div>
           )}
         </motion.section>
@@ -326,7 +514,7 @@ const HandlerDashboard = () => {
             </div>
           ) : (
             <div className="space-y-3">
-              {assignments.slice(0, 10).map((assignment, i) => {
+              {assignments.slice(0, 10).map((assignment: any, i: number) => {
                 const snapshot = assignment.mission_snapshot as any;
                 const exercises = snapshot?.mission_exercises || [];
                 const isExpanded = expandedAssignment === assignment.id;

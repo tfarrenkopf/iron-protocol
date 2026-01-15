@@ -117,6 +117,30 @@ export function useCreateSquad() {
   });
 }
 
+export function useUpdateSquad() {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: async ({ 
+      squadId, 
+      data 
+    }: { 
+      squadId: string; 
+      data: { name?: string; code_name?: string; description?: string } 
+    }) => {
+      const { error } = await supabase
+        .from('squads')
+        .update(data)
+        .eq('id', squadId);
+      
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['squads'] });
+    },
+  });
+}
+
 export function useDeleteSquad() {
   const queryClient = useQueryClient();
 
