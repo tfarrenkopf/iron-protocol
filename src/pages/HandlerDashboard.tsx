@@ -176,26 +176,42 @@ const HandlerDashboard = () => {
                       <div className="font-display text-lg text-secondary">{squad.code_name}</div>
                       <div className="text-sm text-muted-foreground">{squad.name}</div>
                     </div>
+                    <button
+                      onClick={() => handleDeleteSquad(squad.id)}
+                      className="p-2 text-muted-foreground hover:text-destructive transition-colors"
+                      title="Delete squad"
+                    >
+                      <Trash2 className="w-4 h-4" />
+                    </button>
+                  </div>
+
+                  {/* Invite Link Section */}
+                  <div className="bg-muted/50 border border-border rounded-lg p-3 mb-3">
+                    <div className="text-xs text-muted-foreground mb-2">INVITE LINK</div>
                     <div className="flex items-center gap-2">
+                      <code className="flex-1 text-xs bg-background px-2 py-1.5 rounded border border-border text-primary font-mono overflow-hidden text-ellipsis">
+                        {`${window.location.origin}/join/${squad.invite_code}`}
+                      </code>
                       <button
                         onClick={() => handleCopyInvite(squad.invite_code)}
-                        className="p-2 text-muted-foreground hover:text-primary transition-colors"
-                        title="Copy invite link"
+                        className="flex items-center gap-1 px-3 py-1.5 bg-primary text-primary-foreground text-xs font-display rounded hover:box-glow-primary transition-all"
                       >
                         {copiedCode === squad.invite_code ? (
-                          <Check className="w-4 h-4 text-success" />
+                          <>
+                            <Check className="w-3 h-3" />
+                            COPIED!
+                          </>
                         ) : (
-                          <Copy className="w-4 h-4" />
+                          <>
+                            <Copy className="w-3 h-3" />
+                            COPY
+                          </>
                         )}
                       </button>
-                      <button
-                        onClick={() => handleDeleteSquad(squad.id)}
-                        className="p-2 text-muted-foreground hover:text-destructive transition-colors"
-                        title="Delete squad"
-                      >
-                        <Trash2 className="w-4 h-4" />
-                      </button>
                     </div>
+                    <p className="text-xs text-muted-foreground/60 mt-2">
+                      Share this link with athletes to join your squad
+                    </p>
                   </div>
                   
                   <div className="flex items-center justify-between">
@@ -215,11 +231,12 @@ const HandlerDashboard = () => {
                   {/* Member list preview */}
                   {squad.squad_members && squad.squad_members.length > 0 && (
                     <div className="mt-3 pt-3 border-t border-border">
+                      <div className="text-xs text-muted-foreground mb-2">SQUAD MEMBERS</div>
                       <div className="flex flex-wrap gap-2">
-                        {squad.squad_members.slice(0, 5).map((member: any) => (
+                        {squad.squad_members.slice(0, 5).map((member: { id: string; profiles?: { display_name?: string } }) => (
                           <span
                             key={member.id}
-                            className="text-xs px-2 py-1 bg-muted rounded text-muted-foreground"
+                            className="text-xs px-2 py-1 bg-secondary/10 border border-secondary/20 rounded text-secondary"
                           >
                             {member.profiles?.display_name || 'Agent'}
                           </span>
