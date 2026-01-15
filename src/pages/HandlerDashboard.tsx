@@ -1,10 +1,10 @@
 import { useState, useMemo } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useNavigate } from 'react-router-dom';
-import { ArrowLeft, Users, Target, Plus, Copy, Check, Trash2, ChevronRight, Send, Calendar, ChevronDown, ChevronUp, Edit3, X, Save, Dumbbell, Percent } from 'lucide-react';
+import { ArrowLeft, Users, Target, Plus, Copy, Check, Trash2, ChevronRight, Send, Calendar, Edit3, X, Save, Percent } from 'lucide-react';
 import { useAuth } from '@/hooks/useAuth';
 import { useIsHandler, useSquads, useCreateSquad, useDeleteSquad, useUpdateSquad } from '@/hooks/useHandlerMode';
-import { useHandlerAssignments, useDeleteAssignment, useUpdateAssignmentSnapshot } from '@/hooks/useAssignments';
+import { useHandlerAssignments } from '@/hooks/useAssignments';
 import { format } from 'date-fns';
 
 const HandlerDashboard = () => {
@@ -16,8 +16,6 @@ const HandlerDashboard = () => {
   const createSquad = useCreateSquad();
   const deleteSquad = useDeleteSquad();
   const updateSquad = useUpdateSquad();
-  const deleteAssignment = useDeleteAssignment();
-  const updateSnapshot = useUpdateAssignmentSnapshot();
 
   const [showCreateSquad, setShowCreateSquad] = useState(false);
   const [squadName, setSquadName] = useState('');
@@ -25,9 +23,6 @@ const HandlerDashboard = () => {
   const [squadDescription, setSquadDescription] = useState('');
   const [copiedCode, setCopiedCode] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
-  const [expandedAssignment, setExpandedAssignment] = useState<string | null>(null);
-  const [editingAssignment, setEditingAssignment] = useState<string | null>(null);
-  const [editingExercises, setEditingExercises] = useState<any[]>([]);
   
   // Edit squad state
   const [editingSquad, setEditingSquad] = useState<string | null>(null);
@@ -140,51 +135,6 @@ const HandlerDashboard = () => {
     }
   };
 
-  const handleToggleExpand = (assignmentId: string) => {
-    setExpandedAssignment(prev => prev === assignmentId ? null : assignmentId);
-  };
-
-  const handleStartEdit = (assignment: any) => {
-    const snapshot = assignment.mission_snapshot as any;
-    setEditingAssignment(assignment.id);
-    setEditingExercises(snapshot?.mission_exercises || []);
-  };
-
-  const handleCancelEdit = () => {
-    setEditingAssignment(null);
-    setEditingExercises([]);
-  };
-
-  const handleSaveEdit = async (assignment: any) => {
-    const snapshot = assignment.mission_snapshot as any;
-    const updatedSnapshot = {
-      ...snapshot,
-      mission_exercises: editingExercises,
-    };
-    
-    try {
-      await updateSnapshot.mutateAsync({
-        assignmentId: assignment.id,
-        missionSnapshot: updatedSnapshot,
-      });
-      setEditingAssignment(null);
-      setEditingExercises([]);
-    } catch (err) {
-      console.error('Failed to update assignment:', err);
-    }
-  };
-
-  const handleUpdateExercise = (index: number, field: string, value: number) => {
-    setEditingExercises(prev => {
-      const updated = [...prev];
-      updated[index] = { ...updated[index], [field]: value };
-      return updated;
-    });
-  };
-
-  const handleRemoveExercise = (index: number) => {
-    setEditingExercises(prev => prev.filter((_, i) => i !== index));
-  };
 
   // Redirect if not a handler
   if (!handlerLoading && !isHandler) {
@@ -517,8 +467,6 @@ const HandlerDashboard = () => {
               {assignments.slice(0, 10).map((assignment: any, i: number) => {
                 const snapshot = assignment.mission_snapshot as any;
                 const exercises = snapshot?.mission_exercises || [];
-                const isExpanded = expandedAssignment === assignment.id;
-                const isEditing = editingAssignment === assignment.id;
                 const statusColors = {
                   'NOT_STARTED': 'text-muted-foreground',
                   'IN_PROGRESS': 'text-warning',
@@ -531,13 +479,9 @@ const HandlerDashboard = () => {
                     initial={{ opacity: 0, x: -20 }}
                     animate={{ opacity: 1, x: 0 }}
                     transition={{ delay: 0.5 + i * 0.03 }}
-                    className="bg-card border border-border rounded-lg overflow-hidden"
+                    className="bg-card border border-border rounded-lg p-3"
                   >
-                    {/* Header Row */}
-                    <div 
-                      className="flex items-center justify-between p-3 cursor-pointer hover:bg-muted/30 transition-colors"
-                      onClick={() => handleToggleExpand(assignment.id)}
-                    >
+                    <div className="flex items-center justify-between">
                       <div className="flex-1 min-w-0">
                         <div className="flex items-center gap-2">
                           <div className="font-display text-sm text-primary truncate">
@@ -560,169 +504,10 @@ const HandlerDashboard = () => {
                           )}
                         </div>
                       </div>
-                      <div className="flex items-center gap-2">
-                        <span className={`text-xs font-display ${statusColors[assignment.status as keyof typeof statusColors]}`}>
-                          {assignment.status.replace('_', ' ')}
-                        </span>
-                        {isExpanded ? (
-                          <ChevronUp className="w-4 h-4 text-muted-foreground" />
-                        ) : (
-                          <ChevronDown className="w-4 h-4 text-muted-foreground" />
-                        )}
-                      </div>
+                      <span className={`text-xs font-display ${statusColors[assignment.status as keyof typeof statusColors]}`}>
+                        {assignment.status.replace('_', ' ')}
+                      </span>
                     </div>
-
-                    {/* Expanded Content */}
-                    <AnimatePresence>
-                      {isExpanded && (
-                        <motion.div
-                          initial={{ height: 0, opacity: 0 }}
-                          animate={{ height: 'auto', opacity: 1 }}
-                          exit={{ height: 0, opacity: 0 }}
-                          transition={{ duration: 0.2 }}
-                          className="border-t border-border"
-                        >
-                          <div className="p-3 bg-muted/20">
-                            {/* Mission Info */}
-                            {snapshot?.name && (
-                              <div className="text-xs text-muted-foreground mb-3">
-                                {snapshot.name}
-                              </div>
-                            )}
-
-                            {/* Exercises List */}
-                            <div className="space-y-2 mb-3">
-                              <div className="text-xs text-muted-foreground font-display tracking-wider">EXERCISES</div>
-                              {(isEditing ? editingExercises : exercises).map((ex: any, idx: number) => (
-                                <div 
-                                  key={idx} 
-                                  className="bg-background border border-border rounded p-2"
-                                >
-                                  <div className="flex items-start justify-between gap-2">
-                                    <div className="flex items-center gap-2 min-w-0">
-                                      <Dumbbell className="w-3 h-3 text-accent flex-shrink-0" />
-                                      <span className="text-sm text-foreground truncate">
-                                        {ex.exercises?.name || 'Unknown Exercise'}
-                                      </span>
-                                    </div>
-                                    {isEditing && (
-                                      <button
-                                        onClick={() => handleRemoveExercise(idx)}
-                                        className="p-1 text-muted-foreground hover:text-destructive transition-colors flex-shrink-0"
-                                      >
-                                        <X className="w-3 h-3" />
-                                      </button>
-                                    )}
-                                  </div>
-                                  
-                                  {isEditing ? (
-                                    <div className="flex items-center gap-3 mt-2 text-xs">
-                                      <label className="flex items-center gap-1">
-                                        <span className="text-muted-foreground">Sets:</span>
-                                        <input
-                                          type="number"
-                                          min="1"
-                                          max="20"
-                                          value={ex.target_sets}
-                                          onChange={(e) => handleUpdateExercise(idx, 'target_sets', parseInt(e.target.value) || 1)}
-                                          className="w-12 bg-muted border border-border rounded px-1 py-0.5 text-center"
-                                        />
-                                      </label>
-                                      <label className="flex items-center gap-1">
-                                        <span className="text-muted-foreground">Reps:</span>
-                                        <input
-                                          type="number"
-                                          min="1"
-                                          max="100"
-                                          value={ex.target_reps}
-                                          onChange={(e) => handleUpdateExercise(idx, 'target_reps', parseInt(e.target.value) || 1)}
-                                          className="w-12 bg-muted border border-border rounded px-1 py-0.5 text-center"
-                                        />
-                                      </label>
-                                      <label className="flex items-center gap-1">
-                                        <span className="text-muted-foreground">Rest:</span>
-                                        <input
-                                          type="number"
-                                          min="0"
-                                          max="300"
-                                          step="5"
-                                          value={ex.rest_between_sets_sec}
-                                          onChange={(e) => handleUpdateExercise(idx, 'rest_between_sets_sec', parseInt(e.target.value) || 0)}
-                                          className="w-14 bg-muted border border-border rounded px-1 py-0.5 text-center"
-                                        />
-                                        <span className="text-muted-foreground">s</span>
-                                      </label>
-                                    </div>
-                                  ) : (
-                                    <div className="flex items-center gap-3 mt-1 text-xs text-muted-foreground">
-                                      <span>{ex.target_sets} sets</span>
-                                      <span>×</span>
-                                      <span>{ex.target_reps} reps</span>
-                                      <span className="text-muted-foreground/60">({ex.rest_between_sets_sec}s rest)</span>
-                                    </div>
-                                  )}
-                                  
-                                  <div className="text-xs text-muted-foreground/60 mt-1">
-                                    {ex.exercises?.primary_muscle_group}
-                                  </div>
-                                </div>
-                              ))}
-                              
-                              {exercises.length === 0 && !isEditing && (
-                                <div className="text-xs text-muted-foreground italic">No exercises in this assignment</div>
-                              )}
-                            </div>
-
-                            {/* Action Buttons */}
-                            <div className="flex items-center justify-between pt-2 border-t border-border">
-                              {isEditing ? (
-                                <div className="flex items-center gap-2">
-                                  <button
-                                    onClick={() => handleSaveEdit(assignment)}
-                                    disabled={updateSnapshot.isPending}
-                                    className="flex items-center gap-1 px-3 py-1.5 bg-success text-success-foreground text-xs font-display rounded hover:opacity-90 transition-opacity disabled:opacity-50"
-                                  >
-                                    <Save className="w-3 h-3" />
-                                    {updateSnapshot.isPending ? 'SAVING...' : 'SAVE'}
-                                  </button>
-                                  <button
-                                    onClick={handleCancelEdit}
-                                    className="flex items-center gap-1 px-3 py-1.5 bg-muted text-muted-foreground text-xs font-display rounded hover:bg-muted/80 transition-colors"
-                                  >
-                                    <X className="w-3 h-3" />
-                                    CANCEL
-                                  </button>
-                                </div>
-                              ) : (
-                                <button
-                                  onClick={(e) => {
-                                    e.stopPropagation();
-                                    handleStartEdit(assignment);
-                                  }}
-                                  className="flex items-center gap-1 px-3 py-1.5 bg-secondary/20 text-secondary text-xs font-display rounded hover:bg-secondary/30 transition-colors"
-                                >
-                                  <Edit3 className="w-3 h-3" />
-                                  EDIT
-                                </button>
-                              )}
-                              
-                              <button
-                                onClick={(e) => {
-                                  e.stopPropagation();
-                                  if (confirm('Delete this assignment?')) {
-                                    deleteAssignment.mutateAsync(assignment.id);
-                                  }
-                                }}
-                                className="flex items-center gap-1 px-3 py-1.5 text-destructive text-xs font-display rounded hover:bg-destructive/10 transition-colors"
-                              >
-                                <Trash2 className="w-3 h-3" />
-                                DELETE
-                              </button>
-                            </div>
-                          </div>
-                        </motion.div>
-                      )}
-                    </AnimatePresence>
                   </motion.div>
                 );
               })}
