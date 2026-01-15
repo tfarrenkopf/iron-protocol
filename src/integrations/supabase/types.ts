@@ -14,16 +14,471 @@ export type Database = {
   }
   public: {
     Tables: {
-      [_ in never]: never
+      exercises: {
+        Row: {
+          created_at: string
+          created_by: string | null
+          description: string | null
+          equipment: Database["public"]["Enums"]["equipment_type"][]
+          focus_areas: string[] | null
+          id: string
+          instructions_execution: string | null
+          instructions_setup: string | null
+          instructions_tips: string | null
+          is_public: boolean
+          is_public_mission_allowed: boolean
+          name: string
+          primary_muscle_group: string
+          secondary_muscle_groups: string[] | null
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          created_by?: string | null
+          description?: string | null
+          equipment?: Database["public"]["Enums"]["equipment_type"][]
+          focus_areas?: string[] | null
+          id?: string
+          instructions_execution?: string | null
+          instructions_setup?: string | null
+          instructions_tips?: string | null
+          is_public?: boolean
+          is_public_mission_allowed?: boolean
+          name: string
+          primary_muscle_group: string
+          secondary_muscle_groups?: string[] | null
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          created_by?: string | null
+          description?: string | null
+          equipment?: Database["public"]["Enums"]["equipment_type"][]
+          focus_areas?: string[] | null
+          id?: string
+          instructions_execution?: string | null
+          instructions_setup?: string | null
+          instructions_tips?: string | null
+          is_public?: boolean
+          is_public_mission_allowed?: boolean
+          name?: string
+          primary_muscle_group?: string
+          secondary_muscle_groups?: string[] | null
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "exercises_created_by_fkey"
+            columns: ["created_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      hiit_configs: {
+        Row: {
+          code_name: string
+          created_at: string
+          created_by: string | null
+          id: string
+          is_public: boolean
+          name: string
+          rest_duration_sec: number
+          rounds: number
+          work_duration_sec: number
+        }
+        Insert: {
+          code_name: string
+          created_at?: string
+          created_by?: string | null
+          id?: string
+          is_public?: boolean
+          name: string
+          rest_duration_sec?: number
+          rounds?: number
+          work_duration_sec?: number
+        }
+        Update: {
+          code_name?: string
+          created_at?: string
+          created_by?: string | null
+          id?: string
+          is_public?: boolean
+          name?: string
+          rest_duration_sec?: number
+          rounds?: number
+          work_duration_sec?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "hiit_configs_created_by_fkey"
+            columns: ["created_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      mission_exercises: {
+        Row: {
+          created_at: string
+          exercise_id: string
+          id: string
+          mission_id: string
+          order_index: number
+          rest_between_sets_sec: number
+          target_reps: number
+          target_sets: number
+        }
+        Insert: {
+          created_at?: string
+          exercise_id: string
+          id?: string
+          mission_id: string
+          order_index?: number
+          rest_between_sets_sec?: number
+          target_reps?: number
+          target_sets?: number
+        }
+        Update: {
+          created_at?: string
+          exercise_id?: string
+          id?: string
+          mission_id?: string
+          order_index?: number
+          rest_between_sets_sec?: number
+          target_reps?: number
+          target_sets?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "mission_exercises_exercise_id_fkey"
+            columns: ["exercise_id"]
+            isOneToOne: false
+            referencedRelation: "exercises"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "mission_exercises_mission_id_fkey"
+            columns: ["mission_id"]
+            isOneToOne: false
+            referencedRelation: "missions"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      missions: {
+        Row: {
+          code_name: string
+          created_at: string
+          created_by: string | null
+          description: string | null
+          difficulty: number
+          estimated_minutes: number
+          focus_areas: string[] | null
+          id: string
+          intro_lore: string | null
+          is_public: boolean
+          name: string
+          outro_lore: string | null
+          popularity_score: number
+          updated_at: string
+        }
+        Insert: {
+          code_name: string
+          created_at?: string
+          created_by?: string | null
+          description?: string | null
+          difficulty?: number
+          estimated_minutes?: number
+          focus_areas?: string[] | null
+          id?: string
+          intro_lore?: string | null
+          is_public?: boolean
+          name: string
+          outro_lore?: string | null
+          popularity_score?: number
+          updated_at?: string
+        }
+        Update: {
+          code_name?: string
+          created_at?: string
+          created_by?: string | null
+          description?: string | null
+          difficulty?: number
+          estimated_minutes?: number
+          focus_areas?: string[] | null
+          id?: string
+          intro_lore?: string | null
+          is_public?: boolean
+          name?: string
+          outro_lore?: string | null
+          popularity_score?: number
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "missions_created_by_fkey"
+            columns: ["created_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      profiles: {
+        Row: {
+          created_at: string
+          display_name: string | null
+          id: string
+          max_combo: number
+          total_reps: number
+          total_score: number
+          total_sets: number
+          total_weight: number
+          total_xp: number
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          display_name?: string | null
+          id: string
+          max_combo?: number
+          total_reps?: number
+          total_score?: number
+          total_sets?: number
+          total_weight?: number
+          total_xp?: number
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          display_name?: string | null
+          id?: string
+          max_combo?: number
+          total_reps?: number
+          total_score?: number
+          total_sets?: number
+          total_weight?: number
+          total_xp?: number
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      user_weight_history: {
+        Row: {
+          exercise_id: string
+          id: string
+          last_weight: number
+          max_weight: number
+          unit: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          exercise_id: string
+          id?: string
+          last_weight?: number
+          max_weight?: number
+          unit?: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          exercise_id?: string
+          id?: string
+          last_weight?: number
+          max_weight?: number
+          unit?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "user_weight_history_exercise_id_fkey"
+            columns: ["exercise_id"]
+            isOneToOne: false
+            referencedRelation: "exercises"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "user_weight_history_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      workout_sessions: {
+        Row: {
+          completed_at: string | null
+          damage_dealt: number
+          id: string
+          max_combo: number
+          mission_id: string | null
+          mission_snapshot: Json | null
+          score_earned: number
+          sets_completed: number
+          started_at: string
+          status: string
+          total_reps: number
+          total_weight: number
+          user_id: string
+          xp_earned: number
+        }
+        Insert: {
+          completed_at?: string | null
+          damage_dealt?: number
+          id?: string
+          max_combo?: number
+          mission_id?: string | null
+          mission_snapshot?: Json | null
+          score_earned?: number
+          sets_completed?: number
+          started_at?: string
+          status?: string
+          total_reps?: number
+          total_weight?: number
+          user_id: string
+          xp_earned?: number
+        }
+        Update: {
+          completed_at?: string | null
+          damage_dealt?: number
+          id?: string
+          max_combo?: number
+          mission_id?: string | null
+          mission_snapshot?: Json | null
+          score_earned?: number
+          sets_completed?: number
+          started_at?: string
+          status?: string
+          total_reps?: number
+          total_weight?: number
+          user_id?: string
+          xp_earned?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "workout_sessions_mission_id_fkey"
+            columns: ["mission_id"]
+            isOneToOne: false
+            referencedRelation: "missions"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "workout_sessions_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      workout_sets: {
+        Row: {
+          actual_reps: number
+          completed_at: string
+          exercise_id: string
+          id: string
+          score_earned: number
+          session_id: string
+          set_number: number
+          target_reps: number | null
+          unit: string
+          weight: number
+        }
+        Insert: {
+          actual_reps: number
+          completed_at?: string
+          exercise_id: string
+          id?: string
+          score_earned?: number
+          session_id: string
+          set_number: number
+          target_reps?: number | null
+          unit?: string
+          weight: number
+        }
+        Update: {
+          actual_reps?: number
+          completed_at?: string
+          exercise_id?: string
+          id?: string
+          score_earned?: number
+          session_id?: string
+          set_number?: number
+          target_reps?: number | null
+          unit?: string
+          weight?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "workout_sets_exercise_id_fkey"
+            columns: ["exercise_id"]
+            isOneToOne: false
+            referencedRelation: "exercises"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "workout_sets_session_id_fkey"
+            columns: ["session_id"]
+            isOneToOne: false
+            referencedRelation: "workout_sessions"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
     }
     Views: {
-      [_ in never]: never
+      global_leaderboard: {
+        Row: {
+          display_name: string | null
+          max_combo: number | null
+          rank: number | null
+          total_score: number | null
+          total_sets: number | null
+          total_xp: number | null
+        }
+        Relationships: []
+      }
     }
     Functions: {
-      [_ in never]: never
+      calculate_mission_difficulty: {
+        Args: {
+          p_estimated_minutes: number
+          p_exercise_count: number
+          p_total_sets: number
+        }
+        Returns: number
+      }
     }
     Enums: {
-      [_ in never]: never
+      equipment_type:
+        | "BENCH"
+        | "DUMBBELLS"
+        | "BARBELL"
+        | "CABLE_MACHINE"
+        | "LAT_PULLDOWN"
+        | "LEG_PRESS"
+        | "LEG_CURL"
+        | "LEG_EXTENSION"
+        | "SMITH_MACHINE"
+        | "PEC_DECK"
+        | "CHEST_PRESS"
+        | "SHOULDER_PRESS_MACHINE"
+        | "SEATED_ROW"
+        | "PULL_UP_BAR"
+        | "DIP_STATION"
+        | "PREACHER_BENCH"
+        | "HACK_SQUAT"
+        | "CALF_RAISE"
+        | "AB_MACHINE"
+        | "BODYWEIGHT"
+        | "KETTLEBELL"
+        | "EZ_BAR"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -150,6 +605,31 @@ export type CompositeTypes<
 
 export const Constants = {
   public: {
-    Enums: {},
+    Enums: {
+      equipment_type: [
+        "BENCH",
+        "DUMBBELLS",
+        "BARBELL",
+        "CABLE_MACHINE",
+        "LAT_PULLDOWN",
+        "LEG_PRESS",
+        "LEG_CURL",
+        "LEG_EXTENSION",
+        "SMITH_MACHINE",
+        "PEC_DECK",
+        "CHEST_PRESS",
+        "SHOULDER_PRESS_MACHINE",
+        "SEATED_ROW",
+        "PULL_UP_BAR",
+        "DIP_STATION",
+        "PREACHER_BENCH",
+        "HACK_SQUAT",
+        "CALF_RAISE",
+        "AB_MACHINE",
+        "BODYWEIGHT",
+        "KETTLEBELL",
+        "EZ_BAR",
+      ],
+    },
   },
 } as const
