@@ -73,6 +73,24 @@ const WorkoutSession = () => {
     }
   }, [mission, missionId, currentSession, showLore, startMission]);
 
+  // Save stats when mission completes (only once)
+  useEffect(() => {
+    if (user && currentSession?.status === 'COMPLETED' && !statsSaved && mission) {
+      setStatsSaved(true);
+      updateProfileStats.mutate({
+        score: stats.score,
+        xp: stats.xp,
+        sets: stats.setsCompleted,
+        reps: stats.totalReps,
+        weight: stats.totalWeight,
+        maxCombo: stats.maxCombo,
+      });
+      if (mission.outro_lore) {
+        setShowLore('outro');
+      }
+    }
+  }, [currentSession?.status, user, statsSaved, mission, stats, updateProfileStats]);
+
   if (missionLoading || !mission) {
     return (
       <div className="min-h-screen bg-background flex items-center justify-center">
@@ -115,24 +133,6 @@ const WorkoutSession = () => {
   }
 
   const missionExercises = mission.mission_exercises || [];
-
-  // Save stats when mission completes (only once)
-  useEffect(() => {
-    if (user && currentSession?.status === 'COMPLETED' && !statsSaved) {
-      setStatsSaved(true);
-      updateProfileStats.mutate({
-        score: stats.score,
-        xp: stats.xp,
-        sets: stats.setsCompleted,
-        reps: stats.totalReps,
-        weight: stats.totalWeight,
-        maxCombo: stats.maxCombo,
-      });
-      if (mission?.outro_lore) {
-        setShowLore('outro');
-      }
-    }
-  }, [currentSession?.status, user, statsSaved]);
 
   // Show outro lore
   if (showLore === 'outro' && mission.outro_lore) {
