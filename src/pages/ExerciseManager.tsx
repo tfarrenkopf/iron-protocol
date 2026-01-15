@@ -1,10 +1,10 @@
 import { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useNavigate } from 'react-router-dom';
-import { ArrowLeft, Plus, Edit2, Trash2, X, Check, AlertCircle } from 'lucide-react';
+import { ArrowLeft, Plus, Edit2, Trash2, X, Check, AlertCircle, Target } from 'lucide-react';
 import { useAuth } from '@/hooks/useAuth';
 import { useExercises, useCreateExercise, useUpdateExercise, useDeleteExercise, Exercise } from '@/hooks/useExercises';
-
+import { useMissions } from '@/hooks/useMissions';
 const EQUIPMENT_OPTIONS = [
   'DUMBBELLS', 'BARBELL', 'BENCH', 'CABLE_MACHINE', 'LAT_PULLDOWN',
   'LEG_PRESS', 'LEG_CURL', 'LEG_EXTENSION', 'SMITH_MACHINE', 'PEC_DECK',
@@ -25,10 +25,13 @@ const ExerciseManager = () => {
   const navigate = useNavigate();
   const { user } = useAuth();
   const { data: exercises, isLoading } = useExercises();
+  const { data: missions } = useMissions({});
   const createExercise = useCreateExercise();
   const updateExercise = useUpdateExercise();
   const deleteExercise = useDeleteExercise();
 
+  // Filter user's custom missions
+  const myMissions = missions?.filter(m => m.created_by === user?.id) || [];
   const [showForm, setShowForm] = useState(false);
   const [editingExercise, setEditingExercise] = useState<Exercise | null>(null);
   const [formData, setFormData] = useState({
@@ -175,70 +178,158 @@ const ExerciseManager = () => {
               <ArrowLeft className="w-5 h-5" />
             </button>
             <div>
-              <h1 className="font-display text-3xl text-primary">MY EXERCISES</h1>
-              <p className="text-xs text-muted-foreground tracking-wider">PRIVATE ARSENAL</p>
+              <h1 className="font-display text-3xl text-primary">MY ARSENAL</h1>
+              <p className="text-xs text-muted-foreground tracking-wider">EXERCISES & MISSIONS</p>
             </div>
           </div>
           
-          <button
-            onClick={() => { setShowForm(true); resetForm(); }}
-            className="flex items-center gap-2 px-4 py-2 bg-primary text-primary-foreground font-display rounded hover:box-glow-primary transition-all"
-          >
-            <Plus className="w-4 h-4" />
-            ADD
-          </button>
+          <div className="flex gap-2">
+            <button
+              onClick={() => navigate('/create-mission')}
+              className="flex items-center gap-2 px-4 py-2 bg-secondary text-secondary-foreground font-display rounded hover:box-glow-secondary transition-all"
+            >
+              <Target className="w-4 h-4" />
+              MISSION
+            </button>
+            <button
+              onClick={() => { setShowForm(true); resetForm(); }}
+              className="flex items-center gap-2 px-4 py-2 bg-primary text-primary-foreground font-display rounded hover:box-glow-primary transition-all"
+            >
+              <Plus className="w-4 h-4" />
+              EXERCISE
+            </button>
+          </div>
         </motion.header>
 
-        {/* Exercise List */}
-        {isLoading ? (
-          <div className="text-center py-12">
-            <div className="font-display text-2xl text-primary animate-neon-pulse">LOADING...</div>
+        {/* My Missions Section */}
+        <motion.section
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.1 }}
+          className="mb-8"
+        >
+          <div className="flex items-center justify-between mb-4">
+            <h2 className="font-display text-lg text-muted-foreground tracking-wider">
+              // MY MISSIONS
+            </h2>
+            <span className="text-xs text-muted-foreground">{myMissions.length} custom</span>
           </div>
-        ) : myExercises.length === 0 ? (
-          <div className="bg-card border border-border rounded-lg p-8 text-center">
-            <p className="text-muted-foreground mb-4">No custom exercises yet. Create your first one!</p>
-          </div>
-        ) : (
-          <div className="space-y-3">
-            {myExercises.map((exercise, i) => (
-              <motion.div
-                key={exercise.id}
-                initial={{ opacity: 0, x: -20 }}
-                animate={{ opacity: 1, x: 0 }}
-                transition={{ delay: i * 0.05 }}
-                className="bg-card border border-border rounded-lg p-4"
+          
+          {myMissions.length === 0 ? (
+            <div className="bg-card border border-border rounded-lg p-6 text-center">
+              <Target className="w-8 h-8 mx-auto mb-3 text-muted-foreground" />
+              <p className="text-muted-foreground text-sm">No custom missions yet.</p>
+              <button
+                onClick={() => navigate('/create-mission')}
+                className="mt-3 text-sm text-secondary hover:text-glow-secondary font-display"
               >
-                <div className="flex items-start justify-between">
-                  <div className="flex-1">
-                    <h3 className="font-display text-lg text-primary">{exercise.name}</h3>
-                    <p className="text-sm text-muted-foreground">{exercise.primary_muscle_group}</p>
-                    <div className="flex gap-1 mt-2 flex-wrap">
-                      {exercise.equipment?.map(eq => (
-                        <span key={eq} className="text-xs px-2 py-0.5 bg-muted rounded text-muted-foreground">
-                          {eq}
-                        </span>
+                + CREATE YOUR FIRST MISSION
+              </button>
+            </div>
+          ) : (
+            <div className="space-y-2">
+              {myMissions.slice(0, 5).map((mission, i) => (
+                <motion.button
+                  key={mission.id}
+                  initial={{ opacity: 0, x: -20 }}
+                  animate={{ opacity: 1, x: 0 }}
+                  transition={{ delay: i * 0.05 }}
+                  onClick={() => navigate(`/workout/${mission.id}`)}
+                  className="w-full bg-card border border-border rounded-lg p-3 text-left hover:border-secondary transition-all"
+                >
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <span className="font-display text-secondary">{mission.code_name}</span>
+                      <span className="text-xs text-muted-foreground ml-2">
+                        {mission.mission_exercises?.length || 0} exercises
+                      </span>
+                    </div>
+                    <div className="flex gap-1">
+                      {[...Array(5)].map((_, j) => (
+                        <div 
+                          key={j}
+                          className={`w-1.5 h-1.5 rounded-sm ${j < mission.difficulty ? 'bg-accent' : 'bg-muted'}`}
+                        />
                       ))}
                     </div>
                   </div>
-                  <div className="flex gap-2">
-                    <button
-                      onClick={() => handleEdit(exercise)}
-                      className="p-2 text-muted-foreground hover:text-secondary transition-colors"
-                    >
-                      <Edit2 className="w-4 h-4" />
-                    </button>
-                    <button
-                      onClick={() => handleDelete(exercise.id)}
-                      className="p-2 text-muted-foreground hover:text-destructive transition-colors"
-                    >
-                      <Trash2 className="w-4 h-4" />
-                    </button>
-                  </div>
-                </div>
-              </motion.div>
-            ))}
+                </motion.button>
+              ))}
+              {myMissions.length > 5 && (
+                <button
+                  onClick={() => navigate('/missions')}
+                  className="w-full text-center text-xs text-muted-foreground hover:text-primary py-2"
+                >
+                  View all {myMissions.length} missions →
+                </button>
+              )}
+            </div>
+          )}
+        </motion.section>
+
+        {/* Exercise List */}
+        <motion.section
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.2 }}
+        >
+          <div className="flex items-center justify-between mb-4">
+            <h2 className="font-display text-lg text-muted-foreground tracking-wider">
+              // MY EXERCISES
+            </h2>
+            <span className="text-xs text-muted-foreground">{myExercises.length} custom</span>
           </div>
-        )}
+          
+          {isLoading ? (
+            <div className="text-center py-12">
+              <div className="font-display text-2xl text-primary animate-neon-pulse">LOADING...</div>
+            </div>
+          ) : myExercises.length === 0 ? (
+            <div className="bg-card border border-border rounded-lg p-8 text-center">
+              <p className="text-muted-foreground mb-4">No custom exercises yet. Create your first one!</p>
+            </div>
+          ) : (
+            <div className="space-y-3">
+              {myExercises.map((exercise, i) => (
+                <motion.div
+                  key={exercise.id}
+                  initial={{ opacity: 0, x: -20 }}
+                  animate={{ opacity: 1, x: 0 }}
+                  transition={{ delay: 0.3 + i * 0.05 }}
+                  className="bg-card border border-border rounded-lg p-4"
+                >
+                  <div className="flex items-start justify-between">
+                    <div className="flex-1">
+                      <h3 className="font-display text-lg text-primary">{exercise.name}</h3>
+                      <p className="text-sm text-muted-foreground">{exercise.primary_muscle_group}</p>
+                      <div className="flex gap-1 mt-2 flex-wrap">
+                        {exercise.equipment?.map(eq => (
+                          <span key={eq} className="text-xs px-2 py-0.5 bg-muted rounded text-muted-foreground">
+                            {eq}
+                          </span>
+                        ))}
+                      </div>
+                    </div>
+                    <div className="flex gap-2">
+                      <button
+                        onClick={() => handleEdit(exercise)}
+                        className="p-2 text-muted-foreground hover:text-secondary transition-colors"
+                      >
+                        <Edit2 className="w-4 h-4" />
+                      </button>
+                      <button
+                        onClick={() => handleDelete(exercise.id)}
+                        className="p-2 text-muted-foreground hover:text-destructive transition-colors"
+                      >
+                        <Trash2 className="w-4 h-4" />
+                      </button>
+                    </div>
+                  </div>
+                </motion.div>
+              ))}
+            </div>
+          )}
+        </motion.section>
 
         {/* Form Modal */}
         <AnimatePresence>

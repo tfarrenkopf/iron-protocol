@@ -1,9 +1,11 @@
 import { motion } from 'framer-motion';
 import { useNavigate } from 'react-router-dom';
-import { ArrowLeft, Trophy, Dumbbell, Target, Zap, Skull, Crown, Medal, Star } from 'lucide-react';
+import { ArrowLeft, Trophy, Dumbbell, Target, Zap, Crown, Medal, Star } from 'lucide-react';
 import { useProfile, useLeaderboard } from '@/hooks/useProfile';
 import { useWeightHistory } from '@/hooks/useWeightHistory';
+import { useMuscleGroupStats } from '@/hooks/useMuscleGroupStats';
 import { useAuth } from '@/hooks/useAuth';
+import BodyDiagram from '@/components/BodyDiagram';
 
 const Stats = () => {
   const navigate = useNavigate();
@@ -11,6 +13,7 @@ const Stats = () => {
   const { data: profile, isLoading: profileLoading } = useProfile();
   const { data: leaderboard, isLoading: leaderboardLoading } = useLeaderboard();
   const { data: weightHistory, isLoading: weightLoading } = useWeightHistory();
+  const { data: muscleStats, isLoading: muscleLoading } = useMuscleGroupStats();
 
   const getRankIcon = (rank: number) => {
     switch (rank) {
@@ -56,120 +59,11 @@ const Stats = () => {
           </div>
         </header>
 
-        {/* Player Stats Summary */}
+        {/* Leaderboard - FIRST */}
         <motion.section
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           className="mb-8"
-        >
-          <h2 className="font-display text-lg text-muted-foreground mb-4 tracking-wider">
-            // YOUR STATS
-          </h2>
-          
-          {profileLoading ? (
-            <div className="text-center py-8">
-              <div className="font-display text-lg text-primary animate-neon-pulse">LOADING...</div>
-            </div>
-          ) : (
-            <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
-              {[
-                { label: 'TOTAL SCORE', value: (profile?.total_score || 0).toLocaleString(), icon: Target, color: 'text-primary' },
-                { label: 'XP EARNED', value: (profile?.total_xp || 0).toLocaleString(), icon: Star, color: 'text-success' },
-                { label: 'SETS CRUSHED', value: (profile?.total_sets || 0).toString(), icon: Dumbbell, color: 'text-secondary' },
-                { label: 'MAX COMBO', value: `${profile?.max_combo || 0}x`, icon: Trophy, color: 'text-accent' },
-                { label: 'TOTAL REPS', value: (profile?.total_reps || 0).toLocaleString(), icon: Zap, color: 'text-accent' },
-                { label: 'WEIGHT LIFTED', value: `${((profile?.total_weight || 0) / 1000).toFixed(1)}K`, icon: Dumbbell, color: 'text-warning' },
-                { label: 'LEVEL', value: level.toString(), icon: Crown, color: 'text-secondary' },
-                { label: 'AVG WEIGHT/SET', value: (profile?.total_sets || 0) > 0 ? Math.round((profile?.total_weight || 0) / (profile?.total_sets || 1)).toString() : '0', icon: Target, color: 'text-primary' },
-              ].map((stat, i) => (
-                <motion.div
-                  key={stat.label}
-                  initial={{ opacity: 0, scale: 0.9 }}
-                  animate={{ opacity: 1, scale: 1 }}
-                  transition={{ delay: i * 0.05 }}
-                  className="bg-card border border-border rounded-lg p-3 text-center"
-                >
-                  <stat.icon className={`w-4 h-4 mx-auto mb-1 ${stat.color}`} />
-                  <div className={`font-display text-xl ${stat.color}`}>{stat.value}</div>
-                  <div className="text-[10px] text-muted-foreground tracking-wider">{stat.label}</div>
-                </motion.div>
-              ))}
-            </div>
-          )}
-        </motion.section>
-
-        {/* Weight Stats */}
-        <motion.section
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.2 }}
-          className="mb-8"
-        >
-          <h2 className="font-display text-lg text-muted-foreground mb-4 tracking-wider">
-            // WEIGHT TRACKING
-          </h2>
-          
-          {weightLoading ? (
-            <div className="text-center py-4">
-              <div className="font-display text-sm text-primary animate-neon-pulse">LOADING...</div>
-            </div>
-          ) : weightEntries.length === 0 ? (
-            <div className="bg-card border border-border rounded-lg p-6 text-center">
-              <Dumbbell className="w-8 h-8 mx-auto mb-3 text-muted-foreground" />
-              <p className="text-muted-foreground text-sm">No weight history yet.</p>
-              <p className="text-muted-foreground/60 text-xs mt-1">Complete workouts to track your progress.</p>
-            </div>
-          ) : (
-            <div className="space-y-2">
-              {weightEntries.slice(0, 10).map((entry, i) => (
-                <motion.div
-                  key={entry.exerciseId}
-                  initial={{ opacity: 0, x: -20 }}
-                  animate={{ opacity: 1, x: 0 }}
-                  transition={{ delay: 0.3 + i * 0.05 }}
-                  className="bg-card border border-border rounded-lg p-4"
-                >
-                  <div className="flex items-center justify-between">
-                    <div className="flex-1 min-w-0 mr-4">
-                      <div className="font-display text-sm text-secondary truncate">
-                        {entry.exerciseName}
-                      </div>
-                    </div>
-                    
-                    <div className="text-right">
-                      <div className="flex items-center gap-2">
-                        <span className="font-display text-2xl text-accent">
-                          {entry.lastWeight}
-                        </span>
-                        <span className="text-xs text-muted-foreground">{entry.unit}</span>
-                        {getTrendIcon(entry.lastWeight, entry.maxWeight)}
-                      </div>
-                      <div className="text-xs text-muted-foreground">
-                        PR: <span className="text-primary font-display">{entry.maxWeight}</span> {entry.unit}
-                      </div>
-                    </div>
-                  </div>
-                  
-                  {/* Progress bar to PR */}
-                  <div className="mt-3 h-1 bg-muted rounded-full overflow-hidden">
-                    <motion.div
-                      initial={{ width: 0 }}
-                      animate={{ width: `${(entry.lastWeight / entry.maxWeight) * 100}%` }}
-                      transition={{ delay: 0.5 + i * 0.05, duration: 0.5 }}
-                      className="h-full bg-gradient-to-r from-secondary to-primary"
-                    />
-                  </div>
-                </motion.div>
-              ))}
-            </div>
-          )}
-        </motion.section>
-
-        {/* Leaderboard */}
-        <motion.section
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.4 }}
         >
           <h2 className="font-display text-lg text-muted-foreground mb-4 tracking-wider">
             // GLOBAL RANKINGS
@@ -206,7 +100,7 @@ const Stats = () => {
                     key={entry.rank || i}
                     initial={{ opacity: 0, x: -10 }}
                     animate={{ opacity: 1, x: 0 }}
-                    transition={{ delay: 0.5 + i * 0.05 }}
+                    transition={{ delay: 0.1 + i * 0.05 }}
                     className={`grid grid-cols-4 gap-2 p-3 items-center ${
                       isCurrentUser 
                         ? 'bg-primary/10 border-l-2 border-primary' 
@@ -242,6 +136,138 @@ const Stats = () => {
           <p className="text-xs text-muted-foreground/50 text-center mt-4 tracking-wider">
             CLIMB THE RANKS • DEFEAT YOUR RIVALS
           </p>
+        </motion.section>
+
+        {/* Player Stats Summary - SECOND */}
+        <motion.section
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.2 }}
+          className="mb-8"
+        >
+          <h2 className="font-display text-lg text-muted-foreground mb-4 tracking-wider">
+            // YOUR STATS
+          </h2>
+          
+          {profileLoading ? (
+            <div className="text-center py-8">
+              <div className="font-display text-lg text-primary animate-neon-pulse">LOADING...</div>
+            </div>
+          ) : (
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+              {[
+                { label: 'TOTAL SCORE', value: (profile?.total_score || 0).toLocaleString(), icon: Target, color: 'text-primary' },
+                { label: 'XP EARNED', value: (profile?.total_xp || 0).toLocaleString(), icon: Star, color: 'text-success' },
+                { label: 'SETS CRUSHED', value: (profile?.total_sets || 0).toString(), icon: Dumbbell, color: 'text-secondary' },
+                { label: 'MAX COMBO', value: `${profile?.max_combo || 0}x`, icon: Trophy, color: 'text-accent' },
+                { label: 'TOTAL REPS', value: (profile?.total_reps || 0).toLocaleString(), icon: Zap, color: 'text-accent' },
+                { label: 'WEIGHT LIFTED', value: `${((profile?.total_weight || 0) / 1000).toFixed(1)}K`, icon: Dumbbell, color: 'text-warning' },
+                { label: 'LEVEL', value: level.toString(), icon: Crown, color: 'text-secondary' },
+                { label: 'AVG WEIGHT/SET', value: (profile?.total_sets || 0) > 0 ? Math.round((profile?.total_weight || 0) / (profile?.total_sets || 1)).toString() : '0', icon: Target, color: 'text-primary' },
+              ].map((stat, i) => (
+                <motion.div
+                  key={stat.label}
+                  initial={{ opacity: 0, scale: 0.9 }}
+                  animate={{ opacity: 1, scale: 1 }}
+                  transition={{ delay: 0.3 + i * 0.05 }}
+                  className="bg-card border border-border rounded-lg p-3 text-center"
+                >
+                  <stat.icon className={`w-4 h-4 mx-auto mb-1 ${stat.color}`} />
+                  <div className={`font-display text-xl ${stat.color}`}>{stat.value}</div>
+                  <div className="text-[10px] text-muted-foreground tracking-wider">{stat.label}</div>
+                </motion.div>
+              ))}
+            </div>
+          )}
+        </motion.section>
+
+        {/* Body Diagram - Muscle Group Focus */}
+        <motion.section
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.4 }}
+          className="mb-8"
+        >
+          <h2 className="font-display text-lg text-muted-foreground mb-4 tracking-wider">
+            // COMBAT ANALYSIS
+          </h2>
+          
+          {muscleLoading ? (
+            <div className="text-center py-8">
+              <div className="font-display text-sm text-primary animate-neon-pulse">SCANNING...</div>
+            </div>
+          ) : (
+            <div className="bg-card border border-border rounded-lg p-4">
+              <BodyDiagram muscleStats={muscleStats || []} />
+            </div>
+          )}
+        </motion.section>
+
+        {/* Weight Stats - THIRD */}
+        <motion.section
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.5 }}
+          className="mb-8"
+        >
+          <h2 className="font-display text-lg text-muted-foreground mb-4 tracking-wider">
+            // WEIGHT TRACKING
+          </h2>
+          
+          {weightLoading ? (
+            <div className="text-center py-4">
+              <div className="font-display text-sm text-primary animate-neon-pulse">LOADING...</div>
+            </div>
+          ) : weightEntries.length === 0 ? (
+            <div className="bg-card border border-border rounded-lg p-6 text-center">
+              <Dumbbell className="w-8 h-8 mx-auto mb-3 text-muted-foreground" />
+              <p className="text-muted-foreground text-sm">No weight history yet.</p>
+              <p className="text-muted-foreground/60 text-xs mt-1">Complete workouts to track your progress.</p>
+            </div>
+          ) : (
+            <div className="space-y-2">
+              {weightEntries.slice(0, 10).map((entry, i) => (
+                <motion.div
+                  key={entry.exerciseId}
+                  initial={{ opacity: 0, x: -20 }}
+                  animate={{ opacity: 1, x: 0 }}
+                  transition={{ delay: 0.6 + i * 0.05 }}
+                  className="bg-card border border-border rounded-lg p-4"
+                >
+                  <div className="flex items-center justify-between">
+                    <div className="flex-1 min-w-0 mr-4">
+                      <div className="font-display text-sm text-secondary truncate">
+                        {entry.exerciseName}
+                      </div>
+                    </div>
+                    
+                    <div className="text-right">
+                      <div className="flex items-center gap-2">
+                        <span className="font-display text-2xl text-accent">
+                          {entry.lastWeight}
+                        </span>
+                        <span className="text-xs text-muted-foreground">{entry.unit}</span>
+                        {getTrendIcon(entry.lastWeight, entry.maxWeight)}
+                      </div>
+                      <div className="text-xs text-muted-foreground">
+                        PR: <span className="text-primary font-display">{entry.maxWeight}</span> {entry.unit}
+                      </div>
+                    </div>
+                  </div>
+                  
+                  {/* Progress bar to PR */}
+                  <div className="mt-3 h-1 bg-muted rounded-full overflow-hidden">
+                    <motion.div
+                      initial={{ width: 0 }}
+                      animate={{ width: `${(entry.lastWeight / entry.maxWeight) * 100}%` }}
+                      transition={{ delay: 0.7 + i * 0.05, duration: 0.5 }}
+                      className="h-full bg-gradient-to-r from-secondary to-primary"
+                    />
+                  </div>
+                </motion.div>
+              ))}
+            </div>
+          )}
         </motion.section>
       </div>
     </div>
