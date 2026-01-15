@@ -120,6 +120,63 @@ export type Database = {
           },
         ]
       }
+      mission_assignments: {
+        Row: {
+          assigned_at: string
+          assignee_id: string
+          assignee_type: string
+          completed_at: string | null
+          completed_session_id: string | null
+          due_at: string | null
+          handler_id: string
+          id: string
+          mission_snapshot: Json
+          started_at: string | null
+          status: string
+        }
+        Insert: {
+          assigned_at?: string
+          assignee_id: string
+          assignee_type: string
+          completed_at?: string | null
+          completed_session_id?: string | null
+          due_at?: string | null
+          handler_id: string
+          id?: string
+          mission_snapshot: Json
+          started_at?: string | null
+          status?: string
+        }
+        Update: {
+          assigned_at?: string
+          assignee_id?: string
+          assignee_type?: string
+          completed_at?: string | null
+          completed_session_id?: string | null
+          due_at?: string | null
+          handler_id?: string
+          id?: string
+          mission_snapshot?: Json
+          started_at?: string | null
+          status?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "mission_assignments_completed_session_id_fkey"
+            columns: ["completed_session_id"]
+            isOneToOne: false
+            referencedRelation: "workout_sessions"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "mission_assignments_handler_id_fkey"
+            columns: ["handler_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       mission_exercises: {
         Row: {
           created_at: string
@@ -265,6 +322,118 @@ export type Database = {
           updated_at?: string
         }
         Relationships: []
+      }
+      squad_members: {
+        Row: {
+          id: string
+          joined_at: string
+          share_stats: boolean
+          squad_id: string
+          user_id: string
+        }
+        Insert: {
+          id?: string
+          joined_at?: string
+          share_stats?: boolean
+          squad_id: string
+          user_id: string
+        }
+        Update: {
+          id?: string
+          joined_at?: string
+          share_stats?: boolean
+          squad_id?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "squad_members_squad_id_fkey"
+            columns: ["squad_id"]
+            isOneToOne: false
+            referencedRelation: "squads"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "squad_members_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      squads: {
+        Row: {
+          code_name: string
+          created_at: string
+          description: string | null
+          handler_id: string
+          id: string
+          invite_code: string
+          is_active: boolean
+          name: string
+          updated_at: string
+        }
+        Insert: {
+          code_name: string
+          created_at?: string
+          description?: string | null
+          handler_id: string
+          id?: string
+          invite_code?: string
+          is_active?: boolean
+          name: string
+          updated_at?: string
+        }
+        Update: {
+          code_name?: string
+          created_at?: string
+          description?: string | null
+          handler_id?: string
+          id?: string
+          invite_code?: string
+          is_active?: boolean
+          name?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "squads_handler_id_fkey"
+            columns: ["handler_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      user_roles: {
+        Row: {
+          created_at: string
+          id: string
+          role: Database["public"]["Enums"]["app_role"]
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          role: Database["public"]["Enums"]["app_role"]
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          role?: Database["public"]["Enums"]["app_role"]
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "user_roles_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       user_weight_history: {
         Row: {
@@ -454,8 +623,30 @@ export type Database = {
         }
         Returns: number
       }
+      get_user_assignments: {
+        Args: { _user_id: string }
+        Returns: {
+          assigned_at: string
+          assignee_type: string
+          due_at: string
+          handler_id: string
+          handler_name: string
+          id: string
+          mission_snapshot: Json
+          squad_name: string
+          status: string
+        }[]
+      }
+      has_role: {
+        Args: {
+          _role: Database["public"]["Enums"]["app_role"]
+          _user_id: string
+        }
+        Returns: boolean
+      }
     }
     Enums: {
+      app_role: "user" | "handler"
       equipment_type:
         | "BENCH"
         | "DUMBBELLS"
@@ -606,6 +797,7 @@ export type CompositeTypes<
 export const Constants = {
   public: {
     Enums: {
+      app_role: ["user", "handler"],
       equipment_type: [
         "BENCH",
         "DUMBBELLS",
