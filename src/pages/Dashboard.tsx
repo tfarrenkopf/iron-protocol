@@ -1,9 +1,10 @@
 import { motion } from 'framer-motion';
 import { useNavigate } from 'react-router-dom';
-import { Zap, Target, Dumbbell, Timer, TrendingUp, Trophy, User, LogOut, Plus, Swords, ChevronRight } from 'lucide-react';
+import { Zap, Target, Dumbbell, Timer, TrendingUp, Trophy, User, LogOut, Plus, Swords, ChevronRight, Users } from 'lucide-react';
 import { useMissions } from '@/hooks/useMissions';
 import { useAuth } from '@/hooks/useAuth';
 import { useProfile } from '@/hooks/useProfile';
+import { useIsHandler } from '@/hooks/useHandlerMode';
 import { IncomingOrders } from '@/components/IncomingOrders';
 
 const Dashboard = () => {
@@ -11,6 +12,7 @@ const Dashboard = () => {
   const { user, isAnonymous, signOut } = useAuth();
   const { data: profile } = useProfile();
   const { data: missions } = useMissions({ showOnlyPublic: true });
+  const { data: isHandler } = useIsHandler();
   
   // Calculate level from XP
   const xp = profile?.total_xp || 0;
@@ -142,7 +144,7 @@ const Dashboard = () => {
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.3 }}
-          className="grid grid-cols-3 gap-4 mb-10"
+          className={`grid gap-4 mb-10 ${isHandler ? 'grid-cols-4' : 'grid-cols-3'}`}
         >
           <button 
             onClick={() => navigate('/missions')}
@@ -176,6 +178,21 @@ const Dashboard = () => {
             <h2 className="font-display text-xl text-accent relative z-10">STATS</h2>
             <p className="text-xs text-muted-foreground mt-1 relative z-10">Rankings</p>
           </button>
+
+          {isHandler && (
+            <button 
+              onClick={() => navigate('/handler')}
+              className="group relative bg-card border-2 border-warning rounded p-6 text-left transition-all hover:border-warning"
+              style={{ boxShadow: 'none' }}
+              onMouseEnter={(e) => e.currentTarget.style.boxShadow = '0 0 20px hsl(var(--warning) / 0.6)'}
+              onMouseLeave={(e) => e.currentTarget.style.boxShadow = 'none'}
+            >
+              <div className="absolute inset-0 bg-warning/5 group-hover:bg-warning/10 transition-colors rounded" />
+              <Users className="w-8 h-8 text-warning mb-3 relative z-10" />
+              <h2 className="font-display text-xl text-warning relative z-10">HANDLER</h2>
+              <p className="text-xs text-muted-foreground mt-1 relative z-10">Squads</p>
+            </button>
+          )}
         </motion.div>
 
         {/* Incoming Orders - Only show when logged in */}
