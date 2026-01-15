@@ -19,6 +19,7 @@ import Why from "./pages/Why";
 import HandlerDashboard from "./pages/HandlerDashboard";
 import JoinSquad from "./pages/JoinSquad";
 import AssignMission from "./pages/AssignMission";
+import AssignmentWorkout from "./pages/AssignmentWorkout";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -36,6 +37,7 @@ const App = () => (
             <Route path="/profile" element={<ProfilePage />} />
             <Route path="/missions" element={<MissionSelect />} />
             <Route path="/workout/:missionId" element={<WorkoutSession />} />
+            <Route path="/workout/assignment/:assignmentId" element={<AssignmentWorkout />} />
             <Route path="/hiit" element={<HIITTimer />} />
             <Route path="/stats" element={<Stats />} />
             <Route path="/exercises" element={<ExerciseManager />} />

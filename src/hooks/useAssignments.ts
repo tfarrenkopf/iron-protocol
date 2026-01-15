@@ -13,6 +13,8 @@ export interface Assignment {
     focus_areas?: string[];
     estimated_minutes?: number;
     difficulty?: number;
+    intro_lore?: string;
+    outro_lore?: string;
     mission_exercises?: Array<{
       exercise_id: string;
       target_sets: number;
@@ -23,6 +25,9 @@ export interface Assignment {
         name: string;
         primary_muscle_group: string;
         equipment: string[];
+        instructions_setup?: string;
+        instructions_execution?: string;
+        instructions_tips?: string;
       };
     }>;
   };

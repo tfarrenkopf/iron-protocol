@@ -4,6 +4,7 @@ import { Zap, Target, Dumbbell, Timer, TrendingUp, Trophy, User, LogOut, Plus, S
 import { useMissions } from '@/hooks/useMissions';
 import { useAuth } from '@/hooks/useAuth';
 import { useProfile } from '@/hooks/useProfile';
+import { IncomingOrders } from '@/components/IncomingOrders';
 
 const Dashboard = () => {
   const navigate = useNavigate();
@@ -176,6 +177,9 @@ const Dashboard = () => {
             <p className="text-xs text-muted-foreground mt-1 relative z-10">Rankings</p>
           </button>
         </motion.div>
+
+        {/* Incoming Orders - Only show when logged in */}
+        {!isAnonymous && <IncomingOrders />}
 
         {/* Front Lines CTA */}
         <motion.button

@@ -46,10 +46,7 @@ export function useCreateWorkoutSession() {
   return useMutation({
     mutationFn: async (sessionData: {
       missionId: string;
-      missionSnapshot: {
-        name: string;
-        code_name: string;
-      };
+      missionSnapshot: Record<string, unknown>;
       scoreEarned: number;
       xpEarned: number;
       setsCompleted: number;
@@ -62,10 +59,10 @@ export function useCreateWorkoutSession() {
       
       const { data, error } = await supabase
         .from('workout_sessions')
-        .insert({
+        .insert([{
           user_id: user.id,
           mission_id: sessionData.missionId,
-          mission_snapshot: sessionData.missionSnapshot,
+          mission_snapshot: sessionData.missionSnapshot as unknown as import('@/integrations/supabase/types').Json,
           score_earned: sessionData.scoreEarned,
           xp_earned: sessionData.xpEarned,
           sets_completed: sessionData.setsCompleted,
@@ -75,7 +72,7 @@ export function useCreateWorkoutSession() {
           damage_dealt: sessionData.damageDealt,
           status: 'COMPLETED',
           completed_at: new Date().toISOString(),
-        })
+        }])
         .select()
         .single();
       
