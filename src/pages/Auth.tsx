@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { motion } from 'framer-motion';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useLocation } from 'react-router-dom';
 import { ArrowLeft, Mail, Lock, AlertCircle, Eye, EyeOff, User } from 'lucide-react';
 import { useAuth } from '@/hooks/useAuth';
 import { useUpdateProfile } from '@/hooks/useProfile';
@@ -15,6 +15,8 @@ const displayNameSchema = z.string().min(3, { message: 'Display name must be at 
 
 const AuthPage = () => {
   const navigate = useNavigate();
+  const location = useLocation();
+  const redirectTo = (location.state as { redirect?: string })?.redirect || '/';
   const { signIn, signUp } = useAuth();
   const updateProfile = useUpdateProfile();
   const [isSignUp, setIsSignUp] = useState(false);
@@ -65,7 +67,7 @@ const AuthPage = () => {
               // Non-blocking - profile update can happen later
             }
           }
-          navigate('/');
+          navigate(redirectTo);
         }
       } else {
         const { error } = await signIn(email, password);
@@ -76,7 +78,7 @@ const AuthPage = () => {
             setError(error.message);
           }
         } else {
-          navigate('/');
+          navigate(redirectTo);
         }
       }
     } finally {
