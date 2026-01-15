@@ -15,7 +15,7 @@ const JoinSquad = () => {
   const [joined, setJoined] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  // Check if already a member
+  // Check if already a member of THIS specific squad
   const isAlreadyMember = mySquads?.some(m => m.squads?.id === squad?.id);
 
   const handleJoin = async () => {
@@ -94,6 +94,7 @@ const JoinSquad = () => {
     );
   }
 
+  // Only show "already enlisted" if trying to join the SAME squad
   if (isAlreadyMember) {
     return (
       <div className="min-h-screen bg-background relative flex items-center justify-center">
