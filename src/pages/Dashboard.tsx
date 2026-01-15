@@ -90,7 +90,7 @@ const Dashboard = () => {
               className="flex items-center gap-2 px-3 py-2 text-sm text-muted-foreground hover:text-secondary transition-colors"
             >
               <Plus className="w-4 h-4" />
-              My Exercises
+              EDIT ARSENAL
             </button>
           </motion.div>
         )}
@@ -177,6 +177,24 @@ const Dashboard = () => {
           </button>
         </motion.div>
 
+        {/* Front Lines CTA */}
+        <motion.button
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.35 }}
+          onClick={() => navigate('/front-lines')}
+          className="w-full mb-8 p-4 bg-card border border-secondary/50 rounded flex items-center justify-between hover:border-secondary hover:box-glow-secondary transition-all"
+        >
+          <div className="flex items-center gap-3">
+            <Swords className="w-6 h-6 text-secondary" />
+            <div className="text-left">
+              <div className="font-display text-lg text-secondary">THE FRONT LINES</div>
+              <div className="text-xs text-muted-foreground">Live combat feed from all warriors</div>
+            </div>
+          </div>
+          <ChevronRight className="w-5 h-5 text-secondary" />
+        </motion.button>
+
         {/* Recent Missions */}
         <motion.section
           initial={{ opacity: 0, y: 20 }}
@@ -228,24 +246,6 @@ const Dashboard = () => {
             ))}
           </div>
         </motion.section>
-
-        {/* Front Lines CTA */}
-        <motion.button
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.6 }}
-          onClick={() => navigate('/front-lines')}
-          className="w-full mt-6 p-4 bg-card border border-secondary/50 rounded flex items-center justify-between hover:border-secondary hover:box-glow-secondary transition-all"
-        >
-          <div className="flex items-center gap-3">
-            <Swords className="w-6 h-6 text-secondary" />
-            <div className="text-left">
-              <div className="font-display text-lg text-secondary">THE FRONT LINES</div>
-              <div className="text-xs text-muted-foreground">Live combat feed from all warriors</div>
-            </div>
-          </div>
-          <ChevronRight className="w-5 h-5 text-secondary" />
-        </motion.button>
 
 
         {/* Footer */}

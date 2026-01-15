@@ -15,6 +15,7 @@ const MissionSelect = () => {
   const [focusFilter, setFocusFilter] = useState<string>('');
   const [muscleFilter, setMuscleFilter] = useState<string>('');
   const [showOnlyPublic, setShowOnlyPublic] = useState(false);
+  const [showOnlyMine, setShowOnlyMine] = useState(false);
 
   const { data: missions, isLoading } = useMissions({
     focusArea: focusFilter || undefined,
@@ -26,9 +27,15 @@ const MissionSelect = () => {
     setFocusFilter('');
     setMuscleFilter('');
     setShowOnlyPublic(false);
+    setShowOnlyMine(false);
   };
 
-  const hasFilters = focusFilter || muscleFilter || showOnlyPublic;
+  const hasFilters = focusFilter || muscleFilter || showOnlyPublic || showOnlyMine;
+
+  // Filter missions for "My Missions" option
+  const filteredMissions = showOnlyMine && user 
+    ? missions?.filter(m => m.created_by === user.id)
+    : missions;
 
   return (
     <div className="min-h-screen bg-background relative">
@@ -135,15 +142,32 @@ const MissionSelect = () => {
 
               {/* Show Only Public */}
               {user && (
-                <label className="flex items-center gap-2 cursor-pointer">
-                  <input
-                    type="checkbox"
-                    checked={showOnlyPublic}
-                    onChange={(e) => setShowOnlyPublic(e.target.checked)}
-                    className="w-4 h-4 accent-primary"
-                  />
-                  <span className="text-xs text-muted-foreground">Show only public missions</span>
-                </label>
+                <div className="flex gap-4">
+                  <label className="flex items-center gap-2 cursor-pointer">
+                    <input
+                      type="checkbox"
+                      checked={showOnlyMine}
+                      onChange={(e) => {
+                        setShowOnlyMine(e.target.checked);
+                        if (e.target.checked) setShowOnlyPublic(false);
+                      }}
+                      className="w-4 h-4 accent-secondary"
+                    />
+                    <span className="text-xs text-muted-foreground">My missions only</span>
+                  </label>
+                  <label className="flex items-center gap-2 cursor-pointer">
+                    <input
+                      type="checkbox"
+                      checked={showOnlyPublic}
+                      onChange={(e) => {
+                        setShowOnlyPublic(e.target.checked);
+                        if (e.target.checked) setShowOnlyMine(false);
+                      }}
+                      className="w-4 h-4 accent-primary"
+                    />
+                    <span className="text-xs text-muted-foreground">Public missions only</span>
+                  </label>
+                </div>
               )}
             </div>
           </motion.div>
@@ -154,13 +178,21 @@ const MissionSelect = () => {
           <div className="text-center py-12">
             <div className="font-display text-2xl text-primary animate-neon-pulse">LOADING...</div>
           </div>
-        ) : missions?.length === 0 ? (
+        ) : filteredMissions?.length === 0 ? (
           <div className="text-center py-12">
             <p className="text-muted-foreground">No missions found. {hasFilters && 'Try clearing filters.'}</p>
+            {showOnlyMine && (
+              <button
+                onClick={() => navigate('/create-mission')}
+                className="mt-4 text-sm text-secondary hover:text-glow-secondary font-display"
+              >
+                + CREATE YOUR FIRST MISSION
+              </button>
+            )}
           </div>
         ) : (
           <div className="space-y-4">
-            {missions?.map((mission, i) => (
+            {filteredMissions?.map((mission, i) => (
               <motion.button
                 key={mission.id}
                 initial={{ opacity: 0, x: -30 }}
