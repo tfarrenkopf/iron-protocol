@@ -644,6 +644,14 @@ export type Database = {
         }
         Returns: boolean
       }
+      is_squad_handler: {
+        Args: { _squad_id: string; _user_id: string }
+        Returns: boolean
+      }
+      is_squad_member: {
+        Args: { _squad_id: string; _user_id: string }
+        Returns: boolean
+      }
     }
     Enums: {
       app_role: "user" | "handler"
