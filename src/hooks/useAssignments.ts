@@ -68,23 +68,38 @@ export function useHandlerAssignments() {
     queryFn: async () => {
       if (!user) return [];
       
-      const { data, error } = await supabase
+      // First get all assignments
+      const { data: assignmentsData, error: assignmentsError } = await supabase
         .from('mission_assignments')
-        .select(`
-          *,
-          profiles:assignee_id (
-            display_name
-          ),
-          squads:assignee_id (
-            name,
-            code_name
-          )
-        `)
+        .select('*')
         .eq('handler_id', user.id)
         .order('assigned_at', { ascending: false });
       
-      if (error) throw error;
-      return data;
+      if (assignmentsError) throw assignmentsError;
+      if (!assignmentsData) return [];
+
+      // Enrich with squad/profile data based on assignee_type
+      const enrichedAssignments = await Promise.all(
+        assignmentsData.map(async (assignment) => {
+          if (assignment.assignee_type === 'SQUAD') {
+            const { data: squadData } = await supabase
+              .from('squads')
+              .select('name, code_name')
+              .eq('id', assignment.assignee_id)
+              .maybeSingle();
+            return { ...assignment, squads: squadData, profiles: null };
+          } else {
+            const { data: profileData } = await supabase
+              .from('profiles')
+              .select('display_name')
+              .eq('id', assignment.assignee_id)
+              .maybeSingle();
+            return { ...assignment, profiles: profileData, squads: null };
+          }
+        })
+      );
+
+      return enrichedAssignments;
     },
     enabled: !!user,
   });
