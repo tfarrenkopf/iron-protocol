@@ -1,33 +1,16 @@
 import { motion } from 'framer-motion';
 import { useNavigate } from 'react-router-dom';
 import { ArrowLeft, Trophy, Dumbbell, Target, Zap, Skull, Crown, Medal, Star } from 'lucide-react';
-import { useGameStore } from '@/stores/gameStore';
-
-// Mock leaderboard data - in production this would come from a database
-const MOCK_LEADERBOARD = [
-  { rank: 1, name: 'COBRA_KAI', score: 156780, level: 42, streak: 30 },
-  { rank: 2, name: 'IRON_WOLF', score: 143250, level: 38, streak: 21 },
-  { rank: 3, name: 'NEON_GHOST', score: 128900, level: 35, streak: 14 },
-  { rank: 4, name: 'YOU', score: 12450, level: 14, streak: 7, isPlayer: true },
-  { rank: 5, name: 'SHADOW_X', score: 11200, level: 12, streak: 5 },
-  { rank: 6, name: 'CHROME_88', score: 9800, level: 11, streak: 4 },
-  { rank: 7, name: 'PIXEL_FURY', score: 8400, level: 9, streak: 3 },
-  { rank: 8, name: 'BYTE_STORM', score: 6200, level: 7, streak: 2 },
-];
-
-// Mock weight tracking data
-const WEIGHT_HISTORY = [
-  { exercise: 'BENCH PRESS', current: 135, pr: 185, trend: 'up', sessions: 12 },
-  { exercise: 'OVERHEAD PRESS', current: 95, pr: 115, trend: 'up', sessions: 10 },
-  { exercise: 'INCLINE PRESS', current: 115, pr: 135, trend: 'stable', sessions: 8 },
-  { exercise: 'DB LATERAL RAISE', current: 25, pr: 30, trend: 'up', sessions: 15 },
-  { exercise: 'DB CURLS', current: 35, pr: 40, trend: 'up', sessions: 11 },
-  { exercise: 'TRICEP PUSHDOWN', current: 50, pr: 60, trend: 'stable', sessions: 9 },
-];
+import { useProfile, useLeaderboard } from '@/hooks/useProfile';
+import { useWeightHistory } from '@/hooks/useWeightHistory';
+import { useAuth } from '@/hooks/useAuth';
 
 const Stats = () => {
   const navigate = useNavigate();
-  const { stats } = useGameStore();
+  const { user } = useAuth();
+  const { data: profile, isLoading: profileLoading } = useProfile();
+  const { data: leaderboard, isLoading: leaderboardLoading } = useLeaderboard();
+  const { data: weightHistory, isLoading: weightLoading } = useWeightHistory();
 
   const getRankIcon = (rank: number) => {
     switch (rank) {
@@ -38,13 +21,21 @@ const Stats = () => {
     }
   };
 
-  const getTrendIcon = (trend: string) => {
-    switch (trend) {
-      case 'up': return <span className="text-success">↑</span>;
-      case 'down': return <span className="text-destructive">↓</span>;
-      default: return <span className="text-muted-foreground">→</span>;
-    }
+  const getTrendIcon = (current: number, max: number) => {
+    if (current >= max) return <span className="text-success">★</span>;
+    if (current >= max * 0.9) return <span className="text-success">↑</span>;
+    return <span className="text-muted-foreground">→</span>;
   };
+
+  // Calculate level from XP
+  const xp = profile?.total_xp || 0;
+  const level = Math.max(1, Math.floor(Math.sqrt(xp / 100)) + 1);
+
+  // Convert weight history map to array for display
+  const weightEntries = Object.entries(weightHistory || {}).map(([exerciseId, data]) => ({
+    exerciseId,
+    ...data,
+  }));
 
   return (
     <div className="min-h-screen bg-background relative">
@@ -75,30 +66,36 @@ const Stats = () => {
             // YOUR STATS
           </h2>
           
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
-            {[
-              { label: 'TOTAL SCORE', value: stats.score.toLocaleString(), icon: Target, color: 'text-primary' },
-              { label: 'XP EARNED', value: stats.xp.toLocaleString(), icon: Star, color: 'text-success' },
-              { label: 'SETS CRUSHED', value: stats.setsCompleted.toString(), icon: Dumbbell, color: 'text-secondary' },
-              { label: 'DAMAGE DEALT', value: stats.damageDealt.toLocaleString(), icon: Skull, color: 'text-destructive' },
-              { label: 'TOTAL REPS', value: stats.totalReps.toLocaleString(), icon: Zap, color: 'text-accent' },
-              { label: 'WEIGHT LIFTED', value: `${(stats.totalWeight / 1000).toFixed(1)}K`, icon: Dumbbell, color: 'text-warning' },
-              { label: 'MAX COMBO', value: `${stats.maxCombo}x`, icon: Trophy, color: 'text-secondary' },
-              { label: 'AVG WEIGHT', value: stats.setsCompleted > 0 ? Math.round(stats.totalWeight / stats.setsCompleted / stats.totalReps * stats.setsCompleted).toString() : '0', icon: Target, color: 'text-primary' },
-            ].map((stat, i) => (
-              <motion.div
-                key={stat.label}
-                initial={{ opacity: 0, scale: 0.9 }}
-                animate={{ opacity: 1, scale: 1 }}
-                transition={{ delay: i * 0.05 }}
-                className="bg-card border border-border rounded-lg p-3 text-center"
-              >
-                <stat.icon className={`w-4 h-4 mx-auto mb-1 ${stat.color}`} />
-                <div className={`font-display text-xl ${stat.color}`}>{stat.value}</div>
-                <div className="text-[10px] text-muted-foreground tracking-wider">{stat.label}</div>
-              </motion.div>
-            ))}
-          </div>
+          {profileLoading ? (
+            <div className="text-center py-8">
+              <div className="font-display text-lg text-primary animate-neon-pulse">LOADING...</div>
+            </div>
+          ) : (
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+              {[
+                { label: 'TOTAL SCORE', value: (profile?.total_score || 0).toLocaleString(), icon: Target, color: 'text-primary' },
+                { label: 'XP EARNED', value: (profile?.total_xp || 0).toLocaleString(), icon: Star, color: 'text-success' },
+                { label: 'SETS CRUSHED', value: (profile?.total_sets || 0).toString(), icon: Dumbbell, color: 'text-secondary' },
+                { label: 'MAX COMBO', value: `${profile?.max_combo || 0}x`, icon: Trophy, color: 'text-accent' },
+                { label: 'TOTAL REPS', value: (profile?.total_reps || 0).toLocaleString(), icon: Zap, color: 'text-accent' },
+                { label: 'WEIGHT LIFTED', value: `${((profile?.total_weight || 0) / 1000).toFixed(1)}K`, icon: Dumbbell, color: 'text-warning' },
+                { label: 'LEVEL', value: level.toString(), icon: Crown, color: 'text-secondary' },
+                { label: 'AVG WEIGHT/SET', value: (profile?.total_sets || 0) > 0 ? Math.round((profile?.total_weight || 0) / (profile?.total_sets || 1)).toString() : '0', icon: Target, color: 'text-primary' },
+              ].map((stat, i) => (
+                <motion.div
+                  key={stat.label}
+                  initial={{ opacity: 0, scale: 0.9 }}
+                  animate={{ opacity: 1, scale: 1 }}
+                  transition={{ delay: i * 0.05 }}
+                  className="bg-card border border-border rounded-lg p-3 text-center"
+                >
+                  <stat.icon className={`w-4 h-4 mx-auto mb-1 ${stat.color}`} />
+                  <div className={`font-display text-xl ${stat.color}`}>{stat.value}</div>
+                  <div className="text-[10px] text-muted-foreground tracking-wider">{stat.label}</div>
+                </motion.div>
+              ))}
+            </div>
+          )}
         </motion.section>
 
         {/* Weight Stats */}
@@ -112,51 +109,63 @@ const Stats = () => {
             // WEIGHT TRACKING
           </h2>
           
-          <div className="space-y-2">
-            {WEIGHT_HISTORY.map((exercise, i) => (
-              <motion.div
-                key={exercise.exercise}
-                initial={{ opacity: 0, x: -20 }}
-                animate={{ opacity: 1, x: 0 }}
-                transition={{ delay: 0.3 + i * 0.05 }}
-                className="bg-card border border-border rounded-lg p-4"
-              >
-                <div className="flex items-center justify-between">
-                  <div>
-                    <div className="font-display text-sm text-secondary">
-                      {exercise.exercise}
+          {weightLoading ? (
+            <div className="text-center py-4">
+              <div className="font-display text-sm text-primary animate-neon-pulse">LOADING...</div>
+            </div>
+          ) : weightEntries.length === 0 ? (
+            <div className="bg-card border border-border rounded-lg p-6 text-center">
+              <Dumbbell className="w-8 h-8 mx-auto mb-3 text-muted-foreground" />
+              <p className="text-muted-foreground text-sm">No weight history yet.</p>
+              <p className="text-muted-foreground/60 text-xs mt-1">Complete workouts to track your progress.</p>
+            </div>
+          ) : (
+            <div className="space-y-2">
+              {weightEntries.slice(0, 10).map((entry, i) => (
+                <motion.div
+                  key={entry.exerciseId}
+                  initial={{ opacity: 0, x: -20 }}
+                  animate={{ opacity: 1, x: 0 }}
+                  transition={{ delay: 0.3 + i * 0.05 }}
+                  className="bg-card border border-border rounded-lg p-4"
+                >
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <div className="font-display text-sm text-secondary">
+                        EXERCISE
+                      </div>
+                      <div className="text-xs text-muted-foreground mt-1">
+                        ID: {entry.exerciseId.slice(0, 8)}...
+                      </div>
                     </div>
-                    <div className="text-xs text-muted-foreground mt-1">
-                      {exercise.sessions} sessions
+                    
+                    <div className="text-right">
+                      <div className="flex items-center gap-2">
+                        <span className="font-display text-2xl text-accent">
+                          {entry.lastWeight}
+                        </span>
+                        <span className="text-xs text-muted-foreground">{entry.unit}</span>
+                        {getTrendIcon(entry.lastWeight, entry.maxWeight)}
+                      </div>
+                      <div className="text-xs text-muted-foreground">
+                        PR: <span className="text-primary font-display">{entry.maxWeight}</span> {entry.unit}
+                      </div>
                     </div>
                   </div>
                   
-                  <div className="text-right">
-                    <div className="flex items-center gap-2">
-                      <span className="font-display text-2xl text-accent">
-                        {exercise.current}
-                      </span>
-                      <span className="text-xs text-muted-foreground">lb</span>
-                      {getTrendIcon(exercise.trend)}
-                    </div>
-                    <div className="text-xs text-muted-foreground">
-                      PR: <span className="text-primary font-display">{exercise.pr}</span> lb
-                    </div>
+                  {/* Progress bar to PR */}
+                  <div className="mt-3 h-1 bg-muted rounded-full overflow-hidden">
+                    <motion.div
+                      initial={{ width: 0 }}
+                      animate={{ width: `${(entry.lastWeight / entry.maxWeight) * 100}%` }}
+                      transition={{ delay: 0.5 + i * 0.05, duration: 0.5 }}
+                      className="h-full bg-gradient-to-r from-secondary to-primary"
+                    />
                   </div>
-                </div>
-                
-                {/* Progress bar to PR */}
-                <div className="mt-3 h-1 bg-muted rounded-full overflow-hidden">
-                  <motion.div
-                    initial={{ width: 0 }}
-                    animate={{ width: `${(exercise.current / exercise.pr) * 100}%` }}
-                    transition={{ delay: 0.5 + i * 0.05, duration: 0.5 }}
-                    className="h-full bg-gradient-to-r from-secondary to-primary"
-                  />
-                </div>
-              </motion.div>
-            ))}
-          </div>
+                </motion.div>
+              ))}
+            </div>
+          )}
         </motion.section>
 
         {/* Leaderboard */}
@@ -169,49 +178,69 @@ const Stats = () => {
             // GLOBAL RANKINGS
           </h2>
           
-          <div className="bg-card border border-border rounded-lg overflow-hidden">
-            {/* Header */}
-            <div className="grid grid-cols-4 gap-2 p-3 border-b border-border text-xs text-muted-foreground font-display">
-              <span>RANK</span>
-              <span>OPERATOR</span>
-              <span className="text-right">SCORE</span>
-              <span className="text-right">LVL</span>
+          {leaderboardLoading ? (
+            <div className="text-center py-8">
+              <div className="font-display text-lg text-primary animate-neon-pulse">LOADING...</div>
             </div>
-            
-            {/* Entries */}
-            {MOCK_LEADERBOARD.map((entry, i) => (
-              <motion.div
-                key={entry.rank}
-                initial={{ opacity: 0, x: -10 }}
-                animate={{ opacity: 1, x: 0 }}
-                transition={{ delay: 0.5 + i * 0.05 }}
-                className={`grid grid-cols-4 gap-2 p-3 items-center ${
-                  entry.isPlayer 
-                    ? 'bg-primary/10 border-l-2 border-primary' 
-                    : 'border-b border-border/50 last:border-b-0'
-                }`}
-              >
-                <div className="flex items-center gap-2">
-                  {getRankIcon(entry.rank)}
-                </div>
+          ) : !leaderboard || leaderboard.length === 0 ? (
+            <div className="bg-card border border-border rounded-lg p-6 text-center">
+              <Trophy className="w-8 h-8 mx-auto mb-3 text-muted-foreground" />
+              <p className="text-muted-foreground text-sm">No rankings yet.</p>
+              <p className="text-muted-foreground/60 text-xs mt-1">Complete workouts to join the leaderboard.</p>
+            </div>
+          ) : (
+            <div className="bg-card border border-border rounded-lg overflow-hidden">
+              {/* Header */}
+              <div className="grid grid-cols-4 gap-2 p-3 border-b border-border text-xs text-muted-foreground font-display">
+                <span>RANK</span>
+                <span>OPERATOR</span>
+                <span className="text-right">SCORE</span>
+                <span className="text-right">LVL</span>
+              </div>
+              
+              {/* Entries */}
+              {leaderboard.map((entry, i) => {
+                const entryXp = entry.total_xp || 0;
+                const entryLevel = Math.max(1, Math.floor(Math.sqrt(entryXp / 100)) + 1);
+                const isCurrentUser = profile && entry.display_name === profile.display_name;
                 
-                <div className={`font-display text-sm ${entry.isPlayer ? 'text-primary text-glow-primary' : 'text-foreground'}`}>
-                  {entry.name}
-                </div>
-                
-                <div className="text-right font-display text-secondary">
-                  {entry.score.toLocaleString()}
-                </div>
-                
-                <div className="text-right">
-                  <span className="font-display text-accent">{entry.level}</span>
-                  <span className="text-[10px] text-muted-foreground ml-1">
-                    🔥{entry.streak}
-                  </span>
-                </div>
-              </motion.div>
-            ))}
-          </div>
+                return (
+                  <motion.div
+                    key={entry.rank || i}
+                    initial={{ opacity: 0, x: -10 }}
+                    animate={{ opacity: 1, x: 0 }}
+                    transition={{ delay: 0.5 + i * 0.05 }}
+                    className={`grid grid-cols-4 gap-2 p-3 items-center ${
+                      isCurrentUser 
+                        ? 'bg-primary/10 border-l-2 border-primary' 
+                        : 'border-b border-border/50 last:border-b-0'
+                    }`}
+                  >
+                    <div className="flex items-center gap-2">
+                      {getRankIcon(entry.rank || i + 1)}
+                    </div>
+                    
+                    <div className={`font-display text-sm ${isCurrentUser ? 'text-primary text-glow-primary' : 'text-foreground'} truncate`}>
+                      {entry.display_name || 'ANONYMOUS'}
+                    </div>
+                    
+                    <div className="text-right font-display text-secondary">
+                      {(entry.total_score || 0).toLocaleString()}
+                    </div>
+                    
+                    <div className="text-right">
+                      <span className="font-display text-accent">{entryLevel}</span>
+                      {entry.max_combo && entry.max_combo > 0 && (
+                        <span className="text-[10px] text-muted-foreground ml-1">
+                          🔥{entry.max_combo}
+                        </span>
+                      )}
+                    </div>
+                  </motion.div>
+                );
+              })}
+            </div>
+          )}
           
           <p className="text-xs text-muted-foreground/50 text-center mt-4 tracking-wider">
             CLIMB THE RANKS • DEFEAT YOUR RIVALS
