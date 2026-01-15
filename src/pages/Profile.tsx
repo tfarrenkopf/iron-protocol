@@ -1,11 +1,12 @@
 import { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useNavigate } from 'react-router-dom';
-import { ArrowLeft, User, Save, AlertCircle, Check, Trophy, Zap, Target, Dumbbell, Trash2, Calendar, X, ChevronDown, ChevronUp } from 'lucide-react';
+import { ArrowLeft, User, Save, AlertCircle, Check, Trophy, Zap, Target, Dumbbell, Trash2, Calendar, X, ChevronDown, ChevronUp, Skull, AlertTriangle } from 'lucide-react';
 import { useAuth } from '@/hooks/useAuth';
 import { useProfile, useUpdateProfile } from '@/hooks/useProfile';
 import { useCompletedSessions, useDeleteSession } from '@/hooks/useWorkoutSessions';
 import { useUserExercises, useDeleteExercise } from '@/hooks/useExercises';
+import { useWipeAllData } from '@/hooks/useWipeData';
 import { z } from 'zod';
 import { format } from 'date-fns';
 
@@ -20,6 +21,7 @@ const ProfilePage = () => {
   const updateProfile = useUpdateProfile();
   const deleteSession = useDeleteSession();
   const deleteExercise = useDeleteExercise();
+  const wipeAllData = useWipeAllData();
   
   const [displayName, setDisplayName] = useState('');
   const [error, setError] = useState<string | null>(null);
@@ -28,6 +30,8 @@ const ProfilePage = () => {
   const [deleteExerciseId, setDeleteExerciseId] = useState<string | null>(null);
   const [showMissions, setShowMissions] = useState(true);
   const [showExercises, setShowExercises] = useState(true);
+  const [showWipeConfirm, setShowWipeConfirm] = useState(false);
+  const [wipeConfirmText, setWipeConfirmText] = useState('');
 
   useEffect(() => {
     if (profile?.display_name) {
@@ -97,6 +101,17 @@ const ProfilePage = () => {
       setDeleteExerciseId(null);
     } catch (err) {
       console.error('Failed to delete exercise:', err);
+    }
+  };
+
+  const handleWipeAllData = async () => {
+    if (wipeConfirmText !== 'SCORCHED EARTH') return;
+    try {
+      await wipeAllData.mutateAsync();
+      setShowWipeConfirm(false);
+      setWipeConfirmText('');
+    } catch (err) {
+      console.error('Failed to wipe data:', err);
     }
   };
 
@@ -476,9 +491,123 @@ const ProfilePage = () => {
                 )}
               </AnimatePresence>
             </motion.section>
+            {/* Scorched Earth - Wipe All Data */}
+            <motion.section
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.6 }}
+              className="bg-card border border-destructive/30 rounded-lg p-6 mt-6"
+            >
+              <div className="flex items-center gap-3 mb-4">
+                <Skull className="w-6 h-6 text-destructive" />
+                <h2 className="font-display text-lg text-destructive">SCORCHED EARTH PROTOCOL</h2>
+              </div>
+              <p className="text-sm text-muted-foreground mb-4">
+                Permanently erase all mission history, custom exercises, weight records, and reset your stats to zero. 
+                Your call sign will be preserved. This action cannot be undone.
+              </p>
+              <button
+                onClick={() => setShowWipeConfirm(true)}
+                className="w-full py-3 border-2 border-destructive text-destructive font-display rounded hover:bg-destructive hover:text-destructive-foreground transition-all flex items-center justify-center gap-2"
+              >
+                <AlertTriangle className="w-5 h-5" />
+                INITIATE PROTOCOL
+              </button>
+            </motion.section>
           </>
         )}
       </div>
+
+      {/* Wipe Confirmation Modal */}
+      <AnimatePresence>
+        {showWipeConfirm && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            className="fixed inset-0 bg-background/90 backdrop-blur-sm z-50 flex items-center justify-center p-4"
+          >
+            <motion.div
+              initial={{ scale: 0.9, opacity: 0 }}
+              animate={{ scale: 1, opacity: 1 }}
+              exit={{ scale: 0.9, opacity: 0 }}
+              className="bg-card border-2 border-destructive rounded-lg p-6 max-w-md w-full"
+            >
+              <div className="text-center mb-6">
+                <div className="w-16 h-16 mx-auto mb-4 rounded-full bg-destructive/20 flex items-center justify-center">
+                  <Skull className="w-10 h-10 text-destructive animate-pulse" />
+                </div>
+                <h2 className="font-display text-2xl text-destructive mb-2">SCORCHED EARTH</h2>
+                <p className="text-muted-foreground text-sm">
+                  This will permanently destroy all your progress:
+                </p>
+              </div>
+              
+              <div className="space-y-2 mb-6 text-sm">
+                <div className="flex items-center gap-2 text-muted-foreground">
+                  <X className="w-4 h-4 text-destructive" />
+                  <span>{sessions?.length || 0} mission records</span>
+                </div>
+                <div className="flex items-center gap-2 text-muted-foreground">
+                  <X className="w-4 h-4 text-destructive" />
+                  <span>{userExercises?.length || 0} custom exercises</span>
+                </div>
+                <div className="flex items-center gap-2 text-muted-foreground">
+                  <X className="w-4 h-4 text-destructive" />
+                  <span>{(profile?.total_score || 0).toLocaleString()} total score</span>
+                </div>
+                <div className="flex items-center gap-2 text-muted-foreground">
+                  <X className="w-4 h-4 text-destructive" />
+                  <span>{(profile?.total_xp || 0).toLocaleString()} XP (Level {level})</span>
+                </div>
+                <div className="flex items-center gap-2 text-muted-foreground">
+                  <X className="w-4 h-4 text-destructive" />
+                  <span>All weight history records</span>
+                </div>
+              </div>
+              
+              <div className="mb-6">
+                <label className="text-xs text-muted-foreground mb-2 block">
+                  Type <span className="text-destructive font-display">SCORCHED EARTH</span> to confirm:
+                </label>
+                <input
+                  type="text"
+                  value={wipeConfirmText}
+                  onChange={(e) => setWipeConfirmText(e.target.value.toUpperCase())}
+                  className="w-full bg-background border border-destructive/50 rounded px-4 py-3 text-foreground placeholder:text-muted-foreground focus:border-destructive focus:outline-none transition-colors font-display text-center tracking-widest"
+                  placeholder="SCORCHED EARTH"
+                />
+              </div>
+              
+              <div className="flex gap-3">
+                <button
+                  onClick={() => {
+                    setShowWipeConfirm(false);
+                    setWipeConfirmText('');
+                  }}
+                  className="flex-1 py-3 border border-border rounded font-display hover:bg-muted transition-colors"
+                >
+                  ABORT
+                </button>
+                <button
+                  onClick={handleWipeAllData}
+                  disabled={wipeConfirmText !== 'SCORCHED EARTH' || wipeAllData.isPending}
+                  className="flex-1 py-3 bg-destructive text-destructive-foreground font-display rounded hover:bg-destructive/90 transition-all disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+                >
+                  {wipeAllData.isPending ? (
+                    <>DESTROYING...</>
+                  ) : (
+                    <>
+                      <Skull className="w-5 h-5" />
+                      EXECUTE
+                    </>
+                  )}
+                </button>
+              </div>
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
     </div>
   );
 };
