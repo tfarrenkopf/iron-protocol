@@ -261,10 +261,10 @@ const Dashboard = () => {
         >
           <div className="flex items-center justify-center gap-4 text-xs">
             <button
-              onClick={() => navigate('/why')}
+              onClick={() => navigate('/donate')}
               className="text-muted-foreground hover:text-primary transition-colors"
             >
-              Why?
+              ♥ Support
             </button>
             <span className="text-muted-foreground/30">|</span>
             <button
