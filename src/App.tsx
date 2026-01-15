@@ -10,6 +10,7 @@ import WorkoutSession from "./pages/WorkoutSession";
 import HIITTimer from "./pages/HIITTimer";
 import Stats from "./pages/Stats";
 import AuthPage from "./pages/Auth";
+import ProfilePage from "./pages/Profile";
 import ExerciseManager from "./pages/ExerciseManager";
 import CreateMission from "./pages/CreateMission";
 import NotFound from "./pages/NotFound";
@@ -26,6 +27,7 @@ const App = () => (
           <Routes>
             <Route path="/" element={<Dashboard />} />
             <Route path="/auth" element={<AuthPage />} />
+            <Route path="/profile" element={<ProfilePage />} />
             <Route path="/missions" element={<MissionSelect />} />
             <Route path="/workout/:missionId" element={<WorkoutSession />} />
             <Route path="/hiit" element={<HIITTimer />} />

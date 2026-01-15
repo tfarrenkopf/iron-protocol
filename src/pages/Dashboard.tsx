@@ -1,6 +1,6 @@
 import { motion } from 'framer-motion';
 import { useNavigate } from 'react-router-dom';
-import { Zap, Target, Dumbbell, Timer, TrendingUp, Trophy, User, LogIn, LogOut, Plus } from 'lucide-react';
+import { Zap, Target, Dumbbell, Timer, TrendingUp, Trophy, User, LogOut, Plus } from 'lucide-react';
 import { useMissions } from '@/hooks/useMissions';
 import { useAuth } from '@/hooks/useAuth';
 import { useProfile } from '@/hooks/useProfile';
@@ -37,28 +37,48 @@ const Dashboard = () => {
       </div>
 
       <div className="relative z-10 container mx-auto px-4 py-8 max-w-4xl">
+        {/* Guest Mode Banner - Top Position */}
+        {isAnonymous && (
+          <motion.div
+            initial={{ opacity: 0, y: -10 }}
+            animate={{ opacity: 1, y: 0 }}
+            className="mb-6 p-4 bg-warning/10 border border-warning/30 rounded-lg flex items-center justify-between gap-4"
+          >
+            <div>
+              <p className="text-sm text-warning font-display">⚠️ GUEST MODE ACTIVE</p>
+              <p className="text-xs text-muted-foreground mt-1">
+                Your progress won't be saved. Create an account to track your gains and appear on the leaderboard.
+              </p>
+            </div>
+            <button
+              onClick={() => navigate('/auth')}
+              className="flex-shrink-0 px-4 py-2 bg-primary text-primary-foreground font-display text-sm rounded hover:box-glow-primary transition-all"
+            >
+              SIGN IN
+            </button>
+          </motion.div>
+        )}
+
         {/* Auth Status Bar */}
         <motion.div
           initial={{ opacity: 0, y: -10 }}
           animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: isAnonymous ? 0.1 : 0 }}
           className="flex items-center justify-between mb-6"
         >
           {isAnonymous ? (
-            <button
-              onClick={() => navigate('/auth')}
-              className="flex items-center gap-2 px-3 py-2 bg-card border border-border rounded hover:border-primary transition-colors text-sm"
-            >
-              <LogIn className="w-4 h-4" />
-              <span className="text-muted-foreground">Sign in to save progress</span>
-            </button>
+            <div className="text-xs text-muted-foreground">Playing as guest</div>
           ) : (
             <div className="flex items-center gap-3">
-              <div className="flex items-center gap-2 px-3 py-2 bg-card border border-border rounded">
+              <button
+                onClick={() => navigate('/profile')}
+                className="flex items-center gap-2 px-3 py-2 bg-card border border-border rounded hover:border-primary transition-colors"
+              >
                 <User className="w-4 h-4 text-primary" />
                 <span className="text-sm font-display text-primary">
                   {profile?.display_name || 'AGENT'}
                 </span>
-              </div>
+              </button>
               <button
                 onClick={handleSignOut}
                 className="p-2 border border-border rounded hover:border-destructive hover:text-destructive transition-colors"
@@ -205,20 +225,6 @@ const Dashboard = () => {
           </div>
         </motion.section>
 
-        {/* Anonymous Warning */}
-        {isAnonymous && (
-          <motion.div
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            transition={{ delay: 0.7 }}
-            className="mt-8 p-4 bg-warning/10 border border-warning/30 rounded-lg"
-          >
-            <p className="text-sm text-warning font-display">⚠️ GUEST MODE ACTIVE</p>
-            <p className="text-xs text-muted-foreground mt-1">
-              Your progress won't be saved. Sign in to track your gains and appear on the leaderboard.
-            </p>
-          </motion.div>
-        )}
 
         {/* Footer */}
         <motion.footer

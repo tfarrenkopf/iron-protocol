@@ -67,8 +67,8 @@ const WorkoutSession = () => {
   // Start the workout store session
   useEffect(() => {
     if (mission && missionId && !currentSession && showLore !== 'intro') {
-      // Create a temporary mission ID mapping for the store
-      startMission(missionId);
+      // Pass the full mission object to the store
+      startMission(mission);
     }
   }, [mission, missionId, currentSession, showLore, startMission]);
 
@@ -183,7 +183,7 @@ const WorkoutSession = () => {
           </h1>
           <p className="font-display text-4xl text-secondary mb-8">{mission.code_name}</p>
           
-          <div className="grid grid-cols-2 gap-6 max-w-md mx-auto mb-10">
+          <div className="grid grid-cols-2 gap-6 max-w-md mx-auto mb-6">
             <div className="bg-card border border-border rounded-lg p-4">
               <div className="font-display text-4xl text-accent">{stats.score.toLocaleString()}</div>
               <div className="text-xs text-muted-foreground">SCORE</div>
@@ -200,6 +200,12 @@ const WorkoutSession = () => {
               <div className="font-display text-4xl text-success">{stats.xp}</div>
               <div className="text-xs text-muted-foreground">XP EARNED</div>
             </div>
+          </div>
+          
+          {/* Total Weight Lifted */}
+          <div className="bg-card border-2 border-accent rounded-lg p-4 max-w-md mx-auto mb-10">
+            <div className="font-display text-5xl text-accent">{stats.totalWeight.toLocaleString()}</div>
+            <div className="text-sm text-muted-foreground">TOTAL LBS LIFTED</div>
           </div>
 
           <button
