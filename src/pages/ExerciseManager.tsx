@@ -234,7 +234,7 @@ const ExerciseManager = () => {
                   initial={{ opacity: 0, x: -20 }}
                   animate={{ opacity: 1, x: 0 }}
                   transition={{ delay: i * 0.05 }}
-                  onClick={() => navigate(`/workout/${mission.id}`)}
+                  onClick={() => navigate(`/mission/${mission.id}`)}
                   className="w-full bg-card border border-border rounded-lg p-3 text-left hover:border-secondary transition-all"
                 >
                   <div className="flex items-center justify-between">
