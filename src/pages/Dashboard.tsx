@@ -242,7 +242,7 @@ const Dashboard = () => {
                 initial={{ opacity: 0, x: -20 }}
                 animate={{ opacity: 1, x: 0 }}
                 transition={{ delay: 0.5 + i * 0.1 }}
-                onClick={() => navigate(`/workout/${mission.id}`)}
+                onClick={() => navigate(`/mission/${mission.id}`)}
                 className="w-full group bg-card border border-border rounded p-4 text-left hover:border-primary/50 transition-all"
               >
                 <div className="flex items-center justify-between">

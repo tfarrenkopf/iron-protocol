@@ -244,7 +244,7 @@ const FrontLines = () => {
                   
                   {session.mission_id && (
                     <button
-                      onClick={() => navigate(`/workout/${session.mission_id}`)}
+                      onClick={() => navigate(`/mission/${session.mission_id}`)}
                       className="mt-3 w-full py-2 border border-primary/50 rounded text-sm font-display text-primary hover:bg-primary/10 transition-colors flex items-center justify-center gap-2"
                     >
                       <Target className="w-4 h-4" />
