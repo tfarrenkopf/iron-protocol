@@ -1,6 +1,6 @@
 import { motion } from 'framer-motion';
 import { useNavigate } from 'react-router-dom';
-import { Zap, Target, Dumbbell, Timer, TrendingUp, Trophy, User, LogOut, Plus } from 'lucide-react';
+import { Zap, Target, Dumbbell, Timer, TrendingUp, Trophy, User, LogOut, Plus, Swords, ChevronRight } from 'lucide-react';
 import { useMissions } from '@/hooks/useMissions';
 import { useAuth } from '@/hooks/useAuth';
 import { useProfile } from '@/hooks/useProfile';
@@ -60,15 +60,12 @@ const Dashboard = () => {
         )}
 
         {/* Auth Status Bar */}
-        <motion.div
-          initial={{ opacity: 0, y: -10 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: isAnonymous ? 0.1 : 0 }}
-          className="flex items-center justify-between mb-6"
-        >
-          {isAnonymous ? (
-            <div className="text-xs text-muted-foreground">Playing as guest</div>
-          ) : (
+        {!isAnonymous && (
+          <motion.div
+            initial={{ opacity: 0, y: -10 }}
+            animate={{ opacity: 1, y: 0 }}
+            className="flex items-center justify-between mb-6"
+          >
             <div className="flex items-center gap-3">
               <button
                 onClick={() => navigate('/profile')}
@@ -87,9 +84,7 @@ const Dashboard = () => {
                 <LogOut className="w-4 h-4" />
               </button>
             </div>
-          )}
-          
-          {user && (
+            
             <button
               onClick={() => navigate('/exercises')}
               className="flex items-center gap-2 px-3 py-2 text-sm text-muted-foreground hover:text-secondary transition-colors"
@@ -97,8 +92,8 @@ const Dashboard = () => {
               <Plus className="w-4 h-4" />
               My Exercises
             </button>
-          )}
-        </motion.div>
+          </motion.div>
+        )}
 
         {/* Header */}
         <motion.header 
@@ -188,9 +183,18 @@ const Dashboard = () => {
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.4 }}
         >
-          <h3 className="font-display text-xl text-muted-foreground mb-4 tracking-wider">
-            // SELECT MISSION
-          </h3>
+          <div className="flex items-center justify-between mb-4">
+            <h3 className="font-display text-xl text-muted-foreground tracking-wider">
+              // SELECT MISSION
+            </h3>
+            <button
+              onClick={() => navigate('/missions')}
+              className="flex items-center gap-1 text-sm font-display text-primary hover:text-glow-primary transition-all"
+            >
+              FULL ARSENAL
+              <ChevronRight className="w-4 h-4" />
+            </button>
+          </div>
           
           <div className="space-y-3">
             {missions?.slice(0, 3).map((mission, i) => (
@@ -225,14 +229,47 @@ const Dashboard = () => {
           </div>
         </motion.section>
 
+        {/* Front Lines CTA */}
+        <motion.button
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.6 }}
+          onClick={() => navigate('/front-lines')}
+          className="w-full mt-6 p-4 bg-card border border-secondary/50 rounded flex items-center justify-between hover:border-secondary hover:box-glow-secondary transition-all"
+        >
+          <div className="flex items-center gap-3">
+            <Swords className="w-6 h-6 text-secondary" />
+            <div className="text-left">
+              <div className="font-display text-lg text-secondary">THE FRONT LINES</div>
+              <div className="text-xs text-muted-foreground">Live combat feed from all warriors</div>
+            </div>
+          </div>
+          <ChevronRight className="w-5 h-5 text-secondary" />
+        </motion.button>
+
 
         {/* Footer */}
         <motion.footer
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           transition={{ delay: 0.8 }}
-          className="mt-12 text-center"
+          className="mt-12 text-center space-y-3"
         >
+          <div className="flex items-center justify-center gap-4 text-xs">
+            <button
+              onClick={() => navigate('/why')}
+              className="text-muted-foreground hover:text-primary transition-colors"
+            >
+              Why?
+            </button>
+            <span className="text-muted-foreground/30">|</span>
+            <button
+              onClick={() => navigate('/legal')}
+              className="text-muted-foreground hover:text-primary transition-colors"
+            >
+              Legal
+            </button>
+          </div>
           <p className="text-xs text-muted-foreground/50 tracking-widest">
             v1.0 // NO MERCY
           </p>
