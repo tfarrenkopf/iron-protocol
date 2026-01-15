@@ -2,6 +2,15 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from './useAuth';
 
+export type WeightHistoryEntry = {
+  exerciseId: string;
+  exerciseName: string;
+  lastWeight: number;
+  maxWeight: number;
+  unit: string;
+  updatedAt: string;
+};
+
 export function useWeightHistory() {
   const { user } = useAuth();
 
@@ -12,18 +21,25 @@ export function useWeightHistory() {
       
       const { data, error } = await supabase
         .from('user_weight_history')
-        .select('*')
+        .select(`
+          *,
+          exercises (
+            name
+          )
+        `)
         .eq('user_id', user.id);
       
       if (error) throw error;
       
       // Convert to a map for easy lookup
-      const weightMap: Record<string, { lastWeight: number; maxWeight: number; unit: string }> = {};
+      const weightMap: Record<string, { lastWeight: number; maxWeight: number; unit: string; exerciseName: string; updatedAt: string }> = {};
       data.forEach(record => {
         weightMap[record.exercise_id] = {
           lastWeight: record.last_weight,
           maxWeight: record.max_weight,
           unit: record.unit,
+          exerciseName: record.exercises?.name || 'Unknown Exercise',
+          updatedAt: record.updated_at,
         };
       });
       
