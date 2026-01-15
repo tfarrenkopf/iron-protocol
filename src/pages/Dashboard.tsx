@@ -1,15 +1,24 @@
 import { motion } from 'framer-motion';
 import { useNavigate } from 'react-router-dom';
-import { Zap, Target, Dumbbell, Timer, TrendingUp, Trophy } from 'lucide-react';
-import { defaultMissions } from '@/data/missions';
-import { useGameStore } from '@/stores/gameStore';
+import { Zap, Target, Dumbbell, Timer, TrendingUp, Trophy, User, LogIn, LogOut, Plus } from 'lucide-react';
+import { useMissions } from '@/hooks/useMissions';
+import { useAuth } from '@/hooks/useAuth';
+import { useProfile } from '@/hooks/useProfile';
 
 const Dashboard = () => {
   const navigate = useNavigate();
-  const { stats } = useGameStore();
+  const { user, isAnonymous, signOut } = useAuth();
+  const { data: profile } = useProfile();
+  const { data: missions } = useMissions({ showOnlyPublic: true });
   
-  // Calculate level from XP (simple formula: level = sqrt(xp/100))
-  const level = Math.max(1, Math.floor(Math.sqrt(stats.xp / 100)) + 1);
+  // Calculate level from XP
+  const xp = profile?.total_xp || 0;
+  const level = Math.max(1, Math.floor(Math.sqrt(xp / 100)) + 1);
+
+  const handleSignOut = async () => {
+    await signOut();
+    navigate('/');
+  };
 
   return (
     <div className="min-h-screen bg-background relative overflow-hidden">
@@ -28,6 +37,49 @@ const Dashboard = () => {
       </div>
 
       <div className="relative z-10 container mx-auto px-4 py-8 max-w-4xl">
+        {/* Auth Status Bar */}
+        <motion.div
+          initial={{ opacity: 0, y: -10 }}
+          animate={{ opacity: 1, y: 0 }}
+          className="flex items-center justify-between mb-6"
+        >
+          {isAnonymous ? (
+            <button
+              onClick={() => navigate('/auth')}
+              className="flex items-center gap-2 px-3 py-2 bg-card border border-border rounded hover:border-primary transition-colors text-sm"
+            >
+              <LogIn className="w-4 h-4" />
+              <span className="text-muted-foreground">Sign in to save progress</span>
+            </button>
+          ) : (
+            <div className="flex items-center gap-3">
+              <div className="flex items-center gap-2 px-3 py-2 bg-card border border-border rounded">
+                <User className="w-4 h-4 text-primary" />
+                <span className="text-sm font-display text-primary">
+                  {profile?.display_name || 'AGENT'}
+                </span>
+              </div>
+              <button
+                onClick={handleSignOut}
+                className="p-2 border border-border rounded hover:border-destructive hover:text-destructive transition-colors"
+                title="Sign out"
+              >
+                <LogOut className="w-4 h-4" />
+              </button>
+            </div>
+          )}
+          
+          {user && (
+            <button
+              onClick={() => navigate('/exercises')}
+              className="flex items-center gap-2 px-3 py-2 text-sm text-muted-foreground hover:text-secondary transition-colors"
+            >
+              <Plus className="w-4 h-4" />
+              My Exercises
+            </button>
+          )}
+        </motion.div>
+
         {/* Header */}
         <motion.header 
           initial={{ opacity: 0, y: -20 }}
@@ -50,8 +102,8 @@ const Dashboard = () => {
           className="grid grid-cols-3 gap-4 mb-10"
         >
           {[
-            { label: 'SETS', value: stats.setsCompleted.toString(), icon: Zap, color: 'text-accent' },
-            { label: 'XP', value: stats.xp.toLocaleString(), icon: TrendingUp, color: 'text-secondary' },
+            { label: 'SETS', value: (profile?.total_sets || 0).toString(), icon: Zap, color: 'text-accent' },
+            { label: 'XP', value: (profile?.total_xp || 0).toLocaleString(), icon: TrendingUp, color: 'text-secondary' },
             { label: 'LEVEL', value: level.toString(), icon: Target, color: 'text-primary' },
           ].map((stat, i) => (
             <motion.div
@@ -121,7 +173,7 @@ const Dashboard = () => {
           </h3>
           
           <div className="space-y-3">
-            {defaultMissions.slice(0, 3).map((mission, i) => (
+            {missions?.slice(0, 3).map((mission, i) => (
               <motion.button
                 key={mission.id}
                 initial={{ opacity: 0, x: -20 }}
@@ -133,10 +185,10 @@ const Dashboard = () => {
                 <div className="flex items-center justify-between">
                   <div>
                     <div className="font-display text-lg text-primary group-hover:text-glow-primary transition-all">
-                      {mission.codeName}
+                      {mission.code_name}
                     </div>
                     <div className="text-xs text-muted-foreground mt-1">
-                      {mission.focusAreas.join(' • ')} • {mission.estimatedMinutes}min
+                      {mission.focus_areas?.join(' • ')} • {mission.estimated_minutes}min
                     </div>
                   </div>
                   <div className="flex gap-1">
@@ -152,6 +204,21 @@ const Dashboard = () => {
             ))}
           </div>
         </motion.section>
+
+        {/* Anonymous Warning */}
+        {isAnonymous && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            transition={{ delay: 0.7 }}
+            className="mt-8 p-4 bg-warning/10 border border-warning/30 rounded-lg"
+          >
+            <p className="text-sm text-warning font-display">⚠️ GUEST MODE ACTIVE</p>
+            <p className="text-xs text-muted-foreground mt-1">
+              Your progress won't be saved. Sign in to track your gains and appear on the leaderboard.
+            </p>
+          </motion.div>
+        )}
 
         {/* Footer */}
         <motion.footer
