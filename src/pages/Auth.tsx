@@ -1,8 +1,9 @@
 import { useState } from 'react';
 import { motion } from 'framer-motion';
 import { useNavigate } from 'react-router-dom';
-import { ArrowLeft, Mail, Lock, AlertCircle, Eye, EyeOff } from 'lucide-react';
+import { ArrowLeft, Mail, Lock, AlertCircle, Eye, EyeOff, User } from 'lucide-react';
 import { useAuth } from '@/hooks/useAuth';
+import { useUpdateProfile } from '@/hooks/useProfile';
 import { z } from 'zod';
 
 const authSchema = z.object({
@@ -10,12 +11,16 @@ const authSchema = z.object({
   password: z.string().min(6, { message: 'Password must be at least 6 characters' }).max(72),
 });
 
+const displayNameSchema = z.string().min(3, { message: 'Display name must be at least 3 characters' }).max(15, { message: 'Display name must be 15 characters or less' }).regex(/^[a-zA-Z0-9_-]+$/, { message: 'Only letters, numbers, underscores and dashes allowed' });
+
 const AuthPage = () => {
   const navigate = useNavigate();
   const { signIn, signUp } = useAuth();
+  const updateProfile = useUpdateProfile();
   const [isSignUp, setIsSignUp] = useState(false);
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const [displayName, setDisplayName] = useState('');
   const [showPassword, setShowPassword] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(false);
@@ -31,6 +36,15 @@ const AuthPage = () => {
       return;
     }
 
+    // Validate display name for signup
+    if (isSignUp && displayName) {
+      const nameResult = displayNameSchema.safeParse(displayName);
+      if (!nameResult.success) {
+        setError(nameResult.error.errors[0]?.message || 'Invalid display name');
+        return;
+      }
+    }
+
     setIsLoading(true);
     
     try {
@@ -43,6 +57,14 @@ const AuthPage = () => {
             setError(error.message);
           }
         } else {
+          // Set display name if provided
+          if (displayName.trim()) {
+            try {
+              await updateProfile.mutateAsync({ display_name: displayName.trim() });
+            } catch {
+              // Non-blocking - profile update can happen later
+            }
+          }
           navigate('/');
         }
       } else {
@@ -136,6 +158,25 @@ const AuthPage = () => {
               </button>
             </div>
           </div>
+
+          {/* Display Name (Sign Up Only) */}
+          {isSignUp && (
+            <div className="space-y-2">
+              <label className="text-xs text-muted-foreground tracking-wider">CALL SIGN (Optional)</label>
+              <div className="relative">
+                <User className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-muted-foreground" />
+                <input
+                  type="text"
+                  value={displayName}
+                  onChange={(e) => setDisplayName(e.target.value)}
+                  className="w-full bg-card border border-border rounded pl-11 pr-4 py-3 text-foreground placeholder:text-muted-foreground focus:border-primary focus:outline-none transition-colors"
+                  placeholder="GHOST_REAPER"
+                  maxLength={15}
+                />
+              </div>
+              <p className="text-xs text-muted-foreground">3-15 characters. Letters, numbers, underscores, dashes only.</p>
+            </div>
+          )}
 
           {/* Error message */}
           {error && (

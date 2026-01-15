@@ -1,13 +1,32 @@
 import { create } from 'zustand';
-import { GameStats, WorkoutSession, ExerciseSet, Mission, HIITConfig, TimerPhase } from '@/types/game';
-import { getMissionById } from '@/data/missions';
-import { getExerciseById } from '@/data/exercises';
+import { GameStats, WorkoutSession, ExerciseSet, HIITConfig, TimerPhase } from '@/types/game';
+
+// Database mission exercise type
+export interface DBMissionExercise {
+  exercise_id: string;
+  target_sets: number;
+  target_reps: number;
+  rest_between_sets_sec: number;
+  exercises?: {
+    id: string;
+    name: string;
+  };
+}
+
+// Database mission type
+export interface DBMission {
+  id: string;
+  code_name: string;
+  name: string;
+  mission_exercises: DBMissionExercise[];
+}
 
 interface GameState {
   // Current session
   currentSession: WorkoutSession | null;
   currentExerciseIndex: number;
   currentSetIndex: number;
+  currentMission: DBMission | null;
   
   // Stats
   stats: GameStats;
@@ -19,7 +38,7 @@ interface GameState {
   timeRemaining: number;
   
   // Actions
-  startMission: (missionId: string) => void;
+  startMission: (mission: DBMission) => void;
   completeSet: (actualReps: number, weight: number) => void;
   nextExercise: () => void;
   endSession: (status: 'COMPLETED' | 'FAILED' | 'ABORTED') => void;
@@ -54,6 +73,7 @@ export const useGameStore = create<GameState>((set, get) => ({
   currentSession: null,
   currentExerciseIndex: 0,
   currentSetIndex: 0,
+  currentMission: null,
   stats: { ...initialStats },
   
   hiitConfig: null,
@@ -61,16 +81,13 @@ export const useGameStore = create<GameState>((set, get) => ({
   currentRound: 0,
   timeRemaining: 0,
   
-  startMission: (missionId: string) => {
-    const mission = getMissionById(missionId);
-    if (!mission) return;
-    
+  startMission: (mission: DBMission) => {
     const session: WorkoutSession = {
       id: `session-${Date.now()}`,
-      missionId,
+      missionId: mission.id,
       startedAt: new Date().toISOString(),
-      exercises: mission.exercises.map(e => ({
-        exerciseId: e.exerciseId,
+      exercises: mission.mission_exercises.map(e => ({
+        exerciseId: e.exercise_id,
         sets: [],
         completed: false,
       })),
@@ -80,6 +97,7 @@ export const useGameStore = create<GameState>((set, get) => ({
     
     set({
       currentSession: session,
+      currentMission: mission,
       currentExerciseIndex: 0,
       currentSetIndex: 0,
       stats: { ...initialStats },
@@ -87,18 +105,17 @@ export const useGameStore = create<GameState>((set, get) => ({
   },
   
   completeSet: (actualReps: number, weight: number) => {
-    const { currentSession, currentExerciseIndex, currentSetIndex, stats } = get();
-    if (!currentSession) return;
+    const { currentSession, currentMission, currentExerciseIndex, currentSetIndex, stats } = get();
+    if (!currentSession || !currentMission) return;
     
-    const mission = getMissionById(currentSession.missionId);
-    if (!mission) return;
+    const missionExercises = currentMission.mission_exercises;
+    if (currentExerciseIndex >= missionExercises.length) return;
     
-    const missionExercise = mission.exercises[currentExerciseIndex];
-    const exercise = getExerciseById(missionExercise.exerciseId);
+    const missionExercise = missionExercises[currentExerciseIndex];
     
     const newSet: ExerciseSet = {
       setNumber: currentSetIndex + 1,
-      targetReps: missionExercise.targetReps,
+      targetReps: missionExercise.target_reps,
       actualReps,
       weight,
       unit: 'lb',
@@ -115,7 +132,7 @@ export const useGameStore = create<GameState>((set, get) => ({
     const updatedExercises = [...currentSession.exercises];
     updatedExercises[currentExerciseIndex].sets.push(newSet);
     
-    const isLastSet = currentSetIndex + 1 >= missionExercise.targetSets;
+    const isLastSet = currentSetIndex + 1 >= missionExercise.target_sets;
     if (isLastSet) {
       updatedExercises[currentExerciseIndex].completed = true;
     }
@@ -145,13 +162,10 @@ export const useGameStore = create<GameState>((set, get) => ({
   },
   
   nextExercise: () => {
-    const { currentSession, currentExerciseIndex } = get();
-    if (!currentSession) return;
+    const { currentSession, currentMission, currentExerciseIndex } = get();
+    if (!currentSession || !currentMission) return;
     
-    const mission = getMissionById(currentSession.missionId);
-    if (!mission) return;
-    
-    const isLastExercise = currentExerciseIndex + 1 >= mission.exercises.length;
+    const isLastExercise = currentExerciseIndex + 1 >= currentMission.mission_exercises.length;
     
     if (isLastExercise) {
       get().endSession('COMPLETED');
@@ -255,6 +269,7 @@ export const useGameStore = create<GameState>((set, get) => ({
   resetGame: () => {
     set({
       currentSession: null,
+      currentMission: null,
       currentExerciseIndex: 0,
       currentSetIndex: 0,
       stats: { ...initialStats },
