@@ -1,6 +1,7 @@
+import { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import { useNavigate } from 'react-router-dom';
-import { ArrowLeft, Trophy, Dumbbell, Target, Zap, Crown, Medal, Star } from 'lucide-react';
+import { ArrowLeft, Trophy, Dumbbell, Target, Zap, Crown, Medal, Star, Users, Activity, Award, Weight } from 'lucide-react';
 import { useProfile, useLeaderboard } from '@/hooks/useProfile';
 import { useWeightHistory } from '@/hooks/useWeightHistory';
 import { useMuscleGroupStats } from '@/hooks/useMuscleGroupStats';
@@ -10,6 +11,16 @@ import { useUserMilestones } from '@/hooks/useMilestones';
 import { MilestoneList } from '@/components/MilestoneProgress';
 import { useAchievements, useUserAchievements } from '@/hooks/useAchievements';
 import { AchievementList } from '@/components/AchievementList';
+
+// Section IDs for navigation
+const SECTIONS = [
+  { id: 'rankings', label: 'RANKINGS', icon: Trophy },
+  { id: 'stats', label: 'STATS', icon: Target },
+  { id: 'analysis', label: 'BODY', icon: Activity },
+  { id: 'milestones', label: 'GOALS', icon: Award },
+  { id: 'weights', label: 'WEIGHTS', icon: Weight },
+  { id: 'achievements', label: 'BADGES', icon: Star },
+] as const;
 
 const Stats = () => {
   const navigate = useNavigate();
@@ -21,6 +32,44 @@ const Stats = () => {
   const { data: userMilestones } = useUserMilestones();
   const { data: achievements } = useAchievements();
   const { data: userAchievements } = useUserAchievements();
+  const [activeSection, setActiveSection] = useState('rankings');
+
+  // Track active section on scroll
+  useEffect(() => {
+    const handleScroll = () => {
+      const sections = SECTIONS.map(s => ({
+        id: s.id,
+        element: document.getElementById(s.id),
+      })).filter(s => s.element);
+
+      const scrollPosition = window.scrollY + 150; // Offset for sticky header
+
+      for (let i = sections.length - 1; i >= 0; i--) {
+        const section = sections[i];
+        if (section.element && section.element.offsetTop <= scrollPosition) {
+          setActiveSection(section.id);
+          break;
+        }
+      }
+    };
+
+    window.addEventListener('scroll', handleScroll);
+    return () => window.removeEventListener('scroll', handleScroll);
+  }, []);
+
+  const scrollToSection = (sectionId: string) => {
+    const element = document.getElementById(sectionId);
+    if (element) {
+      const offset = 120; // Account for sticky header
+      const elementPosition = element.getBoundingClientRect().top;
+      const offsetPosition = elementPosition + window.pageYOffset - offset;
+      
+      window.scrollTo({
+        top: offsetPosition,
+        behavior: 'smooth',
+      });
+    }
+  };
 
   const getRankIcon = (rank: number) => {
     switch (rank) {
@@ -53,7 +102,7 @@ const Stats = () => {
       
       <div className="relative z-10 container mx-auto px-4 py-6 max-w-2xl">
         {/* Header */}
-        <header className="flex items-center gap-4 mb-8">
+        <header className="flex items-center gap-4 mb-4">
           <button 
             onClick={() => navigate('/')}
             className="p-2 border border-border rounded hover:border-primary transition-colors"
@@ -66,11 +115,36 @@ const Stats = () => {
           </div>
         </header>
 
+        {/* Story 12.2: Sticky Section Navigation */}
+        <nav className="sticky top-0 z-20 bg-background/95 backdrop-blur-sm border-b border-border mb-6 -mx-4 px-4 py-2">
+          <div className="flex gap-1 overflow-x-auto scrollbar-hide">
+            {SECTIONS.map((section) => {
+              const Icon = section.icon;
+              const isActive = activeSection === section.id;
+              return (
+                <button
+                  key={section.id}
+                  onClick={() => scrollToSection(section.id)}
+                  className={`flex items-center gap-1.5 px-3 py-2 rounded-lg font-display text-xs whitespace-nowrap transition-all ${
+                    isActive
+                      ? 'bg-primary text-primary-foreground'
+                      : 'text-muted-foreground hover:text-foreground hover:bg-card'
+                  }`}
+                >
+                  <Icon className="w-3.5 h-3.5" />
+                  {section.label}
+                </button>
+              );
+            })}
+          </div>
+        </nav>
+
         {/* Leaderboard - FIRST */}
         <motion.section
+          id="rankings"
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
-          className="mb-8"
+          className="mb-8 scroll-mt-32"
         >
           <h2 className="font-display text-lg text-muted-foreground mb-4 tracking-wider">
             // GLOBAL RANKINGS
@@ -147,10 +221,11 @@ const Stats = () => {
 
         {/* Player Stats Summary - SECOND */}
         <motion.section
+          id="stats"
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.2 }}
-          className="mb-8"
+          className="mb-8 scroll-mt-32"
         >
           <h2 className="font-display text-lg text-muted-foreground mb-4 tracking-wider">
             // YOUR STATS
@@ -190,10 +265,11 @@ const Stats = () => {
 
         {/* Body Diagram - Muscle Group Focus */}
         <motion.section
+          id="analysis"
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.4 }}
-          className="mb-8"
+          className="mb-8 scroll-mt-32"
         >
           <h2 className="font-display text-lg text-muted-foreground mb-4 tracking-wider">
             // COMBAT ANALYSIS
@@ -212,10 +288,11 @@ const Stats = () => {
 
         {/* Milestones Section */}
         <motion.section
+          id="milestones"
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.45 }}
-          className="mb-8"
+          className="mb-8 scroll-mt-32"
         >
           <h2 className="font-display text-lg text-muted-foreground mb-4 tracking-wider">
             // MILESTONES
@@ -232,36 +309,13 @@ const Stats = () => {
           )}
         </motion.section>
 
-        {/* Achievements Section */}
+        {/* Weight Stats - Before Achievements */}
         <motion.section
+          id="weights"
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.48 }}
-          className="mb-8"
-        >
-          <h2 className="font-display text-lg text-muted-foreground mb-4 tracking-wider">
-            // ACHIEVEMENTS
-          </h2>
-          
-          {achievements && userAchievements ? (
-            <AchievementList 
-              achievements={achievements} 
-              userAchievements={userAchievements} 
-            />
-          ) : (
-            <div className="bg-card border border-border rounded-lg p-6 text-center">
-              <Trophy className="w-8 h-8 mx-auto mb-3 text-muted-foreground" />
-              <p className="text-muted-foreground text-sm">Loading achievements...</p>
-            </div>
-          )}
-        </motion.section>
-
-        {/* Weight Stats - THIRD */}
-        <motion.section
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.5 }}
-          className="mb-8"
+          className="mb-8 scroll-mt-32"
         >
           <h2 className="font-display text-lg text-muted-foreground mb-4 tracking-wider">
             // WEIGHT TRACKING
@@ -284,7 +338,7 @@ const Stats = () => {
                   key={entry.exerciseId}
                   initial={{ opacity: 0, x: -20 }}
                   animate={{ opacity: 1, x: 0 }}
-                  transition={{ delay: 0.6 + i * 0.05 }}
+                  transition={{ delay: 0.5 + i * 0.05 }}
                   className="bg-card border border-border rounded-lg p-4"
                 >
                   <div className="flex items-center justify-between">
@@ -313,12 +367,37 @@ const Stats = () => {
                     <motion.div
                       initial={{ width: 0 }}
                       animate={{ width: `${(entry.lastWeight / entry.maxWeight) * 100}%` }}
-                      transition={{ delay: 0.7 + i * 0.05, duration: 0.5 }}
+                      transition={{ delay: 0.6 + i * 0.05, duration: 0.5 }}
                       className="h-full bg-gradient-to-r from-secondary to-primary"
                     />
                   </div>
                 </motion.div>
               ))}
+            </div>
+          )}
+        </motion.section>
+
+        {/* Achievements Section - Last per Story 12.1 */}
+        <motion.section
+          id="achievements"
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.55 }}
+          className="mb-8 scroll-mt-32"
+        >
+          <h2 className="font-display text-lg text-muted-foreground mb-4 tracking-wider">
+            // ACHIEVEMENTS
+          </h2>
+          
+          {achievements && userAchievements ? (
+            <AchievementList 
+              achievements={achievements} 
+              userAchievements={userAchievements} 
+            />
+          ) : (
+            <div className="bg-card border border-border rounded-lg p-6 text-center">
+              <Trophy className="w-8 h-8 mx-auto mb-3 text-muted-foreground" />
+              <p className="text-muted-foreground text-sm">Loading achievements...</p>
             </div>
           )}
         </motion.section>
