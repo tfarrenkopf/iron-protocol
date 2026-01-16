@@ -175,33 +175,42 @@ const MissionDetail = () => {
         </HotMissionGlow>
 
         {/* Your Rank + Leaderboard */}
-        {(userRank || (leaderboard && leaderboard.length > 0)) && (
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.15 }}
-            className="bg-card border border-border rounded-lg p-4 mb-6"
-          >
-            <div className="flex items-center gap-2 mb-3">
-              <Trophy className="w-4 h-4 text-warning" />
-              <h3 className="font-display text-sm text-muted-foreground">MISSION RANKINGS</h3>
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.15 }}
+          className="bg-card border border-border rounded-lg p-4 mb-6"
+        >
+          <div className="flex items-center gap-2 mb-3">
+            <Trophy className="w-4 h-4 text-warning" />
+            <h3 className="font-display text-sm text-muted-foreground">MISSION RANKINGS</h3>
+          </div>
+          
+          {userRank && userRank.userRank && (
+            <div className="mb-3">
+              <MissionRankBadge 
+                rank={userRank.userRank} 
+                totalPlayers={userRank.totalPlayers}
+                bestScore={userRank.userBestScore}
+              />
             </div>
-            
-            {userRank && userRank.userRank && (
-              <div className="mb-3">
-                <MissionRankBadge 
-                  rank={userRank.userRank} 
-                  totalPlayers={userRank.totalPlayers}
-                  bestScore={userRank.userBestScore}
-                />
-              </div>
-            )}
-            
-            {leaderboard && leaderboard.length > 0 && (
-              <MissionLeaderboardMini entries={leaderboard} />
-            )}
-          </motion.div>
-        )}
+          )}
+          
+          {leaderboard && leaderboard.length > 0 ? (
+            <MissionLeaderboardMini entries={leaderboard} />
+          ) : (
+            <div className="text-center py-4">
+              <div className="text-4xl mb-2">👑</div>
+              <p className="font-display text-sm text-warning mb-1">UNCHARTED TERRITORY</p>
+              <p className="text-xs text-muted-foreground">
+                No one has conquered this mission yet.
+              </p>
+              <p className="text-xs text-primary mt-2 font-display">
+                Be the first to claim victory!
+              </p>
+            </div>
+          )}
+        </motion.div>
 
         {/* Exercise List */}
         <motion.div

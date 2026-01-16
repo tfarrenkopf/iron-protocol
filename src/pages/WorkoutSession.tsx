@@ -47,7 +47,7 @@ const WorkoutSession = () => {
   const [isCompleting, setIsCompleting] = useState(false);
   const [showExplosion, setShowExplosion] = useState(false);
   const [showXPPopup, setShowXPPopup] = useState(false);
-  const [lastXPGain, setLastXPGain] = useState({ xp: 0, score: 0, combo: 0, damage: 0 });
+  const [lastXPGain, setLastXPGain] = useState({ xp: 0, score: 0, combo: 0, damage: 0, totalWeight: 0, setsCompleted: 0, totalSets: 0 });
   const [showLore, setShowLore] = useState<'intro' | 'outro' | null>(null);
   const [statsSaved, setStatsSaved] = useState(false);
   const [showCancelConfirm, setShowCancelConfirm] = useState(false);
@@ -302,10 +302,18 @@ const WorkoutSession = () => {
           isOpen={showMomentOfLoss}
           onClose={() => setShowMomentOfLoss(false)}
           trigger={momentOfLossTrigger}
+          missionId={mission.id}
+          missionSnapshot={{ name: mission.name, code_name: mission.code_name }}
           stats={{
             score: stats.score,
             xp: stats.xp,
             sets: stats.setsCompleted,
+          }}
+          workoutData={{
+            totalReps: stats.totalReps,
+            totalWeight: stats.totalWeight,
+            maxCombo: stats.maxCombo,
+            damageDealt: stats.damageDealt,
           }}
         />
       </motion.div>
@@ -398,11 +406,15 @@ const WorkoutSession = () => {
       // Calculate gains for popup
       setTimeout(() => {
         const newStats = useGameStore.getState().stats;
+        const missionTotalSets = missionExercises.reduce((acc, e) => acc + e.target_sets, 0);
         setLastXPGain({
           xp: newStats.xp - prevStats.xp,
           score: newStats.score - prevStats.score,
           combo: newStats.combo,
           damage: newStats.damageDealt - prevStats.damageDealt,
+          totalWeight: newStats.totalWeight,
+          setsCompleted: newStats.setsCompleted,
+          totalSets: missionTotalSets,
         });
         setShowXPPopup(true);
         
@@ -481,6 +493,9 @@ const WorkoutSession = () => {
           score={lastXPGain.score}
           combo={lastXPGain.combo}
           damage={lastXPGain.damage}
+          totalWeight={lastXPGain.totalWeight}
+          setsCompleted={lastXPGain.setsCompleted}
+          totalSets={lastXPGain.totalSets}
           achievement={currentSetAchievement}
           lorePhrase={currentSetAchievement ? undefined : currentLorePhrase}
           onComplete={() => {

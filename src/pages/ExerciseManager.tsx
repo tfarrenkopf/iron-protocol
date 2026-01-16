@@ -4,7 +4,7 @@ import { useNavigate } from 'react-router-dom';
 import { ArrowLeft, Plus, Edit2, Trash2, X, Check, AlertCircle, Target, ChevronDown, ChevronUp } from 'lucide-react';
 import { useAuth } from '@/hooks/useAuth';
 import { useExercises, useCreateExercise, useUpdateExercise, useDeleteExercise, Exercise } from '@/hooks/useExercises';
-import { useMissions } from '@/hooks/useMissions';
+import { useMissions, useDeleteMission } from '@/hooks/useMissions';
 const EQUIPMENT_OPTIONS = [
   'DUMBBELLS', 'BARBELL', 'BENCH', 'CABLE_MACHINE', 'LAT_PULLDOWN',
   'LEG_PRESS', 'LEG_CURL', 'LEG_EXTENSION', 'SMITH_MACHINE', 'PEC_DECK',
@@ -29,6 +29,7 @@ const ExerciseManager = () => {
   const createExercise = useCreateExercise();
   const updateExercise = useUpdateExercise();
   const deleteExercise = useDeleteExercise();
+  const deleteMission = useDeleteMission();
 
   // Filter user's custom missions
   const myMissions = missions?.filter(m => m.created_by === user?.id) || [];
@@ -129,6 +130,15 @@ const ExerciseManager = () => {
       await deleteExercise.mutateAsync(id);
     } catch (err: any) {
       setError(err.message || 'Failed to delete exercise');
+    }
+  };
+
+  const handleDeleteMission = async (id: string) => {
+    if (!confirm('Delete this mission? This cannot be undone.')) return;
+    try {
+      await deleteMission.mutateAsync(id);
+    } catch (err: any) {
+      setError(err.message || 'Failed to delete mission');
     }
   };
 
@@ -237,36 +247,55 @@ const ExerciseManager = () => {
                   transition={{ delay: i * 0.05 }}
                   className="bg-card border border-border rounded-lg overflow-hidden"
                 >
-                  <button
-                    onClick={() => setExpandedMission(expandedMission === mission.id ? null : mission.id)}
-                    className="w-full p-3 text-left hover:bg-muted/30 transition-colors"
-                  >
-                    <div className="flex items-center justify-between">
-                      <div className="flex items-center gap-3">
-                        <div>
-                          <span className="font-display text-secondary">{mission.code_name}</span>
-                          <span className="text-xs text-muted-foreground ml-2">
-                            {mission.mission_exercises?.length || 0} exercises • {mission.estimated_minutes}min
-                          </span>
+                  <div className="flex items-center">
+                    <button
+                      onClick={() => setExpandedMission(expandedMission === mission.id ? null : mission.id)}
+                      className="flex-1 p-3 text-left hover:bg-muted/30 transition-colors"
+                    >
+                      <div className="flex items-center justify-between">
+                        <div className="flex items-center gap-3">
+                          <div>
+                            <span className="font-display text-secondary">{mission.code_name}</span>
+                            <span className="text-xs text-muted-foreground ml-2">
+                              {mission.mission_exercises?.length || 0} exercises • {mission.estimated_minutes}min
+                            </span>
+                          </div>
+                        </div>
+                        <div className="flex items-center gap-2">
+                          <div className="flex gap-1">
+                            {[...Array(5)].map((_, j) => (
+                              <div 
+                                key={j}
+                                className={`w-1.5 h-1.5 rounded-sm ${j < mission.difficulty ? 'bg-accent' : 'bg-muted'}`}
+                              />
+                            ))}
+                          </div>
+                          {expandedMission === mission.id ? (
+                            <ChevronUp className="w-4 h-4 text-muted-foreground" />
+                          ) : (
+                            <ChevronDown className="w-4 h-4 text-muted-foreground" />
+                          )}
                         </div>
                       </div>
-                      <div className="flex items-center gap-2">
-                        <div className="flex gap-1">
-                          {[...Array(5)].map((_, j) => (
-                            <div 
-                              key={j}
-                              className={`w-1.5 h-1.5 rounded-sm ${j < mission.difficulty ? 'bg-accent' : 'bg-muted'}`}
-                            />
-                          ))}
-                        </div>
-                        {expandedMission === mission.id ? (
-                          <ChevronUp className="w-4 h-4 text-muted-foreground" />
-                        ) : (
-                          <ChevronDown className="w-4 h-4 text-muted-foreground" />
-                        )}
-                      </div>
+                    </button>
+                    {/* Edit and Delete buttons for missions */}
+                    <div className="flex border-l border-border">
+                      <button
+                        onClick={() => navigate(`/create-mission?edit=${mission.id}`)}
+                        className="p-3 text-muted-foreground hover:text-secondary transition-colors"
+                        title="Edit mission"
+                      >
+                        <Edit2 className="w-4 h-4" />
+                      </button>
+                      <button
+                        onClick={() => handleDeleteMission(mission.id)}
+                        className="p-3 text-muted-foreground hover:text-destructive transition-colors"
+                        title="Delete mission"
+                      >
+                        <Trash2 className="w-4 h-4" />
+                      </button>
                     </div>
-                  </button>
+                  </div>
                   
                   {/* Expanded exercise list */}
                   <AnimatePresence>
