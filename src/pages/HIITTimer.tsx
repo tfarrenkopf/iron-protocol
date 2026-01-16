@@ -6,7 +6,15 @@ import { useGameStore } from '@/stores/gameStore';
 import { defaultHIITConfigs } from '@/data/missions';
 import { HIITConfig } from '@/types/game';
 import { ExplosionEffect } from '@/components/ExplosionEffect';
-import { XPPopup } from '@/components/XPPopup';
+import { KillFeed } from '@/components/KillFeed';
+import { useHIITSounds } from '@/hooks/useHIITSounds';
+import { Progress } from '@/components/ui/progress';
+
+interface KillFeedItem {
+  id: string;
+  message: string;
+  type: 'round' | 'phase' | 'bonus';
+}
 
 const HIITTimer = () => {
   const navigate = useNavigate();
@@ -14,9 +22,11 @@ const HIITTimer = () => {
   const [isPaused, setIsPaused] = useState(false);
   const [soundEnabled, setSoundEnabled] = useState(true);
   const [showExplosion, setShowExplosion] = useState(false);
-  const [showXPPopup, setShowXPPopup] = useState(false);
-  const [lastXPGain, setLastXPGain] = useState({ xp: 0, score: 0, combo: 0 });
+  const [killFeedItems, setKillFeedItems] = useState<KillFeedItem[]>([]);
   const prevRoundRef = useRef(0);
+  const prevPhaseRef = useRef<string>('IDLE');
+
+  const { playWorkStart, playRestStart, playComplete, playCountdownTick } = useHIITSounds(soundEnabled);
 
   const {
     hiitConfig,
@@ -54,21 +64,49 @@ const HIITTimer = () => {
     };
   }, [timerPhase]);
 
-  // Track round changes for XP popup
+  // Add to kill feed helper
+  const addKillFeedItem = useCallback((message: string, type: 'round' | 'phase' | 'bonus') => {
+    const id = `${Date.now()}-${Math.random()}`;
+    setKillFeedItems(prev => [...prev, { id, message, type }]);
+  }, []);
+
+  const removeKillFeedItem = useCallback((id: string) => {
+    setKillFeedItems(prev => prev.filter(item => item.id !== id));
+  }, []);
+
+  // Track round changes for kill feed
   useEffect(() => {
     if (currentRound > prevRoundRef.current && currentRound > 1) {
-      // Round completed - show XP popup
-      const xpGain = Math.floor(100 * (1 + stats.combo * 0.1) / 10);
-      setLastXPGain({
-        xp: xpGain,
-        score: Math.floor(100 * (1 + stats.combo * 0.1)),
-        combo: stats.combo,
-      });
+      // Round completed
+      addKillFeedItem(`ROUND ${currentRound - 1} COMPLETE`, 'round');
       setShowExplosion(true);
-      setTimeout(() => setShowXPPopup(true), 300);
     }
     prevRoundRef.current = currentRound;
-  }, [currentRound, stats.combo]);
+  }, [currentRound, addKillFeedItem]);
+
+  // Track phase changes for sounds and kill feed
+  useEffect(() => {
+    if (prevPhaseRef.current !== timerPhase) {
+      if (timerPhase === 'WORK' && prevPhaseRef.current !== 'IDLE') {
+        playWorkStart();
+        addKillFeedItem('FIGHT!', 'phase');
+      } else if (timerPhase === 'REST') {
+        playRestStart();
+        addKillFeedItem('RECOVER', 'phase');
+      } else if (timerPhase === 'COMPLETED') {
+        playComplete();
+        addKillFeedItem('VICTORY!', 'bonus');
+      }
+      prevPhaseRef.current = timerPhase;
+    }
+  }, [timerPhase, playWorkStart, playRestStart, playComplete, addKillFeedItem]);
+
+  // Countdown tick sound
+  useEffect(() => {
+    if (timerPhase === 'COUNTDOWN' && timeRemaining <= 3 && timeRemaining > 0) {
+      playCountdownTick();
+    }
+  }, [timerPhase, timeRemaining, playCountdownTick]);
 
   // Timer logic
   useEffect(() => {
@@ -100,12 +138,17 @@ const HIITTimer = () => {
     setSelectedConfig(config);
     startHIIT(config);
     setIsPaused(false);
+    prevPhaseRef.current = 'IDLE';
+    prevRoundRef.current = 0;
   }, [startHIIT]);
 
   const handleReset = useCallback(() => {
     resetHIIT();
     setSelectedConfig(null);
     setIsPaused(false);
+    setKillFeedItems([]);
+    prevPhaseRef.current = 'IDLE';
+    prevRoundRef.current = 0;
   }, [resetHIIT]);
 
   const getPhaseColor = () => {
@@ -126,6 +169,28 @@ const HIITTimer = () => {
       case 'COMPLETED': return 'VICTORY';
       default: return 'SELECT';
     }
+  };
+
+  // Calculate overall progress
+  const calculateProgress = () => {
+    if (!hiitConfig) return 0;
+    const totalRounds = hiitConfig.rounds;
+    const completedRounds = currentRound - 1;
+    
+    // Calculate progress within current round
+    let currentRoundProgress = 0;
+    if (timerPhase === 'WORK') {
+      const workTotal = hiitConfig.workDurationSec;
+      currentRoundProgress = ((workTotal - timeRemaining) / workTotal) * 0.5;
+    } else if (timerPhase === 'REST') {
+      const restTotal = hiitConfig.restDurationSec;
+      currentRoundProgress = 0.5 + ((restTotal - timeRemaining) / restTotal) * 0.5;
+    } else if (timerPhase === 'COUNTDOWN') {
+      currentRoundProgress = 0;
+    }
+
+    const progress = ((completedRounds + currentRoundProgress) / totalRounds) * 100;
+    return Math.min(Math.max(progress, 0), 100);
   };
 
   // Selection screen
@@ -202,6 +267,9 @@ const HIITTimer = () => {
       {/* Scanlines */}
       <div className="fixed inset-0 pointer-events-none scanlines opacity-30" />
 
+      {/* Kill Feed */}
+      <KillFeed items={killFeedItems} onItemComplete={removeKillFeedItem} />
+
       {/* Header */}
       <header className="relative z-10 flex items-center justify-between p-4">
         <div className="flex items-center gap-2">
@@ -231,19 +299,20 @@ const HIITTimer = () => {
         </button>
       </header>
 
+      {/* Progress Bar */}
+      {timerPhase !== 'COMPLETED' && (
+        <div className="relative z-10 px-4">
+          <Progress 
+            value={calculateProgress()} 
+            className="h-2 bg-background/30"
+          />
+        </div>
+      )}
+
       {/* Explosion Effect */}
       <ExplosionEffect 
         trigger={showExplosion} 
         onComplete={() => setShowExplosion(false)} 
-      />
-      
-      {/* XP Popup */}
-      <XPPopup
-        show={showXPPopup}
-        xp={lastXPGain.xp}
-        score={lastXPGain.score}
-        combo={lastXPGain.combo}
-        onComplete={() => setShowXPPopup(false)}
       />
 
       {/* Main timer display */}
@@ -321,7 +390,7 @@ const HIITTimer = () => {
           key={stats.combo}
           initial={{ scale: 1.5, opacity: 0 }}
           animate={{ scale: 1, opacity: 1 }}
-          className="absolute top-1/4 right-8 font-display text-4xl"
+          className="absolute bottom-32 right-8 font-display text-4xl"
         >
           {stats.combo}x
         </motion.div>

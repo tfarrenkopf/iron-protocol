@@ -248,7 +248,7 @@ const FrontLines = () => {
                       className="mt-3 w-full py-2 border border-primary/50 rounded text-sm font-display text-primary hover:bg-primary/10 transition-colors flex items-center justify-center gap-2"
                     >
                       <Target className="w-4 h-4" />
-                      ACCEPT THE CHALLENGE
+                      JOIN THE MISSION
                     </button>
                   )}
                 </motion.div>
