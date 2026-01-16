@@ -22,9 +22,49 @@ const SECTIONS = [
   { id: 'achievements', label: 'BADGES', icon: Star },
 ] as const;
 
+// Sample data for guest users
+const GUEST_SAMPLE_PROFILE = {
+  total_score: 8750,
+  total_xp: 2450,
+  total_sets: 156,
+  max_combo: 12,
+  total_reps: 1248,
+  total_weight: 45600,
+};
+
+const GUEST_SAMPLE_WEIGHT_HISTORY = [
+  { exerciseId: '1', exerciseName: 'Bench Press', lastWeight: 135, maxWeight: 155, unit: 'lbs' },
+  { exerciseId: '2', exerciseName: 'Squat', lastWeight: 185, maxWeight: 205, unit: 'lbs' },
+  { exerciseId: '3', exerciseName: 'Deadlift', lastWeight: 225, maxWeight: 245, unit: 'lbs' },
+  { exerciseId: '4', exerciseName: 'Overhead Press', lastWeight: 95, maxWeight: 105, unit: 'lbs' },
+  { exerciseId: '5', exerciseName: 'Barbell Row', lastWeight: 135, maxWeight: 145, unit: 'lbs' },
+];
+
+const GUEST_SAMPLE_MUSCLE_STATS = [
+  { muscle_group: 'Chest', total_sets: 24, total_reps: 192, total_volume: 8400 },
+  { muscle_group: 'Back', total_sets: 22, total_reps: 176, total_volume: 7800 },
+  { muscle_group: 'Quadriceps', total_sets: 20, total_reps: 160, total_volume: 12000 },
+  { muscle_group: 'Shoulders', total_sets: 16, total_reps: 128, total_volume: 4200 },
+  { muscle_group: 'Biceps', total_sets: 18, total_reps: 144, total_volume: 3600 },
+];
+
+const GUEST_SAMPLE_ACHIEVEMENTS = [
+  { id: '1', codeName: 'FIRST_BLOOD', name: 'First Blood', description: 'Complete your first workout', icon: '🩸', rarity: 'common' as const, xpReward: 50, category: 'EXPLORATION', triggerType: 'sessions_completed', triggerValue: 1, sortOrder: 1, isHidden: false, hint: null },
+  { id: '2', codeName: 'CENTURION', name: 'Centurion', description: 'Complete 100 sets', icon: '🏛️', rarity: 'rare' as const, xpReward: 150, category: 'STRENGTH', triggerType: 'total_sets', triggerValue: 100, sortOrder: 2, isHidden: false, hint: null },
+  { id: '3', codeName: 'IRON_WILL', name: 'Iron Will', description: 'Lift 10,000 lbs total', icon: '⚔️', rarity: 'epic' as const, xpReward: 300, category: 'STRENGTH', triggerType: 'total_weight', triggerValue: 10000, sortOrder: 3, isHidden: false, hint: null },
+  { id: '4', codeName: 'DEVASTATOR', name: 'Devastator', description: 'Deal 5,000 damage', icon: '💀', rarity: 'rare' as const, xpReward: 200, category: 'STRENGTH', triggerType: 'damage_dealt', triggerValue: 5000, sortOrder: 4, isHidden: false, hint: null },
+  { id: '5', codeName: 'COMBO_MASTER', name: 'Combo Master', description: 'Achieve a 10x combo', icon: '🔥', rarity: 'epic' as const, xpReward: 250, category: 'CONSISTENCY', triggerType: 'max_combo', triggerValue: 10, sortOrder: 5, isHidden: false, hint: null },
+  { id: '6', codeName: 'HIDDEN_LEGEND', name: '???', description: 'A secret awaits...', icon: '❓', rarity: 'legendary' as const, xpReward: 500, category: 'EXPLORATION', triggerType: 'hidden', triggerValue: 1, sortOrder: 6, isHidden: true, hint: 'The strongest warriors find this on their own...' },
+];
+
+const GUEST_SAMPLE_USER_ACHIEVEMENTS = [
+  { id: '1', achievementId: '1', unlockedAt: new Date().toISOString() },
+  { id: '2', achievementId: '2', unlockedAt: new Date().toISOString() },
+];
+
 const Stats = () => {
   const navigate = useNavigate();
-  const { user } = useAuth();
+  const { user, isAnonymous } = useAuth();
   const { data: profile, isLoading: profileLoading } = useProfile();
   const { data: leaderboard, isLoading: leaderboardLoading } = useLeaderboard();
   const { data: weightHistory, isLoading: weightLoading } = useWeightHistory();
@@ -33,6 +73,15 @@ const Stats = () => {
   const { data: achievements } = useAchievements();
   const { data: userAchievements } = useUserAchievements();
   const [activeSection, setActiveSection] = useState('rankings');
+
+  // Use sample data for guests
+  const displayProfile = isAnonymous ? GUEST_SAMPLE_PROFILE : profile;
+  const displayWeightEntries = isAnonymous 
+    ? GUEST_SAMPLE_WEIGHT_HISTORY 
+    : Object.entries(weightHistory || {}).map(([exerciseId, data]) => ({ exerciseId, ...data }));
+  const displayMuscleStats = isAnonymous ? GUEST_SAMPLE_MUSCLE_STATS : muscleStats;
+  const displayAchievements = isAnonymous ? GUEST_SAMPLE_ACHIEVEMENTS : achievements;
+  const displayUserAchievements = isAnonymous ? GUEST_SAMPLE_USER_ACHIEVEMENTS : userAchievements;
 
   // Track active section on scroll
   useEffect(() => {
@@ -87,14 +136,8 @@ const Stats = () => {
   };
 
   // Calculate level from XP
-  const xp = profile?.total_xp || 0;
+  const xp = displayProfile?.total_xp || 0;
   const level = Math.max(1, Math.floor(Math.sqrt(xp / 100)) + 1);
-
-  // Convert weight history map to array for display
-  const weightEntries = Object.entries(weightHistory || {}).map(([exerciseId, data]) => ({
-    exerciseId,
-    ...data,
-  }));
 
   return (
     <div className="min-h-screen bg-background relative">
@@ -114,6 +157,28 @@ const Stats = () => {
             <p className="text-xs text-muted-foreground tracking-wider">STATS & LEADERBOARD</p>
           </div>
         </header>
+
+        {/* Guest Banner */}
+        {isAnonymous && (
+          <motion.div
+            initial={{ opacity: 0, y: -10 }}
+            animate={{ opacity: 1, y: 0 }}
+            className="mb-4 p-4 bg-warning/10 border border-warning/30 rounded-lg flex items-center justify-between gap-4"
+          >
+            <div>
+              <p className="text-sm text-warning font-display">👤 SAMPLE DATA PREVIEW</p>
+              <p className="text-xs text-muted-foreground mt-1">
+                Sign in to track your real stats and appear on the leaderboard.
+              </p>
+            </div>
+            <button
+              onClick={() => navigate("/auth")}
+              className="flex-shrink-0 px-4 py-2 bg-primary text-primary-foreground font-display text-sm rounded hover:box-glow-primary transition-all"
+            >
+              SIGN IN
+            </button>
+          </motion.div>
+        )}
 
         {/* Story 12.2: Sticky Section Navigation */}
         <nav className="sticky top-0 z-20 bg-background/95 backdrop-blur-sm border-b border-border mb-6 -mx-4 px-4 py-2">
@@ -238,14 +303,14 @@ const Stats = () => {
           ) : (
             <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
               {[
-                { label: 'TOTAL SCORE', value: (profile?.total_score || 0).toLocaleString(), icon: Target, color: 'text-primary' },
-                { label: 'XP EARNED', value: (profile?.total_xp || 0).toLocaleString(), icon: Star, color: 'text-success' },
-                { label: 'SETS CRUSHED', value: (profile?.total_sets || 0).toString(), icon: Dumbbell, color: 'text-secondary' },
-                { label: 'MAX COMBO', value: `${profile?.max_combo || 0}x`, icon: Trophy, color: 'text-accent' },
-                { label: 'TOTAL REPS', value: (profile?.total_reps || 0).toLocaleString(), icon: Zap, color: 'text-accent' },
-                { label: 'WEIGHT LIFTED', value: `${((profile?.total_weight || 0) / 1000).toFixed(1)}K`, icon: Dumbbell, color: 'text-warning' },
-                { label: 'LEVEL', value: level.toString(), icon: Crown, color: 'text-secondary' },
-                { label: 'AVG WEIGHT/SET', value: (profile?.total_sets || 0) > 0 ? Math.round((profile?.total_weight || 0) / (profile?.total_sets || 1)).toString() : '0', icon: Target, color: 'text-primary' },
+                { label: 'TOTAL SCORE', value: (displayProfile?.total_score || 0).toLocaleString(), icon: Target, color: isAnonymous ? 'text-muted-foreground' : 'text-primary' },
+                { label: 'XP EARNED', value: (displayProfile?.total_xp || 0).toLocaleString(), icon: Star, color: isAnonymous ? 'text-muted-foreground' : 'text-success' },
+                { label: 'SETS CRUSHED', value: (displayProfile?.total_sets || 0).toString(), icon: Dumbbell, color: isAnonymous ? 'text-muted-foreground' : 'text-secondary' },
+                { label: 'MAX COMBO', value: `${displayProfile?.max_combo || 0}x`, icon: Trophy, color: isAnonymous ? 'text-muted-foreground' : 'text-accent' },
+                { label: 'TOTAL REPS', value: (displayProfile?.total_reps || 0).toLocaleString(), icon: Zap, color: isAnonymous ? 'text-muted-foreground' : 'text-accent' },
+                { label: 'WEIGHT LIFTED', value: `${((displayProfile?.total_weight || 0) / 1000).toFixed(1)}K`, icon: Dumbbell, color: isAnonymous ? 'text-muted-foreground' : 'text-warning' },
+                { label: 'LEVEL', value: level.toString(), icon: Crown, color: isAnonymous ? 'text-muted-foreground' : 'text-secondary' },
+                { label: 'AVG WEIGHT/SET', value: (displayProfile?.total_sets || 0) > 0 ? Math.round((displayProfile?.total_weight || 0) / (displayProfile?.total_sets || 1)).toString() : '0', icon: Target, color: isAnonymous ? 'text-muted-foreground' : 'text-primary' },
               ].map((stat, i) => (
                 <motion.div
                   key={stat.label}
@@ -281,7 +346,7 @@ const Stats = () => {
             </div>
           ) : (
             <div className="bg-card border border-border rounded-lg p-4">
-              <BodyDiagram muscleStats={muscleStats || []} />
+              <BodyDiagram muscleStats={displayMuscleStats || []} />
             </div>
           )}
         </motion.section>
@@ -325,7 +390,7 @@ const Stats = () => {
             <div className="text-center py-4">
               <div className="font-display text-sm text-primary animate-neon-pulse">LOADING...</div>
             </div>
-          ) : weightEntries.length === 0 ? (
+          ) : displayWeightEntries.length === 0 ? (
             <div className="bg-card border border-border rounded-lg p-6 text-center">
               <Dumbbell className="w-8 h-8 mx-auto mb-3 text-muted-foreground" />
               <p className="text-muted-foreground text-sm">No weight history yet.</p>
@@ -333,7 +398,7 @@ const Stats = () => {
             </div>
           ) : (
             <div className="space-y-2">
-              {weightEntries.slice(0, 10).map((entry, i) => (
+              {displayWeightEntries.slice(0, 10).map((entry, i) => (
                 <motion.div
                   key={entry.exerciseId}
                   initial={{ opacity: 0, x: -20 }}
@@ -389,10 +454,10 @@ const Stats = () => {
             // ACHIEVEMENTS
           </h2>
           
-          {achievements && userAchievements ? (
+          {displayAchievements && displayAchievements.length > 0 ? (
             <AchievementList 
-              achievements={achievements} 
-              userAchievements={userAchievements} 
+              achievements={displayAchievements as any} 
+              userAchievements={displayUserAchievements as any} 
             />
           ) : (
             <div className="bg-card border border-border rounded-lg p-6 text-center">

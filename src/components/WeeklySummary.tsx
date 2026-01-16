@@ -111,14 +111,35 @@ const getMotivationalPhrase = (stats: WeeklyStats): string => {
   return "⚡ Every rep counts. Keep fighting!";
 };
 
+// Sample data for guest users
+const GUEST_SAMPLE_STATS: WeeklyStats = {
+  sessionsCompleted: 4,
+  totalSets: 32,
+  totalReps: 256,
+  totalWeight: 12450,
+  totalXp: 840,
+  prsSet: 2,
+  recentMuscleGroups: ['CHEST', 'BACK', 'LEGS'],
+  totalDamage: 3200,
+};
+
+const GUEST_SAMPLE_PROFILE = {
+  total_xp: 2450,
+};
+
 export function WeeklySummary() {
+  const { user, isAnonymous } = useAuth();
   const { data: stats, isLoading } = useWeeklySummary();
   const { data: profile } = useProfile();
   
-  if (isLoading) return null;
+  // Use sample data for guests
+  const displayStats = isAnonymous ? GUEST_SAMPLE_STATS : stats;
+  const displayProfile = isAnonymous ? GUEST_SAMPLE_PROFILE : profile;
+  
+  if (isLoading && !isAnonymous) return null;
   
   // Calculate level from XP
-  const xp = profile?.total_xp || 0;
+  const xp = displayProfile?.total_xp || 0;
   const level = Math.max(1, Math.floor(Math.sqrt(xp / 100)) + 1);
   const currentLevelXp = Math.pow(level - 1, 2) * 100;
   const nextLevelXp = Math.pow(level, 2) * 100;
@@ -131,14 +152,24 @@ export function WeeklySummary() {
   const weekEnd = endOfWeek(new Date(), { weekStartsOn: 1 });
 
   // Show even if no activity (for level/XP info)
-  const hasWeeklyActivity = stats && stats.sessionsCompleted > 0;
+  const hasWeeklyActivity = displayStats && displayStats.sessionsCompleted > 0;
 
   return (
     <motion.div
       initial={{ opacity: 0, y: 20 }}
       animate={{ opacity: 1, y: 0 }}
-      className="mb-8 bg-card border border-secondary/30 rounded-lg overflow-hidden"
+      className={`mb-8 bg-card border rounded-lg overflow-hidden ${
+        isAnonymous ? 'border-warning/30' : 'border-secondary/30'
+      }`}
     >
+      {/* Guest Banner */}
+      {isAnonymous && (
+        <div className="px-4 py-2 bg-warning/10 border-b border-warning/20 flex items-center gap-2">
+          <span className="text-xs text-warning font-display">👤 SAMPLE DATA</span>
+          <span className="text-xs text-muted-foreground">Sign in to track your real progress</span>
+        </div>
+      )}
+
       {/* Weekly Stats Section */}
       <div className="p-4 border-b border-border/50">
         <div className="flex items-center gap-2 mb-3">
@@ -155,29 +186,33 @@ export function WeeklySummary() {
           <>
             <div className="grid grid-cols-4 gap-3 mb-3">
               <div className="text-center">
-                <div className="font-display text-2xl text-primary">{stats.sessionsCompleted}</div>
+                <div className={`font-display text-2xl ${isAnonymous ? 'text-muted-foreground' : 'text-primary'}`}>
+                  {displayStats.sessionsCompleted}
+                </div>
                 <div className="text-[10px] text-muted-foreground">MISSIONS</div>
               </div>
               <div className="text-center">
-                <div className="font-display text-2xl text-accent">
-                  {stats.totalWeight >= 1000 
-                    ? `${(stats.totalWeight / 1000).toFixed(1)}k` 
-                    : stats.totalWeight}
+                <div className={`font-display text-2xl ${isAnonymous ? 'text-muted-foreground' : 'text-accent'}`}>
+                  {displayStats.totalWeight >= 1000 
+                    ? `${(displayStats.totalWeight / 1000).toFixed(1)}k` 
+                    : displayStats.totalWeight}
                 </div>
                 <div className="text-[10px] text-muted-foreground">LBS LIFTED</div>
               </div>
               <div className="text-center">
                 <div className="flex items-center justify-center gap-1">
-                  <Trophy className="w-4 h-4 text-warning" />
-                  <span className="font-display text-2xl text-warning">{stats.prsSet}</span>
+                  <Trophy className={`w-4 h-4 ${isAnonymous ? 'text-muted-foreground' : 'text-warning'}`} />
+                  <span className={`font-display text-2xl ${isAnonymous ? 'text-muted-foreground' : 'text-warning'}`}>
+                    {displayStats.prsSet}
+                  </span>
                 </div>
                 <div className="text-[10px] text-muted-foreground">NEW PRs</div>
               </div>
               <div className="text-center">
-                <div className="font-display text-2xl text-destructive">
-                  {stats.totalDamage >= 1000 
-                    ? `${(stats.totalDamage / 1000).toFixed(1)}k` 
-                    : stats.totalDamage}
+                <div className={`font-display text-2xl ${isAnonymous ? 'text-muted-foreground' : 'text-destructive'}`}>
+                  {displayStats.totalDamage >= 1000 
+                    ? `${(displayStats.totalDamage / 1000).toFixed(1)}k` 
+                    : displayStats.totalDamage}
                 </div>
                 <div className="text-[10px] text-muted-foreground">DAMAGE</div>
               </div>
@@ -186,7 +221,10 @@ export function WeeklySummary() {
             {/* Motivational phrase */}
             <div className="text-center py-2 bg-background/50 rounded">
               <span className="text-xs text-muted-foreground">
-                {getMotivationalPhrase(stats)}
+                {isAnonymous 
+                  ? "🔒 Sign up to unlock YOUR weekly stats!" 
+                  : getMotivationalPhrase(displayStats)
+                }
               </span>
             </div>
           </>
@@ -210,19 +248,29 @@ export function WeeklySummary() {
 
         <div className="flex items-center gap-4">
           {/* Level Badge */}
-          <div className="flex-shrink-0 w-16 h-16 rounded-lg bg-gradient-to-br from-primary/20 to-accent/20 border border-primary/50 flex flex-col items-center justify-center">
+          <div className={`flex-shrink-0 w-16 h-16 rounded-lg border flex flex-col items-center justify-center ${
+            isAnonymous 
+              ? 'bg-muted/20 border-muted-foreground/30' 
+              : 'bg-gradient-to-br from-primary/20 to-accent/20 border-primary/50'
+          }`}>
             <div className="text-[10px] text-muted-foreground">LEVEL</div>
-            <div className="font-display text-2xl text-primary">{level}</div>
+            <div className={`font-display text-2xl ${isAnonymous ? 'text-muted-foreground' : 'text-primary'}`}>
+              {level}
+            </div>
           </div>
 
           {/* XP Progress */}
           <div className="flex-1">
             <div className="flex items-center justify-between mb-1">
               <span className="text-xs text-muted-foreground">
-                <span className="text-success font-display">{xp.toLocaleString()}</span> XP
+                <span className={`font-display ${isAnonymous ? 'text-muted-foreground' : 'text-success'}`}>
+                  {xp.toLocaleString()}
+                </span> XP
               </span>
               <span className="text-xs text-muted-foreground">
-                <span className="text-primary font-display">{xpUntilNext.toLocaleString()}</span> to Level {level + 1}
+                <span className={`font-display ${isAnonymous ? 'text-muted-foreground' : 'text-primary'}`}>
+                  {xpUntilNext.toLocaleString()}
+                </span> to Level {level + 1}
               </span>
             </div>
             <div className="h-2 bg-muted rounded-full overflow-hidden">
@@ -230,19 +278,23 @@ export function WeeklySummary() {
                 initial={{ width: 0 }}
                 animate={{ width: `${progressPercent}%` }}
                 transition={{ duration: 0.5, ease: "easeOut" }}
-                className="h-full bg-gradient-to-r from-primary to-accent"
+                className={`h-full ${isAnonymous ? 'bg-muted-foreground/50' : 'bg-gradient-to-r from-primary to-accent'}`}
               />
             </div>
 
             {/* Recent Muscle Groups */}
-            {stats?.recentMuscleGroups && stats.recentMuscleGroups.length > 0 && (
+            {displayStats?.recentMuscleGroups && displayStats.recentMuscleGroups.length > 0 && (
               <div className="flex items-center gap-2 mt-2">
                 <span className="text-[10px] text-muted-foreground">RECENT:</span>
                 <div className="flex gap-1">
-                  {stats.recentMuscleGroups.map((muscle) => (
+                  {displayStats.recentMuscleGroups.map((muscle) => (
                     <span 
                       key={muscle} 
-                      className="text-[10px] px-1.5 py-0.5 bg-secondary/20 text-secondary rounded"
+                      className={`text-[10px] px-1.5 py-0.5 rounded ${
+                        isAnonymous 
+                          ? 'bg-muted text-muted-foreground' 
+                          : 'bg-secondary/20 text-secondary'
+                      }`}
                     >
                       {muscle}
                     </span>
