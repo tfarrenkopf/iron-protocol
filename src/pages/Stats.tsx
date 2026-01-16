@@ -18,8 +18,8 @@ const SECTIONS = [
   { id: 'stats', label: 'STATS', icon: Target },
   { id: 'analysis', label: 'BODY', icon: Activity },
   { id: 'milestones', label: 'GOALS', icon: Award },
-  { id: 'weights', label: 'WEIGHTS', icon: Weight },
   { id: 'achievements', label: 'BADGES', icon: Star },
+  { id: 'weights', label: 'WEIGHTS', icon: Weight },
 ] as const;
 
 // Sample data for guest users
@@ -374,12 +374,37 @@ const Stats = () => {
           )}
         </motion.section>
 
-        {/* Weight Stats - Before Achievements */}
+        {/* Achievements Section - Before Weights */}
+        <motion.section
+          id="achievements"
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.48 }}
+          className="mb-8 scroll-mt-32"
+        >
+          <h2 className="font-display text-lg text-muted-foreground mb-4 tracking-wider">
+            // ACHIEVEMENTS
+          </h2>
+          
+          {displayAchievements && displayAchievements.length > 0 ? (
+            <AchievementList 
+              achievements={displayAchievements as any} 
+              userAchievements={displayUserAchievements as any} 
+            />
+          ) : (
+            <div className="bg-card border border-border rounded-lg p-6 text-center">
+              <Trophy className="w-8 h-8 mx-auto mb-3 text-muted-foreground" />
+              <p className="text-muted-foreground text-sm">Loading achievements...</p>
+            </div>
+          )}
+        </motion.section>
+
+        {/* Weight Stats - Last */}
         <motion.section
           id="weights"
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.48 }}
+          transition={{ delay: 0.55 }}
           className="mb-8 scroll-mt-32"
         >
           <h2 className="font-display text-lg text-muted-foreground mb-4 tracking-wider">
@@ -438,31 +463,6 @@ const Stats = () => {
                   </div>
                 </motion.div>
               ))}
-            </div>
-          )}
-        </motion.section>
-
-        {/* Achievements Section - Last per Story 12.1 */}
-        <motion.section
-          id="achievements"
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.55 }}
-          className="mb-8 scroll-mt-32"
-        >
-          <h2 className="font-display text-lg text-muted-foreground mb-4 tracking-wider">
-            // ACHIEVEMENTS
-          </h2>
-          
-          {displayAchievements && displayAchievements.length > 0 ? (
-            <AchievementList 
-              achievements={displayAchievements as any} 
-              userAchievements={displayUserAchievements as any} 
-            />
-          ) : (
-            <div className="bg-card border border-border rounded-lg p-6 text-center">
-              <Trophy className="w-8 h-8 mx-auto mb-3 text-muted-foreground" />
-              <p className="text-muted-foreground text-sm">Loading achievements...</p>
             </div>
           )}
         </motion.section>
