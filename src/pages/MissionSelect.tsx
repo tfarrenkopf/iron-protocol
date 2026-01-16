@@ -6,6 +6,7 @@ import { useMissions } from '@/hooks/useMissions';
 import { useAuth } from '@/hooks/useAuth';
 import { PopularityBadge } from '@/components/SocialProof';
 import { getPopularityTier } from '@/hooks/useMissionStats';
+import { GuestIndicator } from '@/components/AnonymousConversion';
 
 const FOCUS_AREAS = ['PUSH', 'PULL', 'LEGS', 'CORE', 'CARDIO', 'ARMS', 'SHOULDERS', 'CHEST', 'BACK'];
 const MUSCLE_GROUPS = ['Chest', 'Back', 'Shoulders', 'Biceps', 'Triceps', 'Quadriceps', 'Hamstrings', 'Core'];
@@ -17,7 +18,7 @@ const DURATION_FILTERS = [
 
 const MissionSelect = () => {
   const navigate = useNavigate();
-  const { user } = useAuth();
+  const { user, isAnonymous } = useAuth();
   const [showFilters, setShowFilters] = useState(false);
   const [focusFilter, setFocusFilter] = useState<string>('');
   const [muscleFilter, setMuscleFilter] = useState<string>('');
@@ -82,7 +83,11 @@ const MissionSelect = () => {
             <div>
               <h1 className="font-display text-3xl text-primary">SELECT MISSION</h1>
               <p className="text-xs text-muted-foreground tracking-wider">
-                Missions are structured workouts with exercises, sets, and reps
+                {isAnonymous ? (
+                  <GuestIndicator variant="minimal" />
+                ) : (
+                  'Missions are structured workouts with exercises, sets, and reps'
+                )}
               </p>
             </div>
           </div>
