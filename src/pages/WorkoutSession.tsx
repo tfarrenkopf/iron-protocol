@@ -233,18 +233,18 @@ const WorkoutSession = () => {
     );
   }
 
-  if (currentSession?.status === 'COMPLETED') {
-    // Show moment of loss prompt for anonymous users after a delay
-    useEffect(() => {
-      if (isAnonymous && currentSession?.status === 'COMPLETED' && !showMomentOfLoss) {
-        const timer = setTimeout(() => {
-          setMomentOfLossTrigger('mission_complete');
-          setShowMomentOfLoss(true);
-        }, 2000);
-        return () => clearTimeout(timer);
-      }
-    }, [currentSession?.status, isAnonymous]);
+  // Show moment of loss prompt for anonymous users after mission complete
+  useEffect(() => {
+    if (isAnonymous && currentSession?.status === 'COMPLETED' && !showMomentOfLoss) {
+      const timer = setTimeout(() => {
+        setMomentOfLossTrigger('mission_complete');
+        setShowMomentOfLoss(true);
+      }, 2000);
+      return () => clearTimeout(timer);
+    }
+  }, [currentSession?.status, isAnonymous, showMomentOfLoss]);
 
+  if (currentSession?.status === 'COMPLETED') {
     return (
       <motion.div 
         initial={{ opacity: 0 }}

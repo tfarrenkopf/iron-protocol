@@ -5,11 +5,14 @@ import { ArrowLeft, Zap, Play, Clock, Dumbbell, ChevronDown, ChevronUp, RefreshC
 import { useMission } from '@/hooks/useMissions';
 import { useMissionStats, useMissionLeaderboard, useUserMissionRank } from '@/hooks/useMissionStats';
 import { PopularityBadge, WarriorCount, MissionRankBadge, MissionLeaderboardMini, HotMissionGlow } from '@/components/SocialProof';
+import { useAuth } from '@/hooks/useAuth';
+import { GuestIndicator, ConversionNudge } from '@/components/AnonymousConversion';
 
 const MissionDetail = () => {
   const location = useLocation();
   const navigate = useNavigate();
   const { missionId } = useParams();
+  const { isAnonymous } = useAuth();
   const { data: mission, isLoading, error, refetch } = useMission(missionId);
   const { data: missionStats } = useMissionStats(missionId);
   const { data: leaderboard } = useMissionLeaderboard(missionId, 5);
@@ -82,7 +85,9 @@ const MissionDetail = () => {
               <h1 className="font-display text-3xl text-primary">{mission.code_name}</h1>
               <PopularityBadge score={mission.popularity_score || 0} />
             </div>
-            <p className="text-xs text-muted-foreground tracking-wider">MISSION BRIEFING</p>
+            <p className="text-xs text-muted-foreground tracking-wider">
+              {isAnonymous ? <GuestIndicator variant="minimal" /> : 'MISSION BRIEFING'}
+            </p>
           </div>
         </motion.header>
 
@@ -324,7 +329,12 @@ const MissionDetail = () => {
           transition={{ delay: 0.3 }}
           className="fixed bottom-0 left-0 right-0 p-4 bg-gradient-to-t from-background via-background to-transparent"
         >
-          <div className="container mx-auto max-w-2xl">
+          <div className="container mx-auto max-w-2xl space-y-2">
+            {isAnonymous && (
+              <ConversionNudge 
+                message="Progress won't be saved in guest mode" 
+              />
+            )}
             <button
               onClick={() => navigate(`/workout/${missionId}`)}
               className="w-full py-4 bg-gradient-to-r from-primary to-accent text-primary-foreground font-display text-xl rounded-lg hover:opacity-90 transition-opacity flex items-center justify-center gap-3"
