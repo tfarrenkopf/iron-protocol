@@ -1,7 +1,7 @@
 import { useState, useEffect, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useParams, useNavigate } from 'react-router-dom';
-import { X, Plus, Minus, Info, Scroll, LogIn } from 'lucide-react';
+import { X, Plus, Minus, Info, Scroll, LogIn, Check, ChevronRight, AlertTriangle } from 'lucide-react';
 import { useGameStore, DBMission } from '@/stores/gameStore';
 import { useWeightHistory, useUpdateWeight } from '@/hooks/useWeightHistory';
 import { useAuth } from '@/hooks/useAuth';
@@ -43,6 +43,7 @@ const AssignmentWorkout = () => {
   const [showLore, setShowLore] = useState<'intro' | 'outro' | null>(null);
   const [statsSaved, setStatsSaved] = useState(false);
   const [showAuthPrompt, setShowAuthPrompt] = useState(false);
+  const [showCancelConfirm, setShowCancelConfirm] = useState(false);
   const hasInitialized = useRef(false);
   
   // Cache assignment data to prevent it from disappearing when marked complete
@@ -429,8 +430,13 @@ const AssignmentWorkout = () => {
       <header className="relative z-10 flex items-center justify-between p-4 border-b border-border flex-shrink-0">
         <button 
           onClick={() => {
-            endSession('ABORTED');
-            navigate('/');
+            // If at least one set is logged, show confirmation
+            if (stats.setsCompleted > 0) {
+              setShowCancelConfirm(true);
+            } else {
+              endSession('ABORTED');
+              navigate('/');
+            }
           }}
           className="p-2 border border-destructive/50 rounded text-destructive hover:bg-destructive/10 transition-colors"
         >
@@ -596,6 +602,52 @@ const AssignmentWorkout = () => {
           {isCompleting ? 'LOGGING...' : 'COMPLETE SET'}
         </motion.button>
       </div>
+
+      {/* Cancel Confirmation Modal */}
+      <AnimatePresence>
+        {showCancelConfirm && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            className="fixed inset-0 bg-background/90 backdrop-blur-sm z-50 flex items-center justify-center p-4"
+          >
+            <motion.div
+              initial={{ scale: 0.9, opacity: 0 }}
+              animate={{ scale: 1, opacity: 1 }}
+              exit={{ scale: 0.9, opacity: 0 }}
+              className="bg-card border-2 border-destructive rounded-lg p-6 max-w-sm w-full text-center"
+            >
+              <AlertTriangle className="w-12 h-12 text-destructive mx-auto mb-4" />
+              <h2 className="font-display text-2xl text-destructive mb-2">ABANDON ORDERS?</h2>
+              <p className="text-muted-foreground text-sm mb-2">
+                You've logged <span className="text-primary font-display">{stats.setsCompleted}</span> sets for your handler.
+              </p>
+              <p className="text-muted-foreground text-sm mb-6">
+                Deserting your post means losing your XP, combo streak, and disappointing your handler. Real soldiers finish what they start.
+              </p>
+              
+              <div className="space-y-3">
+                <button
+                  onClick={() => setShowCancelConfirm(false)}
+                  className="w-full py-3 bg-warning text-warning-foreground font-display rounded hover:opacity-90 transition-all"
+                >
+                  COMPLETE ORDERS
+                </button>
+                <button
+                  onClick={() => {
+                    endSession('ABORTED');
+                    navigate('/');
+                  }}
+                  className="w-full py-3 border border-destructive text-destructive font-display rounded hover:bg-destructive/10 transition-all"
+                >
+                  ABANDON ANYWAY
+                </button>
+              </div>
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
     </div>
   );
 };

@@ -1,7 +1,7 @@
 import { useState, useEffect, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useParams, useNavigate } from 'react-router-dom';
-import { X, Plus, Minus, Check, ChevronRight, Info, Scroll } from 'lucide-react';
+import { X, Plus, Minus, Check, ChevronRight, Info, Scroll, AlertTriangle } from 'lucide-react';
 import { useGameStore } from '@/stores/gameStore';
 import { useMission } from '@/hooks/useMissions';
 import { useWeightHistory, useUpdateWeight } from '@/hooks/useWeightHistory';
@@ -41,6 +41,7 @@ const WorkoutSession = () => {
   const [lastXPGain, setLastXPGain] = useState({ xp: 0, score: 0, combo: 0, damage: 0 });
   const [showLore, setShowLore] = useState<'intro' | 'outro' | null>(null);
   const [statsSaved, setStatsSaved] = useState(false);
+  const [showCancelConfirm, setShowCancelConfirm] = useState(false);
   const prevStatsRef = useRef(stats);
   const hasInitialized = useRef(false);
 
@@ -324,8 +325,13 @@ const WorkoutSession = () => {
       <header className="relative z-10 flex items-center justify-between p-4 border-b border-border flex-shrink-0">
         <button 
           onClick={() => {
-            endSession('ABORTED');
-            navigate('/');
+            // If at least one set is logged, show confirmation
+            if (stats.setsCompleted > 0) {
+              setShowCancelConfirm(true);
+            } else {
+              endSession('ABORTED');
+              navigate('/');
+            }
           }}
           className="p-2 border border-destructive/50 rounded text-destructive hover:bg-destructive/10 transition-colors"
         >
@@ -513,6 +519,52 @@ const WorkoutSession = () => {
           )}
         </motion.button>
       </div>
+
+      {/* Cancel Confirmation Modal */}
+      <AnimatePresence>
+        {showCancelConfirm && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            className="fixed inset-0 bg-background/90 backdrop-blur-sm z-50 flex items-center justify-center p-4"
+          >
+            <motion.div
+              initial={{ scale: 0.9, opacity: 0 }}
+              animate={{ scale: 1, opacity: 1 }}
+              exit={{ scale: 0.9, opacity: 0 }}
+              className="bg-card border-2 border-destructive rounded-lg p-6 max-w-sm w-full text-center"
+            >
+              <AlertTriangle className="w-12 h-12 text-destructive mx-auto mb-4" />
+              <h2 className="font-display text-2xl text-destructive mb-2">ABORT MISSION?</h2>
+              <p className="text-muted-foreground text-sm mb-2">
+                You've logged <span className="text-primary font-display">{stats.setsCompleted}</span> sets so far.
+              </p>
+              <p className="text-muted-foreground text-sm mb-6">
+                Retreating now means losing your XP, combo streak, and the glory you've earned. The battlefield doesn't reward quitters.
+              </p>
+              
+              <div className="space-y-3">
+                <button
+                  onClick={() => setShowCancelConfirm(false)}
+                  className="w-full py-3 bg-primary text-primary-foreground font-display rounded hover:box-glow-primary transition-all"
+                >
+                  KEEP FIGHTING
+                </button>
+                <button
+                  onClick={() => {
+                    endSession('ABORTED');
+                    navigate('/');
+                  }}
+                  className="w-full py-3 border border-destructive text-destructive font-display rounded hover:bg-destructive/10 transition-all"
+                >
+                  RETREAT ANYWAY
+                </button>
+              </div>
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
     </div>
   );
 };
