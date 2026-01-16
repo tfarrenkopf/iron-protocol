@@ -58,25 +58,30 @@ export function useWeeklySummary() {
 
       if (prsError) throw prsError;
 
-      // Get recent workout sets with exercise info to determine muscle groups
-      const { data: recentSets, error: setsError } = await supabase
-        .from('workout_sets')
-        .select(`
-          exercise_id,
-          exercises (
-            primary_muscle_group
-          )
-        `)
-        .eq('session_id', sessions?.[0]?.id || '')
-        .limit(20);
-
-      // Extract unique muscle groups from recent sets
+      // Get recent workout sets with exercise info to determine muscle groups from ALL sessions this week
+      const sessionIds = sessions?.map(s => s.id) || [];
       const muscleGroups = new Set<string>();
-      recentSets?.forEach((set: any) => {
-        if (set.exercises?.primary_muscle_group) {
-          muscleGroups.add(set.exercises.primary_muscle_group);
-        }
-      });
+      
+      if (sessionIds.length > 0) {
+        const { data: recentSets } = await supabase
+          .from('workout_sets')
+          .select(`
+            exercise_id,
+            exercises (
+              primary_muscle_group
+            )
+          `)
+          .in('session_id', sessionIds)
+          .order('completed_at', { ascending: false })
+          .limit(50);
+
+        // Extract unique muscle groups from recent sets
+        recentSets?.forEach((set: any) => {
+          if (set.exercises?.primary_muscle_group) {
+            muscleGroups.add(set.exercises.primary_muscle_group);
+          }
+        });
+      }
 
       const totals = sessions?.reduce(
         (acc, session) => ({
