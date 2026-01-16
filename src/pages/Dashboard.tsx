@@ -1,18 +1,7 @@
 import { useMemo } from "react";
 import { motion } from "framer-motion";
 import { useNavigate } from "react-router-dom";
-import {
-  Dumbbell,
-  Timer,
-  Trophy,
-  User,
-  LogOut,
-  Plus,
-  Swords,
-  ChevronRight,
-  Users,
-  Crosshair,
-} from "lucide-react";
+import { Dumbbell, Timer, Trophy, User, LogOut, Plus, Swords, ChevronRight, Users, Crosshair } from "lucide-react";
 import { useMissions } from "@/hooks/useMissions";
 import { useAuth } from "@/hooks/useAuth";
 import { useProfile } from "@/hooks/useProfile";
@@ -36,32 +25,32 @@ const Dashboard = () => {
   // Story 13.1: Select 3 random missions (1 short, 1 medium, 1 long)
   const featuredMissions = useMemo(() => {
     if (!missions || missions.length === 0) return [];
-    
+
     // Categorize by duration
-    const shortMissions = missions.filter(m => m.estimated_minutes < 20);
-    const mediumMissions = missions.filter(m => m.estimated_minutes >= 20 && m.estimated_minutes < 40);
-    const longMissions = missions.filter(m => m.estimated_minutes >= 40);
-    
+    const shortMissions = missions.filter((m) => m.estimated_minutes < 20);
+    const mediumMissions = missions.filter((m) => m.estimated_minutes >= 20 && m.estimated_minutes < 40);
+    const longMissions = missions.filter((m) => m.estimated_minutes >= 40);
+
     const selected: typeof missions = [];
-    
+
     // Pick one from each category if available
     const short = getRandomItem(shortMissions);
     const medium = getRandomItem(mediumMissions);
     const long = getRandomItem(longMissions);
-    
+
     if (short) selected.push(short);
     if (medium) selected.push(medium);
     if (long) selected.push(long);
-    
+
     // If we don't have 3, fill with random missions we haven't picked
-    const selectedIds = new Set(selected.map(m => m.id));
-    const remaining = missions.filter(m => !selectedIds.has(m.id));
-    
+    const selectedIds = new Set(selected.map((m) => m.id));
+    const remaining = missions.filter((m) => !selectedIds.has(m.id));
+
     while (selected.length < 3 && remaining.length > 0) {
       const randomIndex = Math.floor(Math.random() * remaining.length);
       selected.push(remaining.splice(randomIndex, 1)[0]);
     }
-    
+
     // Sort by duration for consistent display (short → medium → long)
     return selected.sort((a, b) => a.estimated_minutes - b.estimated_minutes);
   }, [missions]);
@@ -154,7 +143,7 @@ const Dashboard = () => {
             IRON PROTOCOL
           </h1>
           <p className="font-body text-muted-foreground text-sm tracking-widest uppercase">
-            Complete Missions • Defeat Enemies • Get Stronger • Save the world
+            Complete Missions • Defeat Enemies • Get Stronger
           </p>
           <p className="text-xs text-muted-foreground/60 mt-2 max-w-md mx-auto">
             Choose a mission below to start your workout. Complete sets to earn XP and climb the ranks.
@@ -220,7 +209,6 @@ const Dashboard = () => {
         {/* Weekly Summary - Under action buttons (show for all users) */}
         <WeeklySummary />
 
-
         {/* Incoming Orders - Only show when logged in */}
         {!isAnonymous && <IncomingOrders />}
 
@@ -265,14 +253,16 @@ const Dashboard = () => {
                         {mission.code_name}
                       </span>
                       {/* Duration badge */}
-                      <span className={`text-xs px-1.5 py-0.5 rounded font-display ${
-                        mission.estimated_minutes < 20 
-                          ? 'bg-secondary/20 text-secondary' 
-                          : mission.estimated_minutes < 40 
-                            ? 'bg-primary/20 text-primary'
-                            : 'bg-accent/20 text-accent'
-                      }`}>
-                        {mission.estimated_minutes < 20 ? 'QUICK' : mission.estimated_minutes < 40 ? 'STD' : 'LONG'}
+                      <span
+                        className={`text-xs px-1.5 py-0.5 rounded font-display ${
+                          mission.estimated_minutes < 20
+                            ? "bg-secondary/20 text-secondary"
+                            : mission.estimated_minutes < 40
+                              ? "bg-primary/20 text-primary"
+                              : "bg-accent/20 text-accent"
+                        }`}
+                      >
+                        {mission.estimated_minutes < 20 ? "QUICK" : mission.estimated_minutes < 40 ? "STD" : "LONG"}
                       </span>
                     </div>
                     <div className="text-xs text-muted-foreground mt-1">
