@@ -7,6 +7,7 @@ import { useProfile } from '@/hooks/useProfile';
 import { useIsHandler } from '@/hooks/useHandlerMode';
 import { IncomingOrders } from '@/components/IncomingOrders';
 import { FirstVisitPopup } from '@/components/FirstVisitPopup';
+import { WeeklySummary } from '@/components/WeeklySummary';
 
 const Dashboard = () => {
   const navigate = useNavigate();
@@ -198,6 +199,9 @@ const Dashboard = () => {
             </button>
           )}
         </motion.div>
+
+        {/* Weekly Summary - Only show when logged in */}
+        {!isAnonymous && <WeeklySummary />}
 
         {/* Incoming Orders - Only show when logged in */}
         {!isAnonymous && <IncomingOrders />}

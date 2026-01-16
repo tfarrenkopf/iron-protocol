@@ -206,6 +206,28 @@ const Stats = () => {
           )}
         </motion.section>
 
+        {/* Milestones Section */}
+        <motion.section
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.45 }}
+          className="mb-8"
+        >
+          <h2 className="font-display text-lg text-muted-foreground mb-4 tracking-wider">
+            // MILESTONES
+          </h2>
+          
+          {userMilestones && userMilestones.length > 0 ? (
+            <MilestoneList userMilestones={userMilestones} />
+          ) : (
+            <div className="bg-card border border-border rounded-lg p-6 text-center">
+              <Target className="w-8 h-8 mx-auto mb-3 text-muted-foreground" />
+              <p className="text-muted-foreground text-sm">No milestone progress yet.</p>
+              <p className="text-muted-foreground/60 text-xs mt-1">Complete workouts to unlock achievements.</p>
+            </div>
+          )}
+        </motion.section>
+
         {/* Weight Stats - THIRD */}
         <motion.section
           initial={{ opacity: 0, y: 20 }}
