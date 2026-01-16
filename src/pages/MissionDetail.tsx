@@ -1,19 +1,37 @@
 import { useState } from 'react';
 import { motion } from 'framer-motion';
-import { useNavigate, useParams } from 'react-router-dom';
-import { ArrowLeft, Zap, Play, Clock, Dumbbell, ChevronDown, ChevronUp } from 'lucide-react';
+import { useNavigate, useParams, useLocation } from 'react-router-dom';
+import { ArrowLeft, Zap, Play, Clock, Dumbbell, ChevronDown, ChevronUp, RefreshCw, AlertCircle } from 'lucide-react';
 import { useMission } from '@/hooks/useMissions';
 
 const MissionDetail = () => {
+  const location = useLocation();
   const navigate = useNavigate();
   const { missionId } = useParams();
-  const { data: mission, isLoading } = useMission(missionId);
+  const { data: mission, isLoading, error, refetch } = useMission(missionId);
   const [expandedExercise, setExpandedExercise] = useState<string | null>(null);
 
   if (isLoading) {
     return (
       <div className="min-h-screen bg-background flex items-center justify-center">
         <div className="font-display text-2xl text-primary animate-neon-pulse">LOADING INTEL...</div>
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="min-h-screen bg-background flex flex-col items-center justify-center gap-4 px-4">
+        <AlertCircle className="w-12 h-12 text-destructive" />
+        <div className="font-display text-2xl text-destructive">TRANSMISSION FAILED</div>
+        <p className="text-muted-foreground text-sm text-center">Unable to load mission intel. Check your connection.</p>
+        <button
+          onClick={() => refetch()}
+          className="px-6 py-3 bg-primary text-primary-foreground font-display rounded hover:box-glow-primary transition-all flex items-center gap-2"
+        >
+          <RefreshCw className="w-4 h-4" />
+          RETRY
+        </button>
       </div>
     );
   }
@@ -49,7 +67,7 @@ const MissionDetail = () => {
           className="flex items-center gap-4 mb-6"
         >
           <button 
-            onClick={() => navigate('/missions')}
+            onClick={() => navigate(-1)}
             className="p-2 border border-border rounded hover:border-primary transition-colors"
           >
             <ArrowLeft className="w-5 h-5" />
