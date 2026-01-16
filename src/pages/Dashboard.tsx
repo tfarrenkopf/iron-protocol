@@ -2,11 +2,8 @@ import { useMemo } from "react";
 import { motion } from "framer-motion";
 import { useNavigate } from "react-router-dom";
 import {
-  Zap,
-  Target,
   Dumbbell,
   Timer,
-  TrendingUp,
   Trophy,
   User,
   LogOut,
@@ -69,10 +66,6 @@ const Dashboard = () => {
     return selected.sort((a, b) => a.estimated_minutes - b.estimated_minutes);
   }, [missions]);
   const { data: isHandler } = useIsHandler();
-
-  // Calculate level from XP
-  const xp = profile?.total_xp || 0;
-  const level = Math.max(1, Math.floor(Math.sqrt(xp / 100)) + 1);
 
   const handleSignOut = async () => {
     await signOut();
@@ -227,37 +220,6 @@ const Dashboard = () => {
         {/* Weekly Summary - Under action buttons */}
         {!isAnonymous && <WeeklySummary />}
 
-        {/* Quick Stats - Now appears below weekly summary */}
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.2 }}
-          className="grid grid-cols-3 gap-3 mb-8"
-        >
-          {[
-            { label: "SETS", value: (profile?.total_sets || 0).toString(), icon: Zap, color: "text-accent" },
-            {
-              label: "XP",
-              value: (profile?.total_xp || 0).toLocaleString(),
-              icon: TrendingUp,
-              color: "text-secondary",
-            },
-            { label: "LEVEL", value: level.toString(), icon: Target, color: "text-primary" },
-          ].map((stat, i) => (
-            <motion.div
-              key={stat.label}
-              initial={{ opacity: 0, scale: 0.9 }}
-              animate={{ opacity: 1, scale: 1 }}
-              transition={{ delay: 0.25 + i * 0.05 }}
-              className="bg-card/50 border border-border rounded p-3 text-center cursor-pointer hover:border-primary/50 transition-colors"
-              onClick={() => navigate("/stats")}
-            >
-              <stat.icon className={`w-4 h-4 mx-auto mb-1 ${stat.color}`} />
-              <div className={`font-display text-2xl ${stat.color}`}>{stat.value}</div>
-              <div className="text-[10px] text-muted-foreground tracking-wider">{stat.label}</div>
-            </motion.div>
-          ))}
-        </motion.div>
 
         {/* Incoming Orders - Only show when logged in */}
         {!isAnonymous && <IncomingOrders />}
