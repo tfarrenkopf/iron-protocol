@@ -58,8 +58,8 @@ const GUEST_SAMPLE_ACHIEVEMENTS = [
 ];
 
 const GUEST_SAMPLE_USER_ACHIEVEMENTS = [
-  { id: '1', achievementId: '1', unlockedAt: new Date().toISOString() },
-  { id: '2', achievementId: '2', unlockedAt: new Date().toISOString() },
+  { id: '1', achievementId: '1', unlockedAt: new Date().toISOString(), achievement: GUEST_SAMPLE_ACHIEVEMENTS[0] },
+  { id: '2', achievementId: '2', unlockedAt: new Date().toISOString(), achievement: GUEST_SAMPLE_ACHIEVEMENTS[1] },
 ];
 
 const Stats = () => {
