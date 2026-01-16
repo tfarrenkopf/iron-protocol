@@ -188,3 +188,24 @@ export function useAllPersonalRecords() {
     enabled: !!user,
   });
 }
+
+// Get count of PRs set by user
+export function usePersonalRecordsCount() {
+  const { user } = useAuth();
+
+  return useQuery({
+    queryKey: ['personal-records-count', user?.id],
+    queryFn: async () => {
+      if (!user) return 0;
+      
+      const { count, error } = await supabase
+        .from('personal_records')
+        .select('*', { count: 'exact', head: true })
+        .eq('user_id', user.id);
+      
+      if (error) throw error;
+      return count || 0;
+    },
+    enabled: !!user,
+  });
+}

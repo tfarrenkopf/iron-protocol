@@ -8,6 +8,8 @@ import { useAuth } from '@/hooks/useAuth';
 import BodyDiagram from '@/components/BodyDiagram';
 import { useUserMilestones } from '@/hooks/useMilestones';
 import { MilestoneList } from '@/components/MilestoneProgress';
+import { useAchievements, useUserAchievements } from '@/hooks/useAchievements';
+import { AchievementList } from '@/components/AchievementList';
 
 const Stats = () => {
   const navigate = useNavigate();
@@ -17,6 +19,8 @@ const Stats = () => {
   const { data: weightHistory, isLoading: weightLoading } = useWeightHistory();
   const { data: muscleStats, isLoading: muscleLoading } = useMuscleGroupStats();
   const { data: userMilestones } = useUserMilestones();
+  const { data: achievements } = useAchievements();
+  const { data: userAchievements } = useUserAchievements();
 
   const getRankIcon = (rank: number) => {
     switch (rank) {
@@ -224,6 +228,30 @@ const Stats = () => {
               <Target className="w-8 h-8 mx-auto mb-3 text-muted-foreground" />
               <p className="text-muted-foreground text-sm">No milestone progress yet.</p>
               <p className="text-muted-foreground/60 text-xs mt-1">Complete workouts to unlock achievements.</p>
+            </div>
+          )}
+        </motion.section>
+
+        {/* Achievements Section */}
+        <motion.section
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.48 }}
+          className="mb-8"
+        >
+          <h2 className="font-display text-lg text-muted-foreground mb-4 tracking-wider">
+            // ACHIEVEMENTS
+          </h2>
+          
+          {achievements && userAchievements ? (
+            <AchievementList 
+              achievements={achievements} 
+              userAchievements={userAchievements} 
+            />
+          ) : (
+            <div className="bg-card border border-border rounded-lg p-6 text-center">
+              <Trophy className="w-8 h-8 mx-auto mb-3 text-muted-foreground" />
+              <p className="text-muted-foreground text-sm">Loading achievements...</p>
             </div>
           )}
         </motion.section>
