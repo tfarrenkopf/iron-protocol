@@ -91,7 +91,8 @@ const Dashboard = () => {
             <div>
               <p className="text-sm text-warning font-display">⚠️ GUEST MODE ACTIVE</p>
               <p className="text-xs text-muted-foreground mt-1">
-                Your progress won't be saved. Create an account to track your gains and appear on the leaderboard.
+                Your progress won't be saved. Create an account to track your gains, create your own missions and
+                exercises, and appear on the leaderboard.
               </p>
             </div>
             <button
