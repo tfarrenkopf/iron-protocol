@@ -1,10 +1,10 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useSearchParams } from 'react-router-dom';
 import { ArrowLeft, Plus, Trash2, GripVertical, AlertCircle, Check } from 'lucide-react';
 import { useAuth } from '@/hooks/useAuth';
 import { useExercises } from '@/hooks/useExercises';
-import { useCreateMission } from '@/hooks/useMissions';
+import { useCreateMission, useUpdateMission, useMission } from '@/hooks/useMissions';
 
 const FOCUS_AREAS = ['PUSH', 'PULL', 'LEGS', 'CORE', 'CARDIO', 'ARMS', 'SHOULDERS', 'CHEST', 'BACK'];
 
@@ -19,9 +19,15 @@ interface MissionExerciseItem {
 
 const CreateMission = () => {
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
+  const editMissionId = searchParams.get('edit');
+  const isEditMode = !!editMissionId;
+  
   const { user } = useAuth();
   const { data: exercises, isLoading: loadingExercises } = useExercises();
+  const { data: existingMission, isLoading: loadingMission } = useMission(editMissionId || undefined);
   const createMission = useCreateMission();
+  const updateMission = useUpdateMission();
 
   const [name, setName] = useState('');
   const [codeName, setCodeName] = useState('');
@@ -30,6 +36,30 @@ const CreateMission = () => {
   const [missionExercises, setMissionExercises] = useState<MissionExerciseItem[]>([]);
   const [selectedExerciseId, setSelectedExerciseId] = useState('');
   const [error, setError] = useState<string | null>(null);
+  const [initialized, setInitialized] = useState(false);
+
+  // Load existing mission data when editing
+  useEffect(() => {
+    if (isEditMode && existingMission && !initialized) {
+      setName(existingMission.name);
+      setCodeName(existingMission.code_name);
+      setDescription(existingMission.description || '');
+      setFocusAreas(existingMission.focus_areas || []);
+      
+      // Map existing exercises
+      const mappedExercises = existingMission.mission_exercises?.map(me => ({
+        id: me.id,
+        exercise_id: me.exercise_id,
+        exercise_name: me.exercises?.name || 'Unknown',
+        target_sets: me.target_sets,
+        target_reps: me.target_reps,
+        rest_between_sets_sec: me.rest_between_sets_sec,
+      })) || [];
+      
+      setMissionExercises(mappedExercises);
+      setInitialized(true);
+    }
+  }, [isEditMode, existingMission, initialized]);
 
   const addExercise = () => {
     if (!selectedExerciseId) return;
@@ -93,7 +123,7 @@ const CreateMission = () => {
     }
 
     try {
-      await createMission.mutateAsync({
+      const missionData = {
         name,
         code_name: codeName.toUpperCase(),
         description,
@@ -105,11 +135,24 @@ const CreateMission = () => {
           target_reps: e.target_reps,
           rest_between_sets_sec: e.rest_between_sets_sec,
         })),
-      });
-      navigate('/missions');
+      };
+
+      if (isEditMode && editMissionId) {
+        await updateMission.mutateAsync({
+          id: editMissionId,
+          ...missionData,
+        });
+      } else {
+        await createMission.mutateAsync(missionData);
+      }
+      navigate('/exercises');
     } catch (err: any) {
-      setError(err.message || 'Failed to create mission');
+      setError(err.message || `Failed to ${isEditMode ? 'update' : 'create'} mission`);
     }
+  };
+
+  const handleBack = () => {
+    navigate('/exercises');
   };
 
   if (!user) {
@@ -118,21 +161,29 @@ const CreateMission = () => {
         <div className="fixed inset-0 pointer-events-none scanlines opacity-30" />
         <div className="relative z-10 container mx-auto px-4 py-8 max-w-2xl">
           <header className="flex items-center gap-4 mb-8">
-            <button onClick={() => navigate('/missions')} className="p-2 border border-border rounded hover:border-primary transition-colors">
+            <button onClick={handleBack} className="p-2 border border-border rounded hover:border-primary transition-colors">
               <ArrowLeft className="w-5 h-5" />
             </button>
-            <h1 className="font-display text-3xl text-primary">CREATE MISSION</h1>
+            <h1 className="font-display text-3xl text-primary">{isEditMode ? 'EDIT' : 'CREATE'} MISSION</h1>
           </header>
           
           <div className="bg-card border border-border rounded-lg p-8 text-center">
             <AlertCircle className="w-12 h-12 text-warning mx-auto mb-4" />
             <p className="font-display text-xl text-warning mb-2">AUTHENTICATION REQUIRED</p>
-            <p className="text-muted-foreground mb-4">Sign in to create custom missions.</p>
+            <p className="text-muted-foreground mb-4">Sign in to {isEditMode ? 'edit' : 'create'} custom missions.</p>
             <button onClick={() => navigate('/auth')} className="px-6 py-3 bg-primary text-primary-foreground font-display rounded hover:box-glow-primary transition-all">
               SIGN IN
             </button>
           </div>
         </div>
+      </div>
+    );
+  }
+
+  if (isEditMode && loadingMission) {
+    return (
+      <div className="min-h-screen bg-background flex items-center justify-center">
+        <div className="font-display text-2xl text-primary animate-neon-pulse">LOADING MISSION...</div>
       </div>
     );
   }
@@ -148,12 +199,14 @@ const CreateMission = () => {
           animate={{ opacity: 1, y: 0 }}
           className="flex items-center gap-4 mb-8"
         >
-          <button onClick={() => navigate('/missions')} className="p-2 border border-border rounded hover:border-primary transition-colors">
+          <button onClick={handleBack} className="p-2 border border-border rounded hover:border-primary transition-colors">
             <ArrowLeft className="w-5 h-5" />
           </button>
           <div>
-            <h1 className="font-display text-3xl text-primary">CREATE MISSION</h1>
-            <p className="text-xs text-muted-foreground tracking-wider">DESIGN YOUR ASSAULT</p>
+            <h1 className="font-display text-3xl text-primary">{isEditMode ? 'EDIT' : 'CREATE'} MISSION</h1>
+            <p className="text-xs text-muted-foreground tracking-wider">
+              {isEditMode ? 'MODIFY YOUR ASSAULT' : 'DESIGN YOUR ASSAULT'}
+            </p>
           </div>
         </motion.header>
 
@@ -271,7 +324,7 @@ const CreateMission = () => {
             {/* Exercise List */}
             {missionExercises.length === 0 ? (
               <p className="text-sm text-muted-foreground text-center py-4">
-                No exercises added yet. Add at least one to create a mission.
+                No exercises added yet. Add at least one to {isEditMode ? 'update' : 'create'} a mission.
               </p>
             ) : (
               <div className="space-y-2">
@@ -339,11 +392,13 @@ const CreateMission = () => {
           {/* Submit */}
           <button
             type="submit"
-            disabled={createMission.isPending}
+            disabled={createMission.isPending || updateMission.isPending}
             className="w-full py-4 bg-primary text-primary-foreground font-display text-xl rounded hover:box-glow-primary transition-all disabled:opacity-50 flex items-center justify-center gap-2"
           >
             <Check className="w-5 h-5" />
-            {createMission.isPending ? 'CREATING...' : 'CREATE MISSION'}
+            {createMission.isPending || updateMission.isPending 
+              ? (isEditMode ? 'UPDATING...' : 'CREATING...') 
+              : (isEditMode ? 'UPDATE MISSION' : 'CREATE MISSION')}
           </button>
         </form>
       </div>

@@ -91,17 +91,6 @@ const MissionDetail = () => {
           </div>
         </motion.header>
 
-        {/* Warrior Count - Social Proof */}
-        {missionStats && (
-          <motion.div
-            initial={{ opacity: 0, y: 10 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.05 }}
-            className="mb-4"
-          >
-            <WarriorCount count={missionStats.uniquePlayers} />
-          </motion.div>
-        )}
 
         {/* Mission Overview Card */}
         <HotMissionGlow score={mission.popularity_score || 0}>

@@ -164,6 +164,75 @@ export function useCreateMission() {
   });
 }
 
+export function useUpdateMission() {
+  const queryClient = useQueryClient();
+  const { user } = useAuth();
+
+  return useMutation({
+    mutationFn: async (mission: {
+      id: string;
+      name: string;
+      code_name: string;
+      description?: string;
+      focus_areas?: string[];
+      estimated_minutes?: number;
+      exercises: {
+        exercise_id: string;
+        target_sets: number;
+        target_reps: number;
+        rest_between_sets_sec: number;
+      }[];
+    }) => {
+      if (!user) throw new Error('Must be logged in to update missions');
+      
+      // Update mission
+      const { error: missionError } = await supabase
+        .from('missions')
+        .update({
+          name: mission.name,
+          code_name: mission.code_name,
+          description: mission.description,
+          focus_areas: mission.focus_areas,
+          estimated_minutes: mission.estimated_minutes || 30,
+        })
+        .eq('id', mission.id)
+        .eq('created_by', user.id);
+      
+      if (missionError) throw missionError;
+
+      // Delete existing mission exercises
+      const { error: deleteError } = await supabase
+        .from('mission_exercises')
+        .delete()
+        .eq('mission_id', mission.id);
+      
+      if (deleteError) throw deleteError;
+
+      // Create new mission exercises
+      const missionExercises = mission.exercises.map((e, index) => ({
+        mission_id: mission.id,
+        exercise_id: e.exercise_id,
+        order_index: index,
+        target_sets: e.target_sets,
+        target_reps: e.target_reps,
+        rest_between_sets_sec: e.rest_between_sets_sec,
+      }));
+
+      const { error: exercisesError } = await supabase
+        .from('mission_exercises')
+        .insert(missionExercises);
+      
+      if (exercisesError) throw exercisesError;
+
+      return mission;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['missions'] });
+      queryClient.invalidateQueries({ queryKey: ['mission'] });
+    },
+  });
+}
+
 export function useDeleteMission() {
   const queryClient = useQueryClient();
 
