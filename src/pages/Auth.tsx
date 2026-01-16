@@ -1,9 +1,10 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { ArrowLeft, Mail, Lock, AlertCircle, Eye, EyeOff, User } from 'lucide-react';
 import { useAuth } from '@/hooks/useAuth';
-import { useUpdateProfile } from '@/hooks/useProfile';
+import { useUpdateProfile, useUpdateProfileStats } from '@/hooks/useProfile';
+import { useCreateWorkoutSession } from '@/hooks/useWorkoutSessions';
 import { z } from 'zod';
 
 const authSchema = z.object({
@@ -13,12 +14,28 @@ const authSchema = z.object({
 
 const displayNameSchema = z.string().min(3, { message: 'Display name must be at least 3 characters' }).max(15, { message: 'Display name must be 15 characters or less' }).regex(/^[a-zA-Z0-9_-]+$/, { message: 'Only letters, numbers, underscores and dashes allowed' });
 
+interface PendingWorkout {
+  missionId: string;
+  missionSnapshot: { name: string; code_name: string };
+  scoreEarned: number;
+  xpEarned: number;
+  setsCompleted: number;
+  totalReps: number;
+  totalWeight: number;
+  maxCombo: number;
+  damageDealt: number;
+  createdAt: string;
+}
+
 const AuthPage = () => {
   const navigate = useNavigate();
   const location = useLocation();
   const redirectTo = (location.state as { redirect?: string })?.redirect || '/';
-  const { signIn, signUp } = useAuth();
+  const intent = (location.state as { intent?: string })?.intent;
+  const { signIn, signUp, user } = useAuth();
   const updateProfile = useUpdateProfile();
+  const updateProfileStats = useUpdateProfileStats();
+  const createWorkoutSession = useCreateWorkoutSession();
   const [isSignUp, setIsSignUp] = useState(false);
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
@@ -26,6 +43,55 @@ const AuthPage = () => {
   const [showPassword, setShowPassword] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(false);
+  const [pendingWorkoutSaved, setPendingWorkoutSaved] = useState(false);
+
+  // Check for pending workout after auth completes
+  useEffect(() => {
+    if (user && !pendingWorkoutSaved) {
+      const pendingWorkoutStr = localStorage.getItem('pendingWorkout');
+      if (pendingWorkoutStr) {
+        try {
+          const pendingWorkout: PendingWorkout = JSON.parse(pendingWorkoutStr);
+          
+          // Check if workout was created within last hour (prevent old data)
+          const createdAt = new Date(pendingWorkout.createdAt);
+          const now = new Date();
+          const hoursDiff = (now.getTime() - createdAt.getTime()) / (1000 * 60 * 60);
+          
+          if (hoursDiff < 1) {
+            // Save the workout session
+            createWorkoutSession.mutate({
+              missionId: pendingWorkout.missionId,
+              missionSnapshot: pendingWorkout.missionSnapshot,
+              scoreEarned: pendingWorkout.scoreEarned,
+              xpEarned: pendingWorkout.xpEarned,
+              setsCompleted: pendingWorkout.setsCompleted,
+              totalReps: pendingWorkout.totalReps,
+              totalWeight: pendingWorkout.totalWeight,
+              maxCombo: pendingWorkout.maxCombo,
+              damageDealt: pendingWorkout.damageDealt,
+            });
+            
+            // Update profile stats
+            updateProfileStats.mutate({
+              score: pendingWorkout.scoreEarned,
+              xp: pendingWorkout.xpEarned,
+              sets: pendingWorkout.setsCompleted,
+              reps: pendingWorkout.totalReps,
+              weight: pendingWorkout.totalWeight,
+              maxCombo: pendingWorkout.maxCombo,
+            });
+          }
+          
+          // Clear pending workout
+          localStorage.removeItem('pendingWorkout');
+          setPendingWorkoutSaved(true);
+        } catch {
+          localStorage.removeItem('pendingWorkout');
+        }
+      }
+    }
+  }, [user, pendingWorkoutSaved, createWorkoutSession, updateProfileStats]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();

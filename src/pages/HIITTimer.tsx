@@ -308,11 +308,12 @@ const HIITTimer = () => {
           </button>
           <button 
             onClick={handleReset}
-            className="p-3 bg-background/30 backdrop-blur rounded-full border border-foreground/20"
+            className="p-3 bg-background/30 backdrop-blur rounded-full border border-foreground/20 flex items-center gap-1"
             aria-label="Return to protocol selection"
             title="Return to protocol selection"
           >
-            <RotateCcw className="w-5 h-5" />
+            <RotateCcw className="w-4 h-4" />
+            <span className="text-xs font-display hidden sm:inline">RESET</span>
           </button>
         </div>
 
@@ -331,13 +332,21 @@ const HIITTimer = () => {
         </button>
       </header>
 
-      {/* Progress Bar */}
+      {/* Progress Bar - High contrast with shadow for visibility on all backgrounds */}
       {timerPhase !== 'COMPLETED' && (
         <div className="relative z-10 px-4">
-          <Progress 
-            value={calculateProgress()} 
-            className="h-2 bg-background/30"
-          />
+          <div className="relative">
+            <Progress 
+              value={calculateProgress()} 
+              className="h-3 bg-black/50 border border-white/20 shadow-lg"
+            />
+            {/* Progress text overlay */}
+            <div className="absolute inset-0 flex items-center justify-center">
+              <span className="text-[10px] font-display text-white drop-shadow-[0_1px_2px_rgba(0,0,0,0.8)]">
+                {Math.round(calculateProgress())}%
+              </span>
+            </div>
+          </div>
         </div>
       )}
 

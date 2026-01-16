@@ -373,9 +373,9 @@ const Dashboard = () => {
             <span className="text-muted-foreground/30">|</span>
             <button
               onClick={() => navigate("/legal")}
-              className="text-muted-foreground hover:text-primary transition-colors"
+              className="text-muted-foreground hover:text-primary transition-colors flex items-center gap-1"
             >
-              Legal
+              <span>§</span> Legal
             </button>
           </div>
           <p className="text-xs text-muted-foreground/50 tracking-widest">v1.0 // NO MERCY</p>

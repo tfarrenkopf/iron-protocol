@@ -17,6 +17,9 @@ interface XPPopupProps {
   score: number;
   combo: number;
   damage?: number;
+  totalWeight?: number;
+  setsCompleted?: number;
+  totalSets?: number;
   achievement?: Achievement | null;
   lorePhrase?: string;
   onComplete?: () => void;
@@ -28,6 +31,9 @@ export const XPPopup = ({
   score, 
   combo, 
   damage = 0, 
+  totalWeight = 0,
+  setsCompleted = 0,
+  totalSets = 0,
   achievement,
   lorePhrase,
   onComplete 
@@ -216,6 +222,31 @@ export const XPPopup = ({
                     >
                       "{lorePhrase}"
                     </motion.p>
+                  )}
+                  {/* Weight progress indicator */}
+                  {totalWeight > 0 && (
+                    <motion.div
+                      initial={{ opacity: 0 }}
+                      animate={{ opacity: 1 }}
+                      transition={{ delay: 0.2 }}
+                      className="text-[10px] text-accent mt-1"
+                    >
+                      {totalWeight.toLocaleString()} lbs lifted
+                      {setsCompleted > 0 && totalSets > 0 && (
+                        <span className="text-muted-foreground"> • {setsCompleted}/{totalSets} sets</span>
+                      )}
+                    </motion.div>
+                  )}
+                  {/* Suggestion to increase */}
+                  {combo >= 3 && (
+                    <motion.div
+                      initial={{ opacity: 0 }}
+                      animate={{ opacity: 1 }}
+                      transition={{ delay: 0.25 }}
+                      className="text-[10px] text-success mt-1"
+                    >
+                      ↑ Increase weight for more damage!
+                    </motion.div>
                   )}
                 </motion.div>
 

@@ -103,10 +103,26 @@ interface MomentOfLossProps {
     sets?: number;
     prs?: number;
   };
+  missionId?: string;
+  missionSnapshot?: { name: string; code_name: string };
+  workoutData?: {
+    totalReps: number;
+    totalWeight: number;
+    maxCombo: number;
+    damageDealt: number;
+  };
   trigger?: 'mission_complete' | 'pr_set' | 'exit' | 'milestone';
 }
 
-export function MomentOfLossPrompt({ isOpen, onClose, stats, trigger = 'mission_complete' }: MomentOfLossProps) {
+export function MomentOfLossPrompt({ 
+  isOpen, 
+  onClose, 
+  stats, 
+  missionId,
+  missionSnapshot,
+  workoutData,
+  trigger = 'mission_complete' 
+}: MomentOfLossProps) {
   const navigate = useNavigate();
   
   const headlines: Record<string, { title: string; subtitle: string }> = {
@@ -131,6 +147,22 @@ export function MomentOfLossPrompt({ isOpen, onClose, stats, trigger = 'mission_
   const { title, subtitle } = headlines[trigger] || headlines.mission_complete;
   
   const handleSave = () => {
+    // Store pending workout data in localStorage for after auth
+    if (missionId && stats && workoutData) {
+      const pendingWorkout = {
+        missionId,
+        missionSnapshot,
+        scoreEarned: stats.score || 0,
+        xpEarned: stats.xp || 0,
+        setsCompleted: stats.sets || 0,
+        totalReps: workoutData.totalReps,
+        totalWeight: workoutData.totalWeight,
+        maxCombo: workoutData.maxCombo,
+        damageDealt: workoutData.damageDealt,
+        createdAt: new Date().toISOString(),
+      };
+      localStorage.setItem('pendingWorkout', JSON.stringify(pendingWorkout));
+    }
     navigate('/auth', { state: { intent: 'save_progress' } });
   };
   
