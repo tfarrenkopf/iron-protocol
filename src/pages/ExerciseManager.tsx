@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useNavigate } from 'react-router-dom';
-import { ArrowLeft, Plus, Edit2, Trash2, X, Check, AlertCircle, Target } from 'lucide-react';
+import { ArrowLeft, Plus, Edit2, Trash2, X, Check, AlertCircle, Target, ChevronDown, ChevronUp } from 'lucide-react';
 import { useAuth } from '@/hooks/useAuth';
 import { useExercises, useCreateExercise, useUpdateExercise, useDeleteExercise, Exercise } from '@/hooks/useExercises';
 import { useMissions } from '@/hooks/useMissions';
@@ -33,6 +33,7 @@ const ExerciseManager = () => {
   // Filter user's custom missions
   const myMissions = missions?.filter(m => m.created_by === user?.id) || [];
   const [showForm, setShowForm] = useState(false);
+  const [expandedMission, setExpandedMission] = useState<string | null>(null);
   const [editingExercise, setEditingExercise] = useState<Exercise | null>(null);
   const [formData, setFormData] = useState({
     name: '',
@@ -188,7 +189,7 @@ const ExerciseManager = () => {
               onClick={() => navigate('/create-mission')}
               className="flex items-center gap-2 px-4 py-2 bg-secondary text-secondary-foreground font-display rounded hover:box-glow-secondary transition-all"
             >
-              <Target className="w-4 h-4" />
+              <Plus className="w-4 h-4" />
               MISSION
             </button>
             <button
@@ -229,31 +230,76 @@ const ExerciseManager = () => {
           ) : (
             <div className="space-y-2">
               {myMissions.slice(0, 5).map((mission, i) => (
-                <motion.button
+                <motion.div
                   key={mission.id}
                   initial={{ opacity: 0, x: -20 }}
                   animate={{ opacity: 1, x: 0 }}
                   transition={{ delay: i * 0.05 }}
-                  onClick={() => navigate(`/mission/${mission.id}`)}
-                  className="w-full bg-card border border-border rounded-lg p-3 text-left hover:border-secondary transition-all"
+                  className="bg-card border border-border rounded-lg overflow-hidden"
                 >
-                  <div className="flex items-center justify-between">
-                    <div>
-                      <span className="font-display text-secondary">{mission.code_name}</span>
-                      <span className="text-xs text-muted-foreground ml-2">
-                        {mission.mission_exercises?.length || 0} exercises
-                      </span>
+                  <button
+                    onClick={() => setExpandedMission(expandedMission === mission.id ? null : mission.id)}
+                    className="w-full p-3 text-left hover:bg-muted/30 transition-colors"
+                  >
+                    <div className="flex items-center justify-between">
+                      <div className="flex items-center gap-3">
+                        <div>
+                          <span className="font-display text-secondary">{mission.code_name}</span>
+                          <span className="text-xs text-muted-foreground ml-2">
+                            {mission.mission_exercises?.length || 0} exercises • {mission.estimated_minutes}min
+                          </span>
+                        </div>
+                      </div>
+                      <div className="flex items-center gap-2">
+                        <div className="flex gap-1">
+                          {[...Array(5)].map((_, j) => (
+                            <div 
+                              key={j}
+                              className={`w-1.5 h-1.5 rounded-sm ${j < mission.difficulty ? 'bg-accent' : 'bg-muted'}`}
+                            />
+                          ))}
+                        </div>
+                        {expandedMission === mission.id ? (
+                          <ChevronUp className="w-4 h-4 text-muted-foreground" />
+                        ) : (
+                          <ChevronDown className="w-4 h-4 text-muted-foreground" />
+                        )}
+                      </div>
                     </div>
-                    <div className="flex gap-1">
-                      {[...Array(5)].map((_, j) => (
-                        <div 
-                          key={j}
-                          className={`w-1.5 h-1.5 rounded-sm ${j < mission.difficulty ? 'bg-accent' : 'bg-muted'}`}
-                        />
-                      ))}
-                    </div>
-                  </div>
-                </motion.button>
+                  </button>
+                  
+                  {/* Expanded exercise list */}
+                  <AnimatePresence>
+                    {expandedMission === mission.id && (
+                      <motion.div
+                        initial={{ height: 0, opacity: 0 }}
+                        animate={{ height: 'auto', opacity: 1 }}
+                        exit={{ height: 0, opacity: 0 }}
+                        className="border-t border-border"
+                      >
+                        <div className="p-3 space-y-2 bg-background/50">
+                          {mission.mission_exercises?.map((me, idx) => (
+                            <div key={me.id} className="flex items-center gap-2 text-sm">
+                              <span className="w-5 h-5 rounded bg-muted flex items-center justify-center text-xs text-muted-foreground">
+                                {idx + 1}
+                              </span>
+                              <span className="flex-1 text-foreground">{me.exercises?.name}</span>
+                              <span className="text-xs text-muted-foreground">
+                                {me.target_sets}×{me.target_reps}
+                              </span>
+                            </div>
+                          ))}
+                          <button
+                            onClick={() => navigate(`/mission/${mission.id}`)}
+                            className="w-full mt-2 py-2 text-xs font-display text-secondary border border-secondary/30 rounded hover:bg-secondary/10 transition-colors"
+                          >
+                            VIEW FULL DETAILS
+                          </button>
+                        </div>
+                      </motion.div>
+                    )}
+                  </AnimatePresence>
+                </motion.div>
               ))}
               {myMissions.length > 5 && (
                 <button
@@ -301,14 +347,41 @@ const ExerciseManager = () => {
                   <div className="flex items-start justify-between">
                     <div className="flex-1">
                       <h3 className="font-display text-lg text-primary">{exercise.name}</h3>
-                      <p className="text-sm text-muted-foreground">{exercise.primary_muscle_group}</p>
-                      <div className="flex gap-1 mt-2 flex-wrap">
-                        {exercise.equipment?.map(eq => (
-                          <span key={eq} className="text-xs px-2 py-0.5 bg-muted rounded text-muted-foreground">
-                            {eq}
+                      <div className="flex items-center gap-2 mt-1">
+                        <span className="text-sm text-secondary">{exercise.primary_muscle_group}</span>
+                        {exercise.secondary_muscle_groups && exercise.secondary_muscle_groups.length > 0 && (
+                          <span className="text-xs text-muted-foreground">
+                            + {exercise.secondary_muscle_groups.join(', ')}
                           </span>
-                        ))}
+                        )}
                       </div>
+                      
+                      {/* Equipment tags */}
+                      {exercise.equipment && exercise.equipment.length > 0 && (
+                        <div className="flex gap-1 mt-2 flex-wrap">
+                          {exercise.equipment.map(eq => (
+                            <span key={eq} className="text-xs px-2 py-0.5 bg-accent/20 text-accent rounded">
+                              {eq.replace(/_/g, ' ')}
+                            </span>
+                          ))}
+                        </div>
+                      )}
+                      
+                      {/* Focus areas */}
+                      {exercise.focus_areas && exercise.focus_areas.length > 0 && (
+                        <div className="flex gap-1 mt-2 flex-wrap">
+                          {exercise.focus_areas.map(fa => (
+                            <span key={fa} className="text-xs px-2 py-0.5 bg-muted rounded text-muted-foreground">
+                              {fa}
+                            </span>
+                          ))}
+                        </div>
+                      )}
+                      
+                      {/* Description preview */}
+                      {exercise.description && (
+                        <p className="text-xs text-muted-foreground mt-2 line-clamp-2">{exercise.description}</p>
+                      )}
                     </div>
                     <div className="flex gap-2">
                       <button

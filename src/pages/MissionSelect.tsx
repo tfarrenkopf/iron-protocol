@@ -1,12 +1,17 @@
 import { useState } from 'react';
 import { motion } from 'framer-motion';
 import { useNavigate } from 'react-router-dom';
-import { ArrowLeft, Zap, Plus, Filter, X, RefreshCw, AlertCircle } from 'lucide-react';
+import { ArrowLeft, Zap, Plus, Filter, X, RefreshCw, AlertCircle, Clock } from 'lucide-react';
 import { useMissions } from '@/hooks/useMissions';
 import { useAuth } from '@/hooks/useAuth';
 
 const FOCUS_AREAS = ['PUSH', 'PULL', 'LEGS', 'CORE', 'CARDIO', 'ARMS', 'SHOULDERS', 'CHEST', 'BACK'];
 const MUSCLE_GROUPS = ['Chest', 'Back', 'Shoulders', 'Biceps', 'Triceps', 'Quadriceps', 'Hamstrings', 'Core'];
+const DURATION_FILTERS = [
+  { label: 'Quick', value: 'short', max: 20 },
+  { label: 'Standard', value: 'medium', min: 20, max: 40 },
+  { label: 'Extended', value: 'long', min: 40 },
+];
 
 const MissionSelect = () => {
   const navigate = useNavigate();
@@ -16,6 +21,7 @@ const MissionSelect = () => {
   const [muscleFilter, setMuscleFilter] = useState<string>('');
   const [showOnlyPublic, setShowOnlyPublic] = useState(false);
   const [showOnlyMine, setShowOnlyMine] = useState(false);
+  const [durationFilter, setDurationFilter] = useState<string>('');
 
   const { data: missions, isLoading, error, refetch, isRefetching } = useMissions({
     focusArea: focusFilter || undefined,
@@ -28,14 +34,29 @@ const MissionSelect = () => {
     setMuscleFilter('');
     setShowOnlyPublic(false);
     setShowOnlyMine(false);
+    setDurationFilter('');
   };
 
-  const hasFilters = focusFilter || muscleFilter || showOnlyPublic || showOnlyMine;
+  const hasFilters = focusFilter || muscleFilter || showOnlyPublic || showOnlyMine || durationFilter;
 
-  // Filter missions for "My Missions" option
-  const filteredMissions = showOnlyMine && user 
+  // Filter missions for "My Missions" and duration options
+  let filteredMissions = showOnlyMine && user 
     ? missions?.filter(m => m.created_by === user.id)
     : missions;
+
+  // Apply duration filter
+  if (durationFilter && filteredMissions) {
+    const durationConfig = DURATION_FILTERS.find(d => d.value === durationFilter);
+    if (durationConfig) {
+      filteredMissions = filteredMissions.filter(m => {
+        const mins = m.estimated_minutes;
+        if (durationConfig.max && !durationConfig.min) return mins < durationConfig.max;
+        if (durationConfig.min && !durationConfig.max) return mins >= durationConfig.min;
+        if (durationConfig.min && durationConfig.max) return mins >= durationConfig.min && mins < durationConfig.max;
+        return true;
+      });
+    }
+  }
 
   return (
     <div className="min-h-screen bg-background relative">
@@ -135,6 +156,33 @@ const MissionSelect = () => {
                       }`}
                     >
                       {muscle}
+                    </button>
+                  ))}
+                </div>
+              </div>
+
+              {/* Duration Filter */}
+              <div>
+                <label className="text-xs text-muted-foreground tracking-wider flex items-center gap-1">
+                  <Clock className="w-3 h-3" /> DURATION
+                </label>
+                <div className="flex flex-wrap gap-2 mt-2">
+                  {DURATION_FILTERS.map(duration => (
+                    <button
+                      key={duration.value}
+                      onClick={() => setDurationFilter(durationFilter === duration.value ? '' : duration.value)}
+                      className={`text-xs px-2 py-1 rounded border transition-colors ${
+                        durationFilter === duration.value
+                          ? 'bg-accent text-accent-foreground border-accent'
+                          : 'bg-background border-border hover:border-accent/50'
+                      }`}
+                    >
+                      {duration.label}
+                      <span className="ml-1 opacity-60">
+                        {duration.max && !duration.min && `<${duration.max}m`}
+                        {duration.min && !duration.max && `${duration.min}m+`}
+                        {duration.min && duration.max && `${duration.min}-${duration.max}m`}
+                      </span>
                     </button>
                   ))}
                 </div>
