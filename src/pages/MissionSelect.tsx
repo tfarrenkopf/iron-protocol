@@ -1,12 +1,22 @@
 import { useState } from 'react';
 import { motion } from 'framer-motion';
 import { useNavigate } from 'react-router-dom';
-import { ArrowLeft, Zap, Plus, Filter, X, RefreshCw, AlertCircle, Clock, Users } from 'lucide-react';
-import { useMissions } from '@/hooks/useMissions';
+import { ArrowLeft, Zap, Plus, Filter, X, RefreshCw, AlertCircle, Clock, Pencil, Trash2 } from 'lucide-react';
+import { useMissions, useDeleteMission } from '@/hooks/useMissions';
 import { useAuth } from '@/hooks/useAuth';
 import { PopularityBadge } from '@/components/SocialProof';
 import { getPopularityTier } from '@/hooks/useMissionStats';
 import { GuestIndicator } from '@/components/AnonymousConversion';
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from '@/components/ui/alert-dialog';
 
 const FOCUS_AREAS = ['PUSH', 'PULL', 'LEGS', 'CORE', 'CARDIO', 'ARMS', 'SHOULDERS', 'CHEST', 'BACK'];
 const MUSCLE_GROUPS = ['Chest', 'Back', 'Shoulders', 'Biceps', 'Triceps', 'Quadriceps', 'Hamstrings', 'Core'];
@@ -25,12 +35,35 @@ const MissionSelect = () => {
   const [showOnlyPublic, setShowOnlyPublic] = useState(false);
   const [showOnlyMine, setShowOnlyMine] = useState(false);
   const [durationFilter, setDurationFilter] = useState<string>('');
+  const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
+  const [missionToDelete, setMissionToDelete] = useState<{ id: string; name: string } | null>(null);
 
   const { data: missions, isLoading, error, refetch, isRefetching } = useMissions({
     focusArea: focusFilter || undefined,
     muscleGroup: muscleFilter || undefined,
     showOnlyPublic: showOnlyPublic || !user,
   });
+
+  const deleteMission = useDeleteMission();
+
+  const handleDeleteClick = (e: React.MouseEvent, mission: { id: string; code_name: string }) => {
+    e.stopPropagation();
+    setMissionToDelete({ id: mission.id, name: mission.code_name });
+    setDeleteDialogOpen(true);
+  };
+
+  const confirmDelete = async () => {
+    if (missionToDelete) {
+      await deleteMission.mutateAsync(missionToDelete.id);
+      setDeleteDialogOpen(false);
+      setMissionToDelete(null);
+    }
+  };
+
+  const handleEditClick = (e: React.MouseEvent, missionId: string) => {
+    e.stopPropagation();
+    navigate(`/create-mission?edit=${missionId}`);
+  };
 
   const clearFilters = () => {
     setFocusFilter('');
@@ -276,17 +309,46 @@ const MissionSelect = () => {
                 {/* Glow effect on hover */}
                 <div className="absolute inset-0 bg-gradient-to-r from-primary/0 via-primary/5 to-primary/0 opacity-0 group-hover:opacity-100 transition-opacity" />
                 
-                {/* Custom mission badge */}
-                {!mission.is_public && (
+                {/* Custom mission badge + edit/delete controls (Story 13.4) */}
+                {!mission.is_public && user && mission.created_by === user.id && (
+                  <div className="absolute top-2 right-2 flex items-center gap-1">
+                    <button
+                      onClick={(e) => handleEditClick(e, mission.id)}
+                      className="p-1.5 bg-secondary/20 text-secondary rounded hover:bg-secondary/30 transition-colors"
+                      title="Edit mission"
+                    >
+                      <Pencil className="w-3.5 h-3.5" />
+                    </button>
+                    <button
+                      onClick={(e) => handleDeleteClick(e, mission)}
+                      className="p-1.5 bg-destructive/20 text-destructive rounded hover:bg-destructive/30 transition-colors"
+                      title="Delete mission"
+                    >
+                      <Trash2 className="w-3.5 h-3.5" />
+                    </button>
+                    <span className="text-xs px-2 py-0.5 bg-accent/20 text-accent rounded ml-1">
+                      CUSTOM
+                    </span>
+                  </div>
+                )}
+
+                {/* Custom mission badge (not owner) */}
+                {!mission.is_public && (!user || mission.created_by !== user.id) && (
                   <div className="absolute top-2 right-2 text-xs px-2 py-0.5 bg-accent/20 text-accent rounded">
                     CUSTOM
                   </div>
                 )}
 
-                {/* Popularity badge */}
-                {mission.is_public && getPopularityTier(mission.popularity_score || 0) && (
+                {/* Story 13.3: Popularity badge OR "No survivors" encouragement */}
+                {mission.is_public && (
                   <div className="absolute top-2 right-2">
-                    <PopularityBadge score={mission.popularity_score || 0} />
+                    {(mission.popularity_score || 0) === 0 ? (
+                      <span className="text-xs px-2 py-1 bg-primary/20 text-primary rounded font-display animate-pulse">
+                        NO SURVIVORS YET
+                      </span>
+                    ) : getPopularityTier(mission.popularity_score || 0) ? (
+                      <PopularityBadge score={mission.popularity_score || 0} />
+                    ) : null}
                   </div>
                 )}
                 
@@ -338,6 +400,28 @@ const MissionSelect = () => {
             ))}
           </div>
         )}
+
+        {/* Delete Confirmation Dialog */}
+        <AlertDialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
+          <AlertDialogContent className="bg-card border-border">
+            <AlertDialogHeader>
+              <AlertDialogTitle className="font-display text-destructive">DELETE MISSION?</AlertDialogTitle>
+              <AlertDialogDescription className="text-muted-foreground">
+                This will permanently delete <span className="text-primary font-display">{missionToDelete?.name}</span>. 
+                This action cannot be undone.
+              </AlertDialogDescription>
+            </AlertDialogHeader>
+            <AlertDialogFooter>
+              <AlertDialogCancel className="font-display">CANCEL</AlertDialogCancel>
+              <AlertDialogAction 
+                onClick={confirmDelete}
+                className="bg-destructive text-destructive-foreground font-display hover:bg-destructive/90"
+              >
+                DELETE
+              </AlertDialogAction>
+            </AlertDialogFooter>
+          </AlertDialogContent>
+        </AlertDialog>
       </div>
     </div>
   );
