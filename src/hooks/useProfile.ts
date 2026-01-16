@@ -66,13 +66,14 @@ export function useLeaderboard() {
   });
 }
 
-// Function to update profile stats after workout
+// Note: Profile stats are now updated automatically via database trigger
+// when workout sessions are created/deleted. This hook is kept for backwards
+// compatibility but the database trigger handles atomic updates.
 export function useUpdateProfileStats() {
   const queryClient = useQueryClient();
-  const { user } = useAuth();
 
   return useMutation({
-    mutationFn: async (stats: {
+    mutationFn: async (_stats: {
       score: number;
       xp: number;
       sets: number;
@@ -80,31 +81,10 @@ export function useUpdateProfileStats() {
       weight: number;
       maxCombo: number;
     }) => {
-      if (!user) throw new Error('Must be logged in');
-      
-      // Get current profile
-      const { data: profile, error: fetchError } = await supabase
-        .from('profiles')
-        .select('*')
-        .eq('id', user.id)
-        .single();
-      
-      if (fetchError) throw fetchError;
-      
-      // Update with new stats
-      const { error } = await supabase
-        .from('profiles')
-        .update({
-          total_score: profile.total_score + stats.score,
-          total_xp: profile.total_xp + stats.xp,
-          total_sets: profile.total_sets + stats.sets,
-          total_reps: profile.total_reps + stats.reps,
-          total_weight: profile.total_weight + stats.weight,
-          max_combo: Math.max(profile.max_combo, stats.maxCombo),
-        })
-        .eq('id', user.id);
-      
-      if (error) throw error;
+      // Profile stats are now updated atomically via database trigger
+      // when workout_sessions are inserted/deleted with status='COMPLETED'.
+      // This mutation is a no-op but kept for API compatibility.
+      return;
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['profile'] });
