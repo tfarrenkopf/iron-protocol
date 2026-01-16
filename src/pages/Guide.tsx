@@ -200,31 +200,31 @@ const Guide = () => {
                   {section.content.map((item, i) => (
                     <div key={i}>
                       {item.type === 'text' && (
-                        <p className="text-base text-muted-foreground leading-relaxed">{item.value}</p>
+                        <p className="text-sm text-muted-foreground leading-relaxed">{item.value}</p>
                       )}
                       {item.type === 'highlight' && (
-                        <div className="p-4 bg-primary/10 border border-primary/30 rounded-lg">
-                          <p className="text-primary font-display text-base">{item.value}</p>
+                        <div className="p-3 bg-primary/10 border border-primary/30 rounded-lg">
+                          <p className="text-sm text-primary font-display tracking-wide">{item.value}</p>
                         </div>
                       )}
                       {item.type === 'step' && (
-                        <div className="flex items-start gap-4">
-                          <span className="flex-shrink-0 w-8 h-8 rounded-full bg-secondary text-secondary-foreground font-display text-lg flex items-center justify-center">
+                        <div className="flex items-start gap-3">
+                          <span className="flex-shrink-0 w-6 h-6 rounded-full bg-secondary text-secondary-foreground font-display text-sm flex items-center justify-center">
                             {item.label}
                           </span>
-                          <p className="text-base text-foreground pt-1">{item.value}</p>
+                          <p className="text-sm text-foreground leading-relaxed">{item.value}</p>
                         </div>
                       )}
                       {item.type === 'stat' && (
-                        <div className="flex flex-col sm:flex-row sm:items-center justify-between p-3 bg-background rounded-lg border border-border gap-2">
-                          <span className="text-sm text-muted-foreground font-display">{item.label}</span>
-                          <span className="text-base text-foreground">{item.value}</span>
+                        <div className="flex flex-col sm:flex-row sm:items-center justify-between p-3 bg-background rounded-lg border border-border gap-1 sm:gap-2">
+                          <span className="text-xs text-muted-foreground font-display tracking-wider">{item.label}</span>
+                          <span className="text-sm text-foreground">{item.value}</span>
                         </div>
                       )}
                       {item.type === 'tip' && (
-                        <div className="flex items-start gap-3 p-4 bg-accent/10 border border-accent/30 rounded-lg">
-                          <Scroll className="w-5 h-5 text-accent flex-shrink-0 mt-0.5" />
-                          <p className="text-base text-accent">{item.value}</p>
+                        <div className="flex items-start gap-3 p-3 bg-accent/10 border border-accent/30 rounded-lg">
+                          <Scroll className="w-4 h-4 text-accent flex-shrink-0 mt-0.5" />
+                          <p className="text-sm text-accent leading-relaxed">{item.value}</p>
                         </div>
                       )}
                     </div>
