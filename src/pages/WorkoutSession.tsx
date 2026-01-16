@@ -14,11 +14,12 @@ import { PRNotification } from '@/components/PRNotification';
 import { useCheckAndUpdatePR, PRCheckResult, usePersonalRecordsCount } from '@/hooks/usePersonalRecords';
 import { useCheckAchievements, Achievement } from '@/hooks/useAchievements';
 import { AchievementNotification } from '@/components/AchievementNotification';
+import { GuestIndicator, MomentOfLossPrompt, ConversionNudge } from '@/components/AnonymousConversion';
 
 const WorkoutSession = () => {
   const { missionId } = useParams();
   const navigate = useNavigate();
-  const { user } = useAuth();
+  const { user, isAnonymous } = useAuth();
   const { data: mission, isLoading: missionLoading } = useMission(missionId);
   const { data: weightHistory } = useWeightHistory();
   const { data: profile } = useProfile();
@@ -54,6 +55,8 @@ const WorkoutSession = () => {
   const [newPRs, setNewPRs] = useState<PRCheckResult[]>([]);
   const [pendingAchievements, setPendingAchievements] = useState<Achievement[]>([]);
   const [showAchievementNotification, setShowAchievementNotification] = useState(false);
+  const [showMomentOfLoss, setShowMomentOfLoss] = useState(false);
+  const [momentOfLossTrigger, setMomentOfLossTrigger] = useState<'mission_complete' | 'pr_set'>('mission_complete');
   const prevStatsRef = useRef(stats);
   const hasInitialized = useRef(false);
 
@@ -231,6 +234,16 @@ const WorkoutSession = () => {
   }
 
   if (currentSession?.status === 'COMPLETED') {
+    // Show moment of loss prompt for anonymous users after a delay
+    useEffect(() => {
+      if (isAnonymous && currentSession?.status === 'COMPLETED' && !showMomentOfLoss) {
+        const timer = setTimeout(() => {
+          setMomentOfLossTrigger('mission_complete');
+          setShowMomentOfLoss(true);
+        }, 2000);
+        return () => clearTimeout(timer);
+      }
+    }, [currentSession?.status, isAnonymous]);
 
     return (
       <motion.div 
@@ -238,6 +251,13 @@ const WorkoutSession = () => {
         animate={{ opacity: 1 }}
         className="min-h-screen bg-background flex flex-col items-center justify-center p-4"
       >
+        {/* Guest indicator */}
+        {isAnonymous && (
+          <div className="absolute top-4 left-4">
+            <GuestIndicator variant="standard" />
+          </div>
+        )}
+
         <motion.div
           initial={{ scale: 0.8, opacity: 0 }}
           animate={{ scale: 1, opacity: 1 }}
@@ -250,29 +270,37 @@ const WorkoutSession = () => {
           <p className="font-display text-4xl text-secondary mb-8">{mission.code_name}</p>
           
           <div className="grid grid-cols-2 gap-6 max-w-md mx-auto mb-6">
-            <div className="bg-card border border-border rounded-lg p-4">
+            <div className={`bg-card border rounded-lg p-4 ${isAnonymous ? 'border-warning/30' : 'border-border'}`}>
               <div className="font-display text-4xl text-accent">{stats.score.toLocaleString()}</div>
               <div className="text-xs text-muted-foreground">SCORE</div>
             </div>
-            <div className="bg-card border border-border rounded-lg p-4">
+            <div className={`bg-card border rounded-lg p-4 ${isAnonymous ? 'border-warning/30' : 'border-border'}`}>
               <div className="font-display text-4xl text-secondary">{stats.maxCombo}x</div>
               <div className="text-xs text-muted-foreground">MAX COMBO</div>
             </div>
-            <div className="bg-card border border-border rounded-lg p-4">
+            <div className={`bg-card border rounded-lg p-4 ${isAnonymous ? 'border-warning/30' : 'border-border'}`}>
               <div className="font-display text-4xl text-primary">{stats.setsCompleted}</div>
               <div className="text-xs text-muted-foreground">SETS</div>
             </div>
-            <div className="bg-card border border-border rounded-lg p-4">
+            <div className={`bg-card border rounded-lg p-4 ${isAnonymous ? 'border-warning/30' : 'border-border'}`}>
               <div className="font-display text-4xl text-success">{stats.xp}</div>
               <div className="text-xs text-muted-foreground">XP EARNED</div>
             </div>
           </div>
           
           {/* Total Weight Lifted */}
-          <div className="bg-card border-2 border-accent rounded-lg p-4 max-w-md mx-auto mb-10">
+          <div className={`bg-card border-2 rounded-lg p-4 max-w-md mx-auto mb-6 ${isAnonymous ? 'border-warning/50' : 'border-accent'}`}>
             <div className="font-display text-5xl text-accent">{stats.totalWeight.toLocaleString()}</div>
             <div className="text-sm text-muted-foreground">TOTAL LBS LIFTED</div>
           </div>
+
+          {/* Anonymous conversion nudge */}
+          {isAnonymous && (
+            <ConversionNudge 
+              message="This progress won't be saved" 
+              className="max-w-md mx-auto mb-6"
+            />
+          )}
 
           <button
             onClick={() => {
@@ -284,6 +312,18 @@ const WorkoutSession = () => {
             CONTINUE
           </button>
         </motion.div>
+
+        {/* Moment of Loss Prompt */}
+        <MomentOfLossPrompt
+          isOpen={showMomentOfLoss}
+          onClose={() => setShowMomentOfLoss(false)}
+          trigger={momentOfLossTrigger}
+          stats={{
+            score: stats.score,
+            xp: stats.xp,
+            sets: stats.setsCompleted,
+          }}
+        />
       </motion.div>
     );
   }
@@ -397,6 +437,7 @@ const WorkoutSession = () => {
           <div className="font-display text-lg text-primary">{mission.code_name}</div>
           <div className="text-xs text-muted-foreground">
             {safeExerciseIndex + 1}/{missionExercises.length}
+            {isAnonymous && <span className="text-warning ml-2">• GUEST</span>}
           </div>
         </div>
 
