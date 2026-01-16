@@ -54,7 +54,7 @@ export function LossPreview({ stats }: LossPreviewProps) {
     { label: 'SCORE', value: stats.score, icon: Trophy, color: 'text-primary' },
     { label: 'XP', value: stats.xp, icon: TrendingUp, color: 'text-success' },
     { label: 'SETS', value: stats.sets, icon: Zap, color: 'text-accent' },
-    { label: 'PRs', value: stats.prs, icon: Flame, color: 'text-warning' },
+    { label: 'MISSIONS', value: stats.missions, icon: Shield, color: 'text-secondary' },
   ].filter(item => item.value && item.value > 0);
   
   if (items.length === 0) return null;
@@ -102,6 +102,7 @@ interface MomentOfLossProps {
     xp?: number;
     sets?: number;
     prs?: number;
+    missions?: number;
   };
   missionId?: string;
   missionSnapshot?: { name: string; code_name: string };

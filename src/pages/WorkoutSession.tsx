@@ -308,6 +308,7 @@ const WorkoutSession = () => {
             score: stats.score,
             xp: stats.xp,
             sets: stats.setsCompleted,
+            missions: 1,
           }}
           workoutData={{
             totalReps: stats.totalReps,
