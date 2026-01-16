@@ -158,6 +158,18 @@ const WorkoutSession = () => {
     }
   }, [currentSession?.status, user, statsSaved, mission, stats, updateProfileStats, createWorkoutSession]);
 
+  // Show moment of loss prompt for anonymous users after mission complete
+  // MUST be before any conditional returns to satisfy React hooks rules
+  useEffect(() => {
+    if (isAnonymous && currentSession?.status === 'COMPLETED' && !showMomentOfLoss) {
+      const timer = setTimeout(() => {
+        setMomentOfLossTrigger('mission_complete');
+        setShowMomentOfLoss(true);
+      }, 2000);
+      return () => clearTimeout(timer);
+    }
+  }, [currentSession?.status, isAnonymous, showMomentOfLoss]);
+
   if (missionLoading || !mission) {
     return (
       <div className="min-h-screen bg-background flex items-center justify-center">
@@ -232,17 +244,6 @@ const WorkoutSession = () => {
       </motion.div>
     );
   }
-
-  // Show moment of loss prompt for anonymous users after mission complete
-  useEffect(() => {
-    if (isAnonymous && currentSession?.status === 'COMPLETED' && !showMomentOfLoss) {
-      const timer = setTimeout(() => {
-        setMomentOfLossTrigger('mission_complete');
-        setShowMomentOfLoss(true);
-      }, 2000);
-      return () => clearTimeout(timer);
-    }
-  }, [currentSession?.status, isAnonymous, showMomentOfLoss]);
 
   if (currentSession?.status === 'COMPLETED') {
     return (
