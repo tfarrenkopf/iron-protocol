@@ -342,7 +342,7 @@ const HIITTimer = () => {
             />
             {/* Progress text overlay */}
             <div className="absolute inset-0 flex items-center justify-center">
-              <span className="text-[10px] font-display text-white drop-shadow-[0_1px_2px_rgba(0,0,0,0.8)]">
+              <span className="text-xs font-display text-white drop-shadow-[0_1px_2px_rgba(0,0,0,0.8)]">
                 {Math.round(calculateProgress())}%
               </span>
             </div>

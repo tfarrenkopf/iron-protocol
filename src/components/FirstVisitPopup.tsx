@@ -84,9 +84,9 @@ export const FirstVisitPopup = () => {
                 { label: 'Combos', desc: 'Chain sets for bonus' },
                 { label: 'Ranks', desc: 'Global leaderboard' },
               ].map((item) => (
-                <div key={item.label} className="bg-background rounded p-2 text-center">
+              <div key={item.label} className="bg-background rounded p-2 text-center">
                   <div className="font-display text-xs text-secondary">{item.label}</div>
-                  <div className="text-[10px] text-muted-foreground">{item.desc}</div>
+                  <div className="text-xs text-muted-foreground">{item.desc}</div>
                 </div>
               ))}
             </div>

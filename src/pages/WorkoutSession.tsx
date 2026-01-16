@@ -574,7 +574,7 @@ const WorkoutSession = () => {
         {/* Weight Control */}
         <div className="bg-card border border-border rounded-lg p-4 mb-3 flex-shrink-0">
           <div className="text-xs text-muted-foreground text-center mb-1">WEIGHT (LB)</div>
-          <p className="text-[10px] text-muted-foreground/60 text-center mb-2">Set to 0 for bodyweight exercises</p>
+          <p className="text-xs text-muted-foreground/60 text-center mb-2">0 = bodyweight</p>
           <div className="flex items-center justify-center gap-4">
             <button 
               onClick={() => adjustValue(setWeight, -5)}

@@ -40,7 +40,7 @@ export function AchievementCard({ achievement, isUnlocked, unlockedAt }: Achieve
             <h3 className={`font-display text-sm ${isUnlocked ? getRarityColor(achievement.rarity) : 'text-muted-foreground'}`}>
               {isHidden ? '???' : achievement.name}
             </h3>
-            <span className={`text-[10px] uppercase px-1.5 py-0.5 rounded ${
+            <span className={`text-xs uppercase px-1.5 py-0.5 rounded ${
               isUnlocked ? 'bg-success/20 text-success' : 'bg-muted text-muted-foreground'
             }`}>
               {achievement.rarity}
@@ -56,7 +56,7 @@ export function AchievementCard({ achievement, isUnlocked, unlockedAt }: Achieve
               {achievement.xpReward > 0 && `+${achievement.xpReward} XP`}
             </span>
             {isUnlocked && unlockedAt && (
-              <span className="text-[10px] text-muted-foreground">
+              <span className="text-xs text-muted-foreground">
                 {new Date(unlockedAt).toLocaleDateString()}
               </span>
             )}

@@ -189,7 +189,7 @@ export function WeeklySummary() {
                 <div className={`font-display text-2xl ${isAnonymous ? 'text-muted-foreground' : 'text-primary'}`}>
                   {displayStats.sessionsCompleted}
                 </div>
-                <div className="text-[10px] text-muted-foreground">MISSIONS</div>
+                <div className="text-xs uppercase tracking-wide text-muted-foreground">MISSIONS</div>
               </div>
               <div className="text-center">
                 <div className={`font-display text-2xl ${isAnonymous ? 'text-muted-foreground' : 'text-accent'}`}>
@@ -197,7 +197,7 @@ export function WeeklySummary() {
                     ? `${(displayStats.totalWeight / 1000).toFixed(1)}k` 
                     : displayStats.totalWeight}
                 </div>
-                <div className="text-[10px] text-muted-foreground">LBS LIFTED</div>
+                <div className="text-xs uppercase tracking-wide text-muted-foreground">LBS</div>
               </div>
               <div className="text-center">
                 <div className="flex items-center justify-center gap-1">
@@ -206,7 +206,7 @@ export function WeeklySummary() {
                     {displayStats.prsSet}
                   </span>
                 </div>
-                <div className="text-[10px] text-muted-foreground">NEW PRs</div>
+                <div className="text-xs uppercase tracking-wide text-muted-foreground">PRs</div>
               </div>
               <div className="text-center">
                 <div className={`font-display text-2xl ${isAnonymous ? 'text-muted-foreground' : 'text-destructive'}`}>
@@ -214,7 +214,7 @@ export function WeeklySummary() {
                     ? `${(displayStats.totalDamage / 1000).toFixed(1)}k` 
                     : displayStats.totalDamage}
                 </div>
-                <div className="text-[10px] text-muted-foreground">DAMAGE</div>
+                <div className="text-xs uppercase tracking-wide text-muted-foreground">DMG</div>
               </div>
             </div>
 
@@ -253,7 +253,7 @@ export function WeeklySummary() {
               ? 'bg-muted/20 border-muted-foreground/30' 
               : 'bg-gradient-to-br from-primary/20 to-accent/20 border-primary/50'
           }`}>
-            <div className="text-[10px] text-muted-foreground">LEVEL</div>
+            <div className="text-xs uppercase tracking-wide text-muted-foreground">LVL</div>
             <div className={`font-display text-2xl ${isAnonymous ? 'text-muted-foreground' : 'text-primary'}`}>
               {level}
             </div>
@@ -285,12 +285,12 @@ export function WeeklySummary() {
             {/* Recent Muscle Groups */}
             {displayStats?.recentMuscleGroups && displayStats.recentMuscleGroups.length > 0 && (
               <div className="flex items-center gap-2 mt-2">
-                <span className="text-[10px] text-muted-foreground">RECENT:</span>
+                <span className="text-xs text-muted-foreground">RECENT:</span>
                 <div className="flex gap-1">
                   {displayStats.recentMuscleGroups.map((muscle) => (
                     <span 
                       key={muscle} 
-                      className={`text-[10px] px-1.5 py-0.5 rounded ${
+                      className={`text-xs px-1.5 py-0.5 rounded ${
                         isAnonymous 
                           ? 'bg-muted text-muted-foreground' 
                           : 'bg-secondary/20 text-secondary'

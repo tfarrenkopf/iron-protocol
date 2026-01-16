@@ -268,7 +268,7 @@ const Stats = () => {
                     <div className="text-right">
                       <span className="font-display text-accent">{entryLevel}</span>
                       {entry.max_combo && entry.max_combo > 0 && (
-                        <span className="text-[10px] text-muted-foreground ml-1">
+                        <span className="text-xs text-muted-foreground ml-1">
                           🔥{entry.max_combo}
                         </span>
                       )}
@@ -303,14 +303,14 @@ const Stats = () => {
           ) : (
             <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
               {[
-                { label: 'TOTAL SCORE', value: (displayProfile?.total_score || 0).toLocaleString(), icon: Target, color: isAnonymous ? 'text-muted-foreground' : 'text-primary' },
-                { label: 'XP EARNED', value: (displayProfile?.total_xp || 0).toLocaleString(), icon: Star, color: isAnonymous ? 'text-muted-foreground' : 'text-success' },
-                { label: 'SETS CRUSHED', value: (displayProfile?.total_sets || 0).toString(), icon: Dumbbell, color: isAnonymous ? 'text-muted-foreground' : 'text-secondary' },
-                { label: 'MAX COMBO', value: `${displayProfile?.max_combo || 0}x`, icon: Trophy, color: isAnonymous ? 'text-muted-foreground' : 'text-accent' },
-                { label: 'TOTAL REPS', value: (displayProfile?.total_reps || 0).toLocaleString(), icon: Zap, color: isAnonymous ? 'text-muted-foreground' : 'text-accent' },
-                { label: 'WEIGHT LIFTED', value: `${((displayProfile?.total_weight || 0) / 1000).toFixed(1)}K`, icon: Dumbbell, color: isAnonymous ? 'text-muted-foreground' : 'text-warning' },
+                { label: 'SCORE', value: (displayProfile?.total_score || 0).toLocaleString(), icon: Target, color: isAnonymous ? 'text-muted-foreground' : 'text-primary' },
+                { label: 'XP', value: (displayProfile?.total_xp || 0).toLocaleString(), icon: Star, color: isAnonymous ? 'text-muted-foreground' : 'text-success' },
+                { label: 'SETS', value: (displayProfile?.total_sets || 0).toString(), icon: Dumbbell, color: isAnonymous ? 'text-muted-foreground' : 'text-secondary' },
+                { label: 'COMBO', value: `${displayProfile?.max_combo || 0}x`, icon: Trophy, color: isAnonymous ? 'text-muted-foreground' : 'text-accent' },
+                { label: 'REPS', value: (displayProfile?.total_reps || 0).toLocaleString(), icon: Zap, color: isAnonymous ? 'text-muted-foreground' : 'text-accent' },
+                { label: 'WEIGHT', value: `${((displayProfile?.total_weight || 0) / 1000).toFixed(1)}K`, icon: Dumbbell, color: isAnonymous ? 'text-muted-foreground' : 'text-warning' },
                 { label: 'LEVEL', value: level.toString(), icon: Crown, color: isAnonymous ? 'text-muted-foreground' : 'text-secondary' },
-                { label: 'AVG WEIGHT/SET', value: (displayProfile?.total_sets || 0) > 0 ? Math.round((displayProfile?.total_weight || 0) / (displayProfile?.total_sets || 1)).toString() : '0', icon: Target, color: isAnonymous ? 'text-muted-foreground' : 'text-primary' },
+                { label: 'AVG/SET', value: (displayProfile?.total_sets || 0) > 0 ? Math.round((displayProfile?.total_weight || 0) / (displayProfile?.total_sets || 1)).toString() : '0', icon: Target, color: isAnonymous ? 'text-muted-foreground' : 'text-primary' },
               ].map((stat, i) => (
                 <motion.div
                   key={stat.label}
@@ -321,7 +321,7 @@ const Stats = () => {
                 >
                   <stat.icon className={`w-4 h-4 mx-auto mb-1 ${stat.color}`} />
                   <div className={`font-display text-xl ${stat.color}`}>{stat.value}</div>
-                  <div className="text-[10px] text-muted-foreground tracking-wider">{stat.label}</div>
+                  <div className="text-xs uppercase tracking-wide text-muted-foreground">{stat.label}</div>
                 </motion.div>
               ))}
             </div>
