@@ -217,8 +217,8 @@ const Dashboard = () => {
           )}
         </motion.div>
 
-        {/* Weekly Summary - Under action buttons */}
-        {!isAnonymous && <WeeklySummary />}
+        {/* Weekly Summary - Under action buttons (show for all users) */}
+        <WeeklySummary />
 
 
         {/* Incoming Orders - Only show when logged in */}
