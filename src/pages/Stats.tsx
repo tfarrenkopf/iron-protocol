@@ -6,6 +6,8 @@ import { useWeightHistory } from '@/hooks/useWeightHistory';
 import { useMuscleGroupStats } from '@/hooks/useMuscleGroupStats';
 import { useAuth } from '@/hooks/useAuth';
 import BodyDiagram from '@/components/BodyDiagram';
+import { useUserMilestones } from '@/hooks/useMilestones';
+import { MilestoneList } from '@/components/MilestoneProgress';
 
 const Stats = () => {
   const navigate = useNavigate();
@@ -14,6 +16,7 @@ const Stats = () => {
   const { data: leaderboard, isLoading: leaderboardLoading } = useLeaderboard();
   const { data: weightHistory, isLoading: weightLoading } = useWeightHistory();
   const { data: muscleStats, isLoading: muscleLoading } = useMuscleGroupStats();
+  const { data: userMilestones } = useUserMilestones();
 
   const getRankIcon = (rank: number) => {
     switch (rank) {
