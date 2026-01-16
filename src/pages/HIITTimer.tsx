@@ -1,7 +1,7 @@
 import { useState, useEffect, useCallback, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useNavigate } from 'react-router-dom';
-import { ArrowLeft, Play, Pause, RotateCcw, Volume2, VolumeX } from 'lucide-react';
+import { ArrowLeft, Play, Pause, RotateCcw, Volume2, VolumeX, Plus, Minus, Zap } from 'lucide-react';
 import { useGameStore } from '@/stores/gameStore';
 import { defaultHIITConfigs } from '@/data/missions';
 import { HIITConfig } from '@/types/game';
@@ -26,6 +26,37 @@ interface KillFeedItem {
   type: 'round' | 'phase' | 'bonus';
 }
 
+// Custom protocol lore names based on settings
+const getCustomProtocolName = (work: number, rest: number, rounds: number): string => {
+  const intensity = work / (work + rest);
+  const volume = rounds * work;
+  
+  if (intensity >= 0.7 && rounds >= 10) return 'DEATH MARCH';
+  if (intensity >= 0.7) return 'BLOOD PROTOCOL';
+  if (volume >= 300) return 'ENDURANCE TRIAL';
+  if (work >= 45) return 'SLOW BURN';
+  if (rest <= 5) return 'NO MERCY';
+  if (rounds >= 12) return 'MARATHON OF PAIN';
+  if (work <= 15 && rest <= 10) return 'LIGHTNING STRIKE';
+  if (intensity >= 0.5) return 'BALANCED ASSAULT';
+  return 'CUSTOM WARFARE';
+};
+
+const getCustomProtocolTagline = (name: string): string => {
+  const taglines: Record<string, string> = {
+    'DEATH MARCH': 'Only the strong survive this gauntlet.',
+    'BLOOD PROTOCOL': 'High intensity. No excuses.',
+    'ENDURANCE TRIAL': 'A test of will over time.',
+    'SLOW BURN': 'Long intervals. Deep suffering.',
+    'NO MERCY': 'Minimal rest. Maximum pain.',
+    'MARATHON OF PAIN': 'Many rounds. One mission.',
+    'LIGHTNING STRIKE': 'Fast and furious. Strike hard.',
+    'BALANCED ASSAULT': 'Work hard. Recover smart.',
+    'CUSTOM WARFARE': 'Your rules. Your battlefield.',
+  };
+  return taglines[name] || 'Forge your own path.';
+};
+
 const HIITTimer = () => {
   const navigate = useNavigate();
   const [selectedConfig, setSelectedConfig] = useState<HIITConfig | null>(null);
@@ -34,6 +65,10 @@ const HIITTimer = () => {
   const [showExplosion, setShowExplosion] = useState(false);
   const [killFeedItems, setKillFeedItems] = useState<KillFeedItem[]>([]);
   const [showExitDialog, setShowExitDialog] = useState(false);
+  const [showCustomCreator, setShowCustomCreator] = useState(false);
+  const [customWork, setCustomWork] = useState(30);
+  const [customRest, setCustomRest] = useState(15);
+  const [customRounds, setCustomRounds] = useState(8);
   const prevRoundRef = useRef(0);
   const prevPhaseRef = useRef<string>('IDLE');
 
@@ -157,9 +192,24 @@ const HIITTimer = () => {
     setSelectedConfig(null);
     setIsPaused(false);
     setKillFeedItems([]);
+    setShowCustomCreator(false);
     prevPhaseRef.current = 'IDLE';
     prevRoundRef.current = 0;
   }, [resetHIIT]);
+
+  const handleStartCustom = useCallback(() => {
+    const customConfig: HIITConfig = {
+      id: `custom-${Date.now()}`,
+      name: getCustomProtocolName(customWork, customRest, customRounds),
+      codeName: getCustomProtocolName(customWork, customRest, customRounds),
+      workDurationSec: customWork,
+      restDurationSec: customRest,
+      rounds: customRounds,
+      isDefault: false,
+    };
+    handleStart(customConfig);
+    setShowCustomCreator(false);
+  }, [customWork, customRest, customRounds, handleStart]);
 
   // Handle back button with confirmation if progress exists
   const handleBackPress = useCallback(() => {
@@ -247,41 +297,220 @@ const HIITTimer = () => {
             </p>
           </div>
 
-          <div className="space-y-4">
-            {defaultHIITConfigs.map((config, i) => (
-              <motion.button
-                key={config.id}
-                initial={{ opacity: 0, x: -30 }}
-                animate={{ opacity: 1, x: 0 }}
-                transition={{ delay: i * 0.1 }}
-                onClick={() => handleStart(config)}
-                className="w-full group bg-card border border-border rounded-lg p-5 text-left hover:border-secondary transition-all"
+          {/* Custom Creator */}
+          <AnimatePresence mode="wait">
+            {showCustomCreator ? (
+              <motion.div
+                key="creator"
+                initial={{ opacity: 0, height: 0 }}
+                animate={{ opacity: 1, height: 'auto' }}
+                exit={{ opacity: 0, height: 0 }}
+                className="mb-6"
               >
-                <div className="flex items-start justify-between">
-                  <div>
-                    <h2 className="font-display text-2xl text-secondary group-hover:text-glow-secondary transition-all">
-                      {config.codeName}
+                <div className="bg-card border-2 border-accent rounded-lg p-5 space-y-6">
+                  <div className="text-center">
+                    <h2 className="font-display text-2xl text-accent text-glow-accent">
+                      {getCustomProtocolName(customWork, customRest, customRounds)}
                     </h2>
-                    <div className="flex gap-4 mt-2 text-sm text-muted-foreground">
-                      <span>{config.workDurationSec}s work</span>
-                      <span>{config.restDurationSec}s rest</span>
-                      <span>{config.rounds} rounds</span>
+                    <p className="text-xs text-muted-foreground mt-1">
+                      {getCustomProtocolTagline(getCustomProtocolName(customWork, customRest, customRounds))}
+                    </p>
+                  </div>
+
+                  {/* Work Duration */}
+                  <div className="space-y-2">
+                    <div className="flex items-center justify-between">
+                      <span className="text-sm text-muted-foreground font-display">FIGHT DURATION</span>
+                      <span className="font-display text-xl text-destructive">{customWork}s</span>
+                    </div>
+                    <div className="flex items-center gap-3">
+                      <button
+                        onClick={() => setCustomWork(Math.max(5, customWork - 5))}
+                        className="p-2 bg-background border border-border rounded-lg hover:border-destructive transition-colors"
+                      >
+                        <Minus className="w-4 h-4" />
+                      </button>
+                      <input
+                        type="range"
+                        min="5"
+                        max="120"
+                        step="5"
+                        value={customWork}
+                        onChange={(e) => setCustomWork(Number(e.target.value))}
+                        className="flex-1 accent-destructive"
+                      />
+                      <button
+                        onClick={() => setCustomWork(Math.min(120, customWork + 5))}
+                        className="p-2 bg-background border border-border rounded-lg hover:border-destructive transition-colors"
+                      >
+                        <Plus className="w-4 h-4" />
+                      </button>
                     </div>
                   </div>
-                  <Play className="w-8 h-8 text-secondary opacity-0 group-hover:opacity-100 transition-opacity" />
+
+                  {/* Rest Duration */}
+                  <div className="space-y-2">
+                    <div className="flex items-center justify-between">
+                      <span className="text-sm text-muted-foreground font-display">RECOVER DURATION</span>
+                      <span className="font-display text-xl text-primary">{customRest}s</span>
+                    </div>
+                    <div className="flex items-center gap-3">
+                      <button
+                        onClick={() => setCustomRest(Math.max(5, customRest - 5))}
+                        className="p-2 bg-background border border-border rounded-lg hover:border-primary transition-colors"
+                      >
+                        <Minus className="w-4 h-4" />
+                      </button>
+                      <input
+                        type="range"
+                        min="5"
+                        max="120"
+                        step="5"
+                        value={customRest}
+                        onChange={(e) => setCustomRest(Number(e.target.value))}
+                        className="flex-1 accent-primary"
+                      />
+                      <button
+                        onClick={() => setCustomRest(Math.min(120, customRest + 5))}
+                        className="p-2 bg-background border border-border rounded-lg hover:border-primary transition-colors"
+                      >
+                        <Plus className="w-4 h-4" />
+                      </button>
+                    </div>
+                  </div>
+
+                  {/* Rounds */}
+                  <div className="space-y-2">
+                    <div className="flex items-center justify-between">
+                      <span className="text-sm text-muted-foreground font-display">ROUNDS</span>
+                      <span className="font-display text-xl text-secondary">{customRounds}</span>
+                    </div>
+                    <div className="flex items-center gap-3">
+                      <button
+                        onClick={() => setCustomRounds(Math.max(1, customRounds - 1))}
+                        className="p-2 bg-background border border-border rounded-lg hover:border-secondary transition-colors"
+                      >
+                        <Minus className="w-4 h-4" />
+                      </button>
+                      <input
+                        type="range"
+                        min="1"
+                        max="30"
+                        step="1"
+                        value={customRounds}
+                        onChange={(e) => setCustomRounds(Number(e.target.value))}
+                        className="flex-1 accent-secondary"
+                      />
+                      <button
+                        onClick={() => setCustomRounds(Math.min(30, customRounds + 1))}
+                        className="p-2 bg-background border border-border rounded-lg hover:border-secondary transition-colors"
+                      >
+                        <Plus className="w-4 h-4" />
+                      </button>
+                    </div>
+                  </div>
+
+                  {/* Stats Preview */}
+                  <div className="grid grid-cols-3 gap-3 py-3 border-t border-b border-border">
+                    <div className="text-center">
+                      <div className="text-xs text-muted-foreground">TOTAL TIME</div>
+                      <div className="font-display text-lg text-foreground">
+                        {Math.floor((customWork + customRest) * customRounds / 60)}:{String((customWork + customRest) * customRounds % 60).padStart(2, '0')}
+                      </div>
+                    </div>
+                    <div className="text-center">
+                      <div className="text-xs text-muted-foreground">WORK TIME</div>
+                      <div className="font-display text-lg text-destructive">
+                        {Math.floor(customWork * customRounds / 60)}:{String(customWork * customRounds % 60).padStart(2, '0')}
+                      </div>
+                    </div>
+                    <div className="text-center">
+                      <div className="text-xs text-muted-foreground">INTENSITY</div>
+                      <div className="font-display text-lg text-accent">
+                        {Math.round((customWork / (customWork + customRest)) * 100)}%
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Action Buttons */}
+                  <div className="flex gap-3">
+                    <button
+                      onClick={() => setShowCustomCreator(false)}
+                      className="flex-1 py-3 bg-muted text-muted-foreground font-display rounded-lg hover:bg-muted/80 transition-colors"
+                    >
+                      CANCEL
+                    </button>
+                    <button
+                      onClick={handleStartCustom}
+                      className="flex-1 py-3 bg-accent text-accent-foreground font-display rounded-lg hover:box-glow-accent transition-all flex items-center justify-center gap-2"
+                    >
+                      <Play className="w-5 h-5" />
+                      ENGAGE
+                    </button>
+                  </div>
                 </div>
-                
-                <div className="mt-4 flex gap-1">
-                  {[...Array(config.rounds)].map((_, j) => (
-                    <div 
-                      key={j}
-                      className="h-1 flex-1 rounded-full bg-secondary/30 max-w-4"
-                    />
-                  ))}
+              </motion.div>
+            ) : (
+              <motion.button
+                key="create-btn"
+                initial={{ opacity: 0, y: -10 }}
+                animate={{ opacity: 1, y: 0 }}
+                onClick={() => setShowCustomCreator(true)}
+                className="w-full mb-6 group bg-accent/10 border-2 border-dashed border-accent/50 rounded-lg p-5 text-center hover:border-accent hover:bg-accent/20 transition-all"
+              >
+                <div className="flex items-center justify-center gap-3">
+                  <Zap className="w-6 h-6 text-accent" />
+                  <span className="font-display text-xl text-accent">FORGE YOUR OWN PROTOCOL</span>
+                  <Zap className="w-6 h-6 text-accent" />
                 </div>
+                <p className="text-xs text-muted-foreground mt-2">
+                  Create a custom HIIT session with your own work, rest, and round settings
+                </p>
               </motion.button>
-            ))}
-          </div>
+            )}
+          </AnimatePresence>
+
+          {/* Preset Protocols */}
+          {!showCustomCreator && (
+            <div className="space-y-4">
+              <div className="text-xs text-muted-foreground font-display tracking-wider mb-2">
+                PRESET PROTOCOLS
+              </div>
+              {defaultHIITConfigs.map((config, i) => (
+                <motion.button
+                  key={config.id}
+                  initial={{ opacity: 0, x: -30 }}
+                  animate={{ opacity: 1, x: 0 }}
+                  transition={{ delay: i * 0.1 }}
+                  onClick={() => handleStart(config)}
+                  className="w-full group bg-card border border-border rounded-lg p-5 text-left hover:border-secondary transition-all"
+                >
+                  <div className="flex items-start justify-between">
+                    <div>
+                      <h2 className="font-display text-2xl text-secondary group-hover:text-glow-secondary transition-all">
+                        {config.codeName}
+                      </h2>
+                      <div className="flex gap-4 mt-2 text-sm text-muted-foreground">
+                        <span>{config.workDurationSec}s work</span>
+                        <span>{config.restDurationSec}s rest</span>
+                        <span>{config.rounds} rounds</span>
+                      </div>
+                    </div>
+                    <Play className="w-8 h-8 text-secondary opacity-0 group-hover:opacity-100 transition-opacity" />
+                  </div>
+                  
+                  <div className="mt-4 flex gap-1">
+                    {[...Array(config.rounds)].map((_, j) => (
+                      <div 
+                        key={j}
+                        className="h-1 flex-1 rounded-full bg-secondary/30 max-w-4"
+                      />
+                    ))}
+                  </div>
+                </motion.button>
+              ))}
+            </div>
+          )}
         </div>
       </div>
     );
