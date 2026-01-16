@@ -148,6 +148,14 @@ const HIITTimer = () => {
             </div>
           </header>
 
+          <div className="bg-card/50 border border-border rounded-lg p-3 mb-6">
+            <p className="text-xs text-muted-foreground text-center">
+              <span className="text-secondary font-display">HIIT</span> alternates between high-intensity work and rest. 
+              Pick a protocol, then perform any exercise during <span className="text-destructive">FIGHT</span> phases. 
+              Rest during <span className="text-primary">RECOVER</span> phases.
+            </p>
+          </div>
+
           <div className="space-y-4">
             {defaultHIITConfigs.map((config, i) => (
               <motion.button

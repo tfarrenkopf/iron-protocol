@@ -166,11 +166,17 @@ const CreateMission = () => {
 
           {/* Basic Info */}
           <div className="bg-card border border-border rounded-lg p-4 space-y-4">
-            <h2 className="font-display text-lg text-secondary">MISSION DETAILS</h2>
+            <div className="flex items-start justify-between">
+              <h2 className="font-display text-lg text-secondary">MISSION DETAILS</h2>
+              <span className="text-xs text-muted-foreground/70 max-w-[180px] text-right">
+                Missions are personal workout templates you can run anytime
+              </span>
+            </div>
             
             <div className="grid grid-cols-2 gap-4">
               <div>
                 <label className="text-xs text-muted-foreground tracking-wider">NAME</label>
+                <p className="text-[10px] text-muted-foreground/60 mb-1">Descriptive title for your list</p>
                 <input
                   type="text"
                   value={name}
@@ -181,6 +187,7 @@ const CreateMission = () => {
               </div>
               <div>
                 <label className="text-xs text-muted-foreground tracking-wider">CODE NAME</label>
+                <p className="text-[10px] text-muted-foreground/60 mb-1">Short tactical callsign shown during workout</p>
                 <input
                   type="text"
                   value={codeName}
