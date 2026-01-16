@@ -243,11 +243,13 @@ const CreateMission = () => {
             <div className="flex gap-2">
               <select
                 value={selectedExerciseId}
-                onChange={(e) => setSelectedExerciseId(e.target.value)}
+                onChange={(e) => {
+                  setSelectedExerciseId(e.target.value);
+                }}
                 className="flex-1 bg-background border border-border rounded px-3 py-2 focus:border-primary focus:outline-none"
                 disabled={loadingExercises}
               >
-                <option value="">Select exercise...</option>
+                <option value="">Select exercise to add...</option>
                 {exercises?.map(e => (
                   <option key={e.id} value={e.id}>
                     {e.name} {!e.is_public && '(Custom)'}
@@ -256,7 +258,9 @@ const CreateMission = () => {
               </select>
               <button
                 type="button"
-                onClick={addExercise}
+                onClick={() => {
+                  addExercise();
+                }}
                 disabled={!selectedExerciseId}
                 className="px-4 py-2 bg-primary text-primary-foreground rounded hover:box-glow-primary transition-all disabled:opacity-50"
               >
