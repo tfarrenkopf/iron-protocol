@@ -167,44 +167,12 @@ const Dashboard = () => {
           </p>
         </motion.header>
 
-        {/* Quick Stats */}
+        {/* Main Actions - Story 12.3: Core actions appear FIRST for quick access */}
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.1 }}
-          className="grid grid-cols-3 gap-4 mb-10"
-        >
-          {[
-            { label: "SETS", value: (profile?.total_sets || 0).toString(), icon: Zap, color: "text-accent" },
-            {
-              label: "XP",
-              value: (profile?.total_xp || 0).toLocaleString(),
-              icon: TrendingUp,
-              color: "text-secondary",
-            },
-            { label: "LEVEL", value: level.toString(), icon: Target, color: "text-primary" },
-          ].map((stat, i) => (
-            <motion.div
-              key={stat.label}
-              initial={{ opacity: 0, scale: 0.9 }}
-              animate={{ opacity: 1, scale: 1 }}
-              transition={{ delay: 0.2 + i * 0.1 }}
-              className="bg-card border border-border rounded p-4 text-center cursor-pointer hover:border-primary/50 transition-colors"
-              onClick={() => navigate("/stats")}
-            >
-              <stat.icon className={`w-5 h-5 mx-auto mb-2 ${stat.color}`} />
-              <div className={`font-display text-3xl ${stat.color}`}>{stat.value}</div>
-              <div className="text-xs text-muted-foreground tracking-wider">{stat.label}</div>
-            </motion.div>
-          ))}
-        </motion.div>
-
-        {/* Main Actions */}
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.3 }}
-          className={`grid gap-4 mb-10 ${isHandler ? "grid-cols-2 sm:grid-cols-4" : "grid-cols-3"}`}
+          className={`grid gap-4 mb-8 ${isHandler ? "grid-cols-2 sm:grid-cols-4" : "grid-cols-3"}`}
         >
           <button
             onClick={() => navigate("/missions")}
@@ -253,6 +221,38 @@ const Dashboard = () => {
               <p className="text-xs text-muted-foreground mt-1 relative z-10">Squads</p>
             </button>
           )}
+        </motion.div>
+
+        {/* Quick Stats - Now appears below core actions */}
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.2 }}
+          className="grid grid-cols-3 gap-3 mb-8"
+        >
+          {[
+            { label: "SETS", value: (profile?.total_sets || 0).toString(), icon: Zap, color: "text-accent" },
+            {
+              label: "XP",
+              value: (profile?.total_xp || 0).toLocaleString(),
+              icon: TrendingUp,
+              color: "text-secondary",
+            },
+            { label: "LEVEL", value: level.toString(), icon: Target, color: "text-primary" },
+          ].map((stat, i) => (
+            <motion.div
+              key={stat.label}
+              initial={{ opacity: 0, scale: 0.9 }}
+              animate={{ opacity: 1, scale: 1 }}
+              transition={{ delay: 0.25 + i * 0.05 }}
+              className="bg-card/50 border border-border rounded p-3 text-center cursor-pointer hover:border-primary/50 transition-colors"
+              onClick={() => navigate("/stats")}
+            >
+              <stat.icon className={`w-4 h-4 mx-auto mb-1 ${stat.color}`} />
+              <div className={`font-display text-2xl ${stat.color}`}>{stat.value}</div>
+              <div className="text-[10px] text-muted-foreground tracking-wider">{stat.label}</div>
+            </motion.div>
+          ))}
         </motion.div>
 
         {/* Incoming Orders - Only show when logged in */}
