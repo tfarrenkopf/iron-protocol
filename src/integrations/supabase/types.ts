@@ -14,6 +14,120 @@ export type Database = {
   }
   public: {
     Tables: {
+      achievements: {
+        Row: {
+          category: string
+          code_name: string
+          created_at: string
+          description: string | null
+          hint: string | null
+          icon: string | null
+          id: string
+          is_active: boolean
+          is_hidden: boolean
+          name: string
+          rarity: string
+          sort_order: number
+          trigger_type: string
+          trigger_value: number
+          xp_reward: number
+        }
+        Insert: {
+          category: string
+          code_name: string
+          created_at?: string
+          description?: string | null
+          hint?: string | null
+          icon?: string | null
+          id?: string
+          is_active?: boolean
+          is_hidden?: boolean
+          name: string
+          rarity?: string
+          sort_order?: number
+          trigger_type: string
+          trigger_value?: number
+          xp_reward?: number
+        }
+        Update: {
+          category?: string
+          code_name?: string
+          created_at?: string
+          description?: string | null
+          hint?: string | null
+          icon?: string | null
+          id?: string
+          is_active?: boolean
+          is_hidden?: boolean
+          name?: string
+          rarity?: string
+          sort_order?: number
+          trigger_type?: string
+          trigger_value?: number
+          xp_reward?: number
+        }
+        Relationships: []
+      }
+      cosmetics: {
+        Row: {
+          code_name: string
+          created_at: string
+          description: string | null
+          id: string
+          is_active: boolean
+          name: string
+          rarity: string
+          sort_order: number
+          type: string
+          unlock_achievement_id: string | null
+          unlock_milestone_id: string | null
+          value: string
+        }
+        Insert: {
+          code_name: string
+          created_at?: string
+          description?: string | null
+          id?: string
+          is_active?: boolean
+          name: string
+          rarity?: string
+          sort_order?: number
+          type: string
+          unlock_achievement_id?: string | null
+          unlock_milestone_id?: string | null
+          value: string
+        }
+        Update: {
+          code_name?: string
+          created_at?: string
+          description?: string | null
+          id?: string
+          is_active?: boolean
+          name?: string
+          rarity?: string
+          sort_order?: number
+          type?: string
+          unlock_achievement_id?: string | null
+          unlock_milestone_id?: string | null
+          value?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "cosmetics_unlock_achievement_id_fkey"
+            columns: ["unlock_achievement_id"]
+            isOneToOne: false
+            referencedRelation: "achievements"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "cosmetics_unlock_milestone_id_fkey"
+            columns: ["unlock_milestone_id"]
+            isOneToOne: false
+            referencedRelation: "milestones"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       exercises: {
         Row: {
           created_at: string
@@ -388,6 +502,8 @@ export type Database = {
         Row: {
           created_at: string
           display_name: string | null
+          equipped_icon_id: string | null
+          equipped_title_id: string | null
           id: string
           max_combo: number
           total_reps: number
@@ -400,6 +516,8 @@ export type Database = {
         Insert: {
           created_at?: string
           display_name?: string | null
+          equipped_icon_id?: string | null
+          equipped_title_id?: string | null
           id: string
           max_combo?: number
           total_reps?: number
@@ -412,6 +530,8 @@ export type Database = {
         Update: {
           created_at?: string
           display_name?: string | null
+          equipped_icon_id?: string | null
+          equipped_title_id?: string | null
           id?: string
           max_combo?: number
           total_reps?: number
@@ -421,7 +541,22 @@ export type Database = {
           total_xp?: number
           updated_at?: string
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "profiles_equipped_icon_id_fkey"
+            columns: ["equipped_icon_id"]
+            isOneToOne: false
+            referencedRelation: "cosmetics"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "profiles_equipped_title_id_fkey"
+            columns: ["equipped_title_id"]
+            isOneToOne: false
+            referencedRelation: "cosmetics"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       squad_members: {
         Row: {
@@ -500,6 +635,84 @@ export type Database = {
           {
             foreignKeyName: "squads_handler_id_fkey"
             columns: ["handler_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      user_achievements: {
+        Row: {
+          achievement_id: string
+          id: string
+          notified: boolean
+          unlocked_at: string
+          user_id: string
+        }
+        Insert: {
+          achievement_id: string
+          id?: string
+          notified?: boolean
+          unlocked_at?: string
+          user_id: string
+        }
+        Update: {
+          achievement_id?: string
+          id?: string
+          notified?: boolean
+          unlocked_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "user_achievements_achievement_id_fkey"
+            columns: ["achievement_id"]
+            isOneToOne: false
+            referencedRelation: "achievements"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "user_achievements_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      user_cosmetics: {
+        Row: {
+          cosmetic_id: string
+          id: string
+          is_equipped: boolean
+          unlocked_at: string
+          user_id: string
+        }
+        Insert: {
+          cosmetic_id: string
+          id?: string
+          is_equipped?: boolean
+          unlocked_at?: string
+          user_id: string
+        }
+        Update: {
+          cosmetic_id?: string
+          id?: string
+          is_equipped?: boolean
+          unlocked_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "user_cosmetics_cosmetic_id_fkey"
+            columns: ["cosmetic_id"]
+            isOneToOne: false
+            referencedRelation: "cosmetics"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "user_cosmetics_user_id_fkey"
+            columns: ["user_id"]
             isOneToOne: false
             referencedRelation: "profiles"
             referencedColumns: ["id"]

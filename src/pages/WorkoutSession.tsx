@@ -6,12 +6,14 @@ import { useGameStore } from '@/stores/gameStore';
 import { useMission } from '@/hooks/useMissions';
 import { useWeightHistory, useUpdateWeight } from '@/hooks/useWeightHistory';
 import { useAuth } from '@/hooks/useAuth';
-import { useUpdateProfileStats } from '@/hooks/useProfile';
+import { useUpdateProfileStats, useProfile } from '@/hooks/useProfile';
 import { useCreateWorkoutSession } from '@/hooks/useWorkoutSessions';
 import { ExplosionEffect } from '@/components/ExplosionEffect';
 import { XPPopup } from '@/components/XPPopup';
 import { PRNotification } from '@/components/PRNotification';
-import { useCheckAndUpdatePR, PRCheckResult } from '@/hooks/usePersonalRecords';
+import { useCheckAndUpdatePR, PRCheckResult, usePersonalRecordsCount } from '@/hooks/usePersonalRecords';
+import { useCheckAchievements, Achievement } from '@/hooks/useAchievements';
+import { AchievementNotification } from '@/components/AchievementNotification';
 
 const WorkoutSession = () => {
   const { missionId } = useParams();
@@ -19,10 +21,13 @@ const WorkoutSession = () => {
   const { user } = useAuth();
   const { data: mission, isLoading: missionLoading } = useMission(missionId);
   const { data: weightHistory } = useWeightHistory();
+  const { data: profile } = useProfile();
+  const { data: prCount } = usePersonalRecordsCount();
   const updateWeight = useUpdateWeight();
   const updateProfileStats = useUpdateProfileStats();
   const createWorkoutSession = useCreateWorkoutSession();
   const checkAndUpdatePR = useCheckAndUpdatePR();
+  const { checkAndUnlock } = useCheckAchievements();
 
   const { 
     currentSession, 
@@ -47,6 +52,8 @@ const WorkoutSession = () => {
   const [showCancelConfirm, setShowCancelConfirm] = useState(false);
   const [showPRNotification, setShowPRNotification] = useState(false);
   const [newPRs, setNewPRs] = useState<PRCheckResult[]>([]);
+  const [pendingAchievements, setPendingAchievements] = useState<Achievement[]>([]);
+  const [showAchievementNotification, setShowAchievementNotification] = useState(false);
   const prevStatsRef = useRef(stats);
   const hasInitialized = useRef(false);
 
@@ -120,6 +127,26 @@ const WorkoutSession = () => {
         totalWeight: stats.totalWeight,
         maxCombo: stats.maxCombo,
         damageDealt: stats.damageDealt,
+      });
+
+      // Check for achievements
+      const totalSets = (profile?.total_sets || 0) + stats.setsCompleted;
+      const totalWeight = (profile?.total_weight || 0) + stats.totalWeight;
+      const totalPRs = (prCount || 0) + newPRs.length;
+      const completedHour = new Date().getHours();
+      
+      checkAndUnlock({
+        setsCompleted: totalSets,
+        weightLifted: totalWeight,
+        prsSet: totalPRs,
+        missionsCompleted: 1, // At least this one
+        comboReached: stats.maxCombo,
+        workoutHour: completedHour,
+      }).then(unlocked => {
+        if (unlocked.length > 0) {
+          setPendingAchievements(unlocked);
+          setShowAchievementNotification(true);
+        }
       });
       
       if (mission.outro_lore) {
@@ -605,6 +632,19 @@ const WorkoutSession = () => {
           </motion.div>
         )}
       </AnimatePresence>
+
+      {/* Achievement Notification */}
+      {showAchievementNotification && pendingAchievements.length > 0 && (
+        <AchievementNotification
+          achievement={pendingAchievements[0]}
+          onComplete={() => {
+            setPendingAchievements(prev => prev.slice(1));
+            if (pendingAchievements.length <= 1) {
+              setShowAchievementNotification(false);
+            }
+          }}
+        />
+      )}
     </div>
   );
 };
