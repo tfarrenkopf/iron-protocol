@@ -1,10 +1,11 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useNavigate } from 'react-router-dom';
-import { ArrowLeft, Plus, Edit2, Trash2, X, Check, AlertCircle, Target, ChevronDown, ChevronUp } from 'lucide-react';
+import { ArrowLeft, Plus, Edit2, Trash2, X, Check, AlertCircle, Target, ChevronDown, ChevronUp, GripVertical } from 'lucide-react';
 import { useAuth } from '@/hooks/useAuth';
 import { useExercises, useCreateExercise, useUpdateExercise, useDeleteExercise, Exercise } from '@/hooks/useExercises';
-import { useMissions, useDeleteMission } from '@/hooks/useMissions';
+import { useMissions, useDeleteMission, useUpdateMission, useCreateMission, MissionWithExercises } from '@/hooks/useMissions';
+
 const EQUIPMENT_OPTIONS = [
   'DUMBBELLS', 'BARBELL', 'BENCH', 'CABLE_MACHINE', 'LAT_PULLDOWN',
   'LEG_PRESS', 'LEG_CURL', 'LEG_EXTENSION', 'SMITH_MACHINE', 'PEC_DECK',
@@ -21,6 +22,15 @@ const MUSCLE_GROUPS = [
 
 const FOCUS_AREAS = ['PUSH', 'PULL', 'LEGS', 'CORE', 'CARDIO', 'ARMS', 'SHOULDERS', 'CHEST', 'BACK'];
 
+interface MissionExerciseItem {
+  id: string;
+  exercise_id: string;
+  exercise_name: string;
+  target_sets: number;
+  target_reps: number;
+  rest_between_sets_sec: number;
+}
+
 const ExerciseManager = () => {
   const navigate = useNavigate();
   const { user } = useAuth();
@@ -30,12 +40,16 @@ const ExerciseManager = () => {
   const updateExercise = useUpdateExercise();
   const deleteExercise = useDeleteExercise();
   const deleteMission = useDeleteMission();
+  const updateMission = useUpdateMission();
+  const createMission = useCreateMission();
 
   // Filter user's custom missions
   const myMissions = missions?.filter(m => m.created_by === user?.id) || [];
   const [showForm, setShowForm] = useState(false);
+  const [showMissionForm, setShowMissionForm] = useState(false);
   const [expandedMission, setExpandedMission] = useState<string | null>(null);
   const [editingExercise, setEditingExercise] = useState<Exercise | null>(null);
+  const [editingMission, setEditingMission] = useState<MissionWithExercises | null>(null);
   const [formData, setFormData] = useState({
     name: '',
     description: '',
@@ -47,7 +61,16 @@ const ExerciseManager = () => {
     instructions_execution: '',
     instructions_tips: '',
   });
+  const [missionFormData, setMissionFormData] = useState({
+    name: '',
+    codeName: '',
+    description: '',
+    focusAreas: [] as string[],
+    exercises: [] as MissionExerciseItem[],
+  });
+  const [selectedExerciseId, setSelectedExerciseId] = useState('');
   const [error, setError] = useState<string | null>(null);
+  const [missionError, setMissionError] = useState<string | null>(null);
 
   const myExercises = exercises?.filter(e => e.created_by === user?.id) || [];
 
@@ -67,6 +90,19 @@ const ExerciseManager = () => {
     setError(null);
   };
 
+  const resetMissionForm = () => {
+    setMissionFormData({
+      name: '',
+      codeName: '',
+      description: '',
+      focusAreas: [],
+      exercises: [],
+    });
+    setEditingMission(null);
+    setMissionError(null);
+    setSelectedExerciseId('');
+  };
+
   const handleEdit = (exercise: Exercise) => {
     setEditingExercise(exercise);
     setFormData({
@@ -81,6 +117,25 @@ const ExerciseManager = () => {
       instructions_tips: exercise.instructions_tips || '',
     });
     setShowForm(true);
+  };
+
+  const handleEditMission = (mission: MissionWithExercises) => {
+    setEditingMission(mission);
+    setMissionFormData({
+      name: mission.name,
+      codeName: mission.code_name,
+      description: mission.description || '',
+      focusAreas: mission.focus_areas || [],
+      exercises: mission.mission_exercises?.map(me => ({
+        id: me.id,
+        exercise_id: me.exercise_id,
+        exercise_name: me.exercises?.name || 'Unknown',
+        target_sets: me.target_sets,
+        target_reps: me.target_reps,
+        rest_between_sets_sec: me.rest_between_sets_sec,
+      })) || [],
+    });
+    setShowMissionForm(true);
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -124,6 +179,55 @@ const ExerciseManager = () => {
     }
   };
 
+  const handleMissionSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setMissionError(null);
+
+    if (!missionFormData.name.trim()) {
+      setMissionError('Mission name is required');
+      return;
+    }
+    if (!missionFormData.codeName.trim()) {
+      setMissionError('Code name is required');
+      return;
+    }
+    if (missionFormData.exercises.length === 0) {
+      setMissionError('Add at least one exercise');
+      return;
+    }
+
+    const estimatedMinutes = calculateEstimatedMinutes();
+
+    try {
+      const missionData = {
+        name: missionFormData.name,
+        code_name: missionFormData.codeName.toUpperCase(),
+        description: missionFormData.description,
+        focus_areas: missionFormData.focusAreas,
+        estimated_minutes: estimatedMinutes,
+        exercises: missionFormData.exercises.map(e => ({
+          exercise_id: e.exercise_id,
+          target_sets: e.target_sets,
+          target_reps: e.target_reps,
+          rest_between_sets_sec: e.rest_between_sets_sec,
+        })),
+      };
+
+      if (editingMission) {
+        await updateMission.mutateAsync({
+          id: editingMission.id,
+          ...missionData,
+        });
+      } else {
+        await createMission.mutateAsync(missionData);
+      }
+      setShowMissionForm(false);
+      resetMissionForm();
+    } catch (err: any) {
+      setMissionError(err.message || `Failed to ${editingMission ? 'update' : 'create'} mission`);
+    }
+  };
+
   const handleDelete = async (id: string) => {
     if (!confirm('Delete this exercise? This cannot be undone.')) return;
     try {
@@ -146,6 +250,61 @@ const ExerciseManager = () => {
     return array.includes(item) 
       ? array.filter(i => i !== item)
       : [...array, item];
+  };
+
+  const addMissionExercise = () => {
+    if (!selectedExerciseId) return;
+    const exercise = exercises?.find(e => e.id === selectedExerciseId);
+    if (!exercise) return;
+
+    setMissionFormData({
+      ...missionFormData,
+      exercises: [
+        ...missionFormData.exercises,
+        {
+          id: `temp-${Date.now()}`,
+          exercise_id: exercise.id,
+          exercise_name: exercise.name,
+          target_sets: 3,
+          target_reps: 10,
+          rest_between_sets_sec: 60,
+        }
+      ]
+    });
+    setSelectedExerciseId('');
+  };
+
+  const removeMissionExercise = (id: string) => {
+    setMissionFormData({
+      ...missionFormData,
+      exercises: missionFormData.exercises.filter(e => e.id !== id)
+    });
+  };
+
+  const updateMissionExercise = (id: string, field: string, value: number) => {
+    setMissionFormData({
+      ...missionFormData,
+      exercises: missionFormData.exercises.map(e => 
+        e.id === id ? { ...e, [field]: value } : e
+      )
+    });
+  };
+
+  const toggleMissionFocusArea = (area: string) => {
+    setMissionFormData({
+      ...missionFormData,
+      focusAreas: missionFormData.focusAreas.includes(area)
+        ? missionFormData.focusAreas.filter(a => a !== area)
+        : [...missionFormData.focusAreas, area]
+    });
+  };
+
+  const calculateEstimatedMinutes = () => {
+    let totalTime = 0;
+    missionFormData.exercises.forEach(e => {
+      totalTime += e.target_sets * (30 + e.rest_between_sets_sec);
+    });
+    return Math.ceil(totalTime / 60);
   };
 
   if (!user) {
@@ -185,7 +344,7 @@ const ExerciseManager = () => {
           className="flex items-center justify-between mb-8"
         >
           <div className="flex items-center gap-4">
-            <button onClick={() => navigate(-1)} className="p-2 border border-border rounded hover:border-primary transition-colors">
+            <button onClick={() => navigate('/')} className="p-2 border border-border rounded hover:border-primary transition-colors">
               <ArrowLeft className="w-5 h-5" />
             </button>
             <div>
@@ -196,7 +355,7 @@ const ExerciseManager = () => {
           
           <div className="flex gap-2">
             <button
-              onClick={() => navigate('/create-mission')}
+              onClick={() => { setShowMissionForm(true); resetMissionForm(); }}
               className="flex items-center gap-2 px-4 py-2 bg-secondary text-secondary-foreground font-display rounded hover:box-glow-secondary transition-all"
             >
               <Plus className="w-4 h-4" />
@@ -231,7 +390,7 @@ const ExerciseManager = () => {
               <Target className="w-8 h-8 mx-auto mb-3 text-muted-foreground" />
               <p className="text-muted-foreground text-sm">No custom missions yet.</p>
               <button
-                onClick={() => navigate('/create-mission')}
+                onClick={() => { setShowMissionForm(true); resetMissionForm(); }}
                 className="mt-3 text-sm text-secondary hover:text-glow-secondary font-display"
               >
                 + CREATE YOUR FIRST MISSION
@@ -281,7 +440,7 @@ const ExerciseManager = () => {
                     {/* Edit and Delete buttons for missions */}
                     <div className="flex border-l border-border">
                       <button
-                        onClick={() => navigate(`/create-mission?edit=${mission.id}`)}
+                        onClick={() => handleEditMission(mission)}
                         className="p-3 text-muted-foreground hover:text-secondary transition-colors"
                         title="Edit mission"
                       >
@@ -433,7 +592,7 @@ const ExerciseManager = () => {
           )}
         </motion.section>
 
-        {/* Form Modal */}
+        {/* Exercise Form Modal */}
         <AnimatePresence>
           {showForm && (
             <motion.div
@@ -593,6 +752,209 @@ const ExerciseManager = () => {
                       >
                         <Check className="w-4 h-4" />
                         {editingExercise ? 'UPDATE' : 'CREATE'}
+                      </button>
+                    </div>
+                  </form>
+                </div>
+              </div>
+            </motion.div>
+          )}
+        </AnimatePresence>
+
+        {/* Mission Form Modal */}
+        <AnimatePresence>
+          {showMissionForm && (
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              className="fixed inset-0 bg-background/90 z-50 overflow-y-auto"
+            >
+              <div className="container mx-auto px-4 py-6 max-w-2xl">
+                <div className="bg-card border border-border rounded-lg">
+                  <div className="flex items-center justify-between p-4 border-b border-border">
+                    <h2 className="font-display text-xl text-secondary">
+                      {editingMission ? 'EDIT MISSION' : 'NEW MISSION'}
+                    </h2>
+                    <button onClick={() => { setShowMissionForm(false); resetMissionForm(); }} className="p-2 hover:text-destructive transition-colors">
+                      <X className="w-5 h-5" />
+                    </button>
+                  </div>
+
+                  <form onSubmit={handleMissionSubmit} className="p-4 space-y-4">
+                    {missionError && (
+                      <div className="p-3 bg-destructive/10 border border-destructive/30 rounded text-sm text-destructive">
+                        {missionError}
+                      </div>
+                    )}
+
+                    {/* Basic Info */}
+                    <div className="grid grid-cols-2 gap-4">
+                      <div>
+                        <label className="text-xs text-muted-foreground tracking-wider">NAME</label>
+                        <input
+                          type="text"
+                          value={missionFormData.name}
+                          onChange={(e) => setMissionFormData({ ...missionFormData, name: e.target.value })}
+                          className="w-full bg-background border border-border rounded px-3 py-2 mt-1 focus:border-secondary focus:outline-none"
+                          placeholder="e.g., Upper Body Day"
+                        />
+                      </div>
+                      <div>
+                        <label className="text-xs text-muted-foreground tracking-wider">CODE NAME</label>
+                        <input
+                          type="text"
+                          value={missionFormData.codeName}
+                          onChange={(e) => setMissionFormData({ ...missionFormData, codeName: e.target.value.toUpperCase() })}
+                          className="w-full bg-background border border-border rounded px-3 py-2 mt-1 focus:border-secondary focus:outline-none uppercase"
+                          placeholder="e.g., UPPER ASSAULT"
+                        />
+                      </div>
+                    </div>
+
+                    <div>
+                      <label className="text-xs text-muted-foreground tracking-wider">DESCRIPTION (optional)</label>
+                      <input
+                        type="text"
+                        value={missionFormData.description}
+                        onChange={(e) => setMissionFormData({ ...missionFormData, description: e.target.value })}
+                        className="w-full bg-background border border-border rounded px-3 py-2 mt-1 focus:border-secondary focus:outline-none"
+                        placeholder="Brief mission briefing..."
+                      />
+                    </div>
+
+                    {/* Focus Areas */}
+                    <div>
+                      <label className="text-xs text-muted-foreground tracking-wider">FOCUS AREAS</label>
+                      <div className="flex flex-wrap gap-2 mt-1">
+                        {FOCUS_AREAS.map(area => (
+                          <button
+                            key={area}
+                            type="button"
+                            onClick={() => toggleMissionFocusArea(area)}
+                            className={`text-xs px-2 py-1 rounded border transition-colors ${
+                              missionFormData.focusAreas.includes(area)
+                                ? 'bg-secondary text-secondary-foreground border-secondary'
+                                : 'bg-background border-border hover:border-secondary/50'
+                            }`}
+                          >
+                            {area}
+                          </button>
+                        ))}
+                      </div>
+                    </div>
+
+                    {/* Exercises */}
+                    <div className="border-t border-border pt-4">
+                      <div className="flex items-center justify-between mb-3">
+                        <label className="text-xs text-muted-foreground tracking-wider">EXERCISES</label>
+                        <span className="text-xs text-muted-foreground">Est. {calculateEstimatedMinutes()} min</span>
+                      </div>
+                      
+                      <div className="flex gap-2 mb-3">
+                        <select
+                          value={selectedExerciseId}
+                          onChange={(e) => setSelectedExerciseId(e.target.value)}
+                          className="flex-1 bg-background border border-border rounded px-3 py-2 focus:border-secondary focus:outline-none text-sm"
+                        >
+                          <option value="">Select exercise to add...</option>
+                          {exercises?.map(e => (
+                            <option key={e.id} value={e.id}>
+                              {e.name} {!e.is_public && '(Custom)'}
+                            </option>
+                          ))}
+                        </select>
+                        <button
+                          type="button"
+                          onClick={addMissionExercise}
+                          disabled={!selectedExerciseId}
+                          className="px-4 py-2 bg-secondary text-secondary-foreground rounded hover:box-glow-secondary transition-all disabled:opacity-50"
+                        >
+                          <Plus className="w-5 h-5" />
+                        </button>
+                      </div>
+
+                      {missionFormData.exercises.length === 0 ? (
+                        <p className="text-sm text-muted-foreground text-center py-4">
+                          No exercises added yet.
+                        </p>
+                      ) : (
+                        <div className="space-y-2 max-h-60 overflow-y-auto">
+                          {missionFormData.exercises.map((exercise, index) => (
+                            <div
+                              key={exercise.id}
+                              className="bg-background border border-border rounded-lg p-3"
+                            >
+                              <div className="flex items-center gap-3 mb-2">
+                                <GripVertical className="w-4 h-4 text-muted-foreground" />
+                                <span className="text-sm text-muted-foreground">{index + 1}.</span>
+                                <span className="flex-1 font-display text-secondary text-sm">{exercise.exercise_name}</span>
+                                <button
+                                  type="button"
+                                  onClick={() => removeMissionExercise(exercise.id)}
+                                  className="p-1 text-muted-foreground hover:text-destructive transition-colors"
+                                >
+                                  <Trash2 className="w-4 h-4" />
+                                </button>
+                              </div>
+                              <div className="grid grid-cols-3 gap-2">
+                                <div>
+                                  <label className="text-[10px] text-muted-foreground">SETS</label>
+                                  <input
+                                    type="number"
+                                    min={1}
+                                    max={10}
+                                    value={exercise.target_sets}
+                                    onChange={(e) => updateMissionExercise(exercise.id, 'target_sets', parseInt(e.target.value) || 1)}
+                                    className="w-full bg-card border border-border rounded px-2 py-1 text-center text-sm focus:border-secondary focus:outline-none"
+                                  />
+                                </div>
+                                <div>
+                                  <label className="text-[10px] text-muted-foreground">REPS</label>
+                                  <input
+                                    type="number"
+                                    min={1}
+                                    max={100}
+                                    value={exercise.target_reps}
+                                    onChange={(e) => updateMissionExercise(exercise.id, 'target_reps', parseInt(e.target.value) || 1)}
+                                    className="w-full bg-card border border-border rounded px-2 py-1 text-center text-sm focus:border-secondary focus:outline-none"
+                                  />
+                                </div>
+                                <div>
+                                  <label className="text-[10px] text-muted-foreground">REST (s)</label>
+                                  <input
+                                    type="number"
+                                    min={0}
+                                    max={300}
+                                    step={15}
+                                    value={exercise.rest_between_sets_sec}
+                                    onChange={(e) => updateMissionExercise(exercise.id, 'rest_between_sets_sec', parseInt(e.target.value) || 0)}
+                                    className="w-full bg-card border border-border rounded px-2 py-1 text-center text-sm focus:border-secondary focus:outline-none"
+                                  />
+                                </div>
+                              </div>
+                            </div>
+                          ))}
+                        </div>
+                      )}
+                    </div>
+
+                    {/* Submit */}
+                    <div className="flex gap-3 pt-4">
+                      <button
+                        type="button"
+                        onClick={() => { setShowMissionForm(false); resetMissionForm(); }}
+                        className="flex-1 py-3 bg-muted text-muted-foreground font-display rounded hover:bg-muted/80 transition-colors"
+                      >
+                        CANCEL
+                      </button>
+                      <button
+                        type="submit"
+                        disabled={createMission.isPending || updateMission.isPending}
+                        className="flex-1 py-3 bg-secondary text-secondary-foreground font-display rounded hover:box-glow-secondary transition-all disabled:opacity-50 flex items-center justify-center gap-2"
+                      >
+                        <Check className="w-4 h-4" />
+                        {editingMission ? 'UPDATE' : 'CREATE'}
                       </button>
                     </div>
                   </form>

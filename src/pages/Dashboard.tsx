@@ -22,6 +22,7 @@ import { useProfile } from "@/hooks/useProfile";
 import { useIsHandler } from "@/hooks/useHandlerMode";
 import { IncomingOrders } from "@/components/IncomingOrders";
 import { FirstVisitPopup } from "@/components/FirstVisitPopup";
+import { WeeklySummary } from "@/components/WeeklySummary";
 
 // Helper to get a random item from an array
 const getRandomItem = <T,>(arr: T[]): T | undefined => {
@@ -223,7 +224,10 @@ const Dashboard = () => {
           )}
         </motion.div>
 
-        {/* Quick Stats - Now appears below core actions */}
+        {/* Weekly Summary - Under action buttons */}
+        {!isAnonymous && <WeeklySummary />}
+
+        {/* Quick Stats - Now appears below weekly summary */}
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
