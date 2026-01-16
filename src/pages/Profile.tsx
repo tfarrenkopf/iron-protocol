@@ -5,7 +5,6 @@ import { ArrowLeft, User, Save, AlertCircle, Check, Trophy, Zap, Target, Dumbbel
 import { useAuth } from '@/hooks/useAuth';
 import { useProfile, useUpdateProfile } from '@/hooks/useProfile';
 import { useCompletedSessions, useDeleteSession } from '@/hooks/useWorkoutSessions';
-import { useUserExercises, useDeleteExercise } from '@/hooks/useExercises';
 import { useWipeAllData } from '@/hooks/useWipeData';
 import { useIsHandler, useToggleHandlerMode, useMySquads, useLeaveSquad, useUpdateMemberStats } from '@/hooks/useHandlerMode';
 import { z } from 'zod';
@@ -18,12 +17,10 @@ const ProfilePage = () => {
   const { user, isAnonymous } = useAuth();
   const { data: profile, isLoading } = useProfile();
   const { data: sessions, isLoading: sessionsLoading } = useCompletedSessions();
-  const { data: userExercises, isLoading: exercisesLoading } = useUserExercises();
   const { data: isHandler, isLoading: handlerLoading } = useIsHandler();
   const { data: mySquads, isLoading: squadsLoading } = useMySquads();
   const updateProfile = useUpdateProfile();
   const deleteSession = useDeleteSession();
-  const deleteExercise = useDeleteExercise();
   const wipeAllData = useWipeAllData();
   const toggleHandler = useToggleHandlerMode();
   const leaveSquad = useLeaveSquad();
@@ -33,9 +30,7 @@ const ProfilePage = () => {
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState(false);
   const [deleteConfirmId, setDeleteConfirmId] = useState<string | null>(null);
-  const [deleteExerciseId, setDeleteExerciseId] = useState<string | null>(null);
   const [showMissions, setShowMissions] = useState(true);
-  const [showExercises, setShowExercises] = useState(true);
   const [showWipeConfirm, setShowWipeConfirm] = useState(false);
   const [wipeConfirmText, setWipeConfirmText] = useState('');
   const [showSquads, setShowSquads] = useState(true);
@@ -99,15 +94,6 @@ const ProfilePage = () => {
       setDeleteConfirmId(null);
     } catch (err) {
       console.error('Failed to delete session:', err);
-    }
-  };
-
-  const handleDeleteExercise = async (exerciseId: string) => {
-    try {
-      await deleteExercise.mutateAsync(exerciseId);
-      setDeleteExerciseId(null);
-    } catch (err) {
-      console.error('Failed to delete exercise:', err);
     }
   };
 
@@ -484,123 +470,6 @@ const ProfilePage = () => {
               </AnimatePresence>
             </motion.section>
 
-            {/* User Created Exercises */}
-            <motion.section
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: 0.5 }}
-              className="bg-card border border-border rounded-lg p-6"
-            >
-              <button 
-                onClick={() => setShowExercises(!showExercises)}
-                className="w-full flex items-center justify-between font-display text-lg text-muted-foreground mb-4"
-              >
-                <span>MY EXERCISES ({userExercises?.length || 0})</span>
-                {showExercises ? <ChevronUp className="w-5 h-5" /> : <ChevronDown className="w-5 h-5" />}
-              </button>
-              
-              <AnimatePresence>
-                {showExercises && (
-                  <motion.div
-                    initial={{ height: 0, opacity: 0 }}
-                    animate={{ height: 'auto', opacity: 1 }}
-                    exit={{ height: 0, opacity: 0 }}
-                    className="overflow-hidden"
-                  >
-                    {exercisesLoading ? (
-                      <div className="text-center py-4">
-                        <div className="font-display text-sm text-primary animate-neon-pulse">LOADING...</div>
-                      </div>
-                    ) : !userExercises || userExercises.length === 0 ? (
-                      <div className="text-center py-4">
-                        <Dumbbell className="w-8 h-8 mx-auto mb-3 text-muted-foreground" />
-                        <p className="text-muted-foreground text-sm">No custom exercises yet.</p>
-                        <p className="text-muted-foreground/60 text-xs mt-1">Create exercises in the Exercise Manager.</p>
-                        <button
-                          onClick={() => navigate('/exercises')}
-                          className="mt-4 px-4 py-2 border border-primary text-primary font-display text-sm rounded hover:bg-primary/10 transition-colors"
-                        >
-                          CREATE EXERCISE
-                        </button>
-                      </div>
-                    ) : (
-                      <div className="space-y-3">
-                        {userExercises.map((exercise) => (
-                          <div key={exercise.id} className="relative">
-                            <div className="bg-background border border-border rounded-lg p-4">
-                              <div className="flex items-start justify-between">
-                                <div className="flex-1 min-w-0">
-                                  <div className="font-display text-sm text-secondary truncate">
-                                    {exercise.name}
-                                  </div>
-                                  <div className="flex items-center gap-2 mt-1 text-xs text-muted-foreground">
-                                    <span className="text-primary">{exercise.primary_muscle_group}</span>
-                                    {exercise.equipment && exercise.equipment.length > 0 && (
-                                      <>
-                                        <span>•</span>
-                                        <span>{exercise.equipment.join(', ')}</span>
-                                      </>
-                                    )}
-                                  </div>
-                                  {exercise.description && (
-                                    <p className="text-xs text-muted-foreground/70 mt-2 line-clamp-2">
-                                      {exercise.description}
-                                    </p>
-                                  )}
-                                </div>
-                                
-                                <button
-                                  onClick={() => setDeleteExerciseId(exercise.id)}
-                                  className="p-2 text-muted-foreground hover:text-destructive transition-colors"
-                                  title="Delete this exercise"
-                                >
-                                  <Trash2 className="w-4 h-4" />
-                                </button>
-                              </div>
-                            </div>
-
-                            {/* Delete Confirmation Modal */}
-                            <AnimatePresence>
-                              {deleteExerciseId === exercise.id && (
-                                <motion.div
-                                  initial={{ opacity: 0, scale: 0.95 }}
-                                  animate={{ opacity: 1, scale: 1 }}
-                                  exit={{ opacity: 0, scale: 0.95 }}
-                                  className="absolute inset-0 bg-card border-2 border-destructive rounded-lg p-4 flex flex-col justify-center z-10"
-                                >
-                                  <div className="text-center">
-                                    <AlertCircle className="w-8 h-8 mx-auto mb-2 text-destructive" />
-                                    <p className="text-sm font-display text-destructive mb-1">DELETE EXERCISE?</p>
-                                    <p className="text-xs text-muted-foreground mb-4">
-                                      This will permanently delete "{exercise.name}". This cannot be undone.
-                                    </p>
-                                    <div className="flex gap-2 justify-center">
-                                      <button
-                                        onClick={() => setDeleteExerciseId(null)}
-                                        className="px-4 py-2 border border-border rounded text-sm hover:bg-muted transition-colors"
-                                      >
-                                        <X className="w-4 h-4" />
-                                      </button>
-                                      <button
-                                        onClick={() => handleDeleteExercise(exercise.id)}
-                                        disabled={deleteExercise.isPending}
-                                        className="px-4 py-2 bg-destructive text-destructive-foreground rounded text-sm font-display hover:bg-destructive/90 transition-colors disabled:opacity-50"
-                                      >
-                                        {deleteExercise.isPending ? 'DELETING...' : 'DELETE'}
-                                      </button>
-                                    </div>
-                                  </div>
-                                </motion.div>
-                              )}
-                            </AnimatePresence>
-                          </div>
-                        ))}
-                      </div>
-                    )}
-                  </motion.div>
-                )}
-              </AnimatePresence>
-            </motion.section>
             {/* Scorched Earth - Wipe All Data */}
             <motion.section
               initial={{ opacity: 0, y: 20 }}
@@ -660,7 +529,7 @@ const ProfilePage = () => {
                 </div>
                 <div className="flex items-center gap-2 text-muted-foreground">
                   <X className="w-4 h-4 text-destructive" />
-                  <span>{userExercises?.length || 0} custom exercises</span>
+                  <span>All custom exercises</span>
                 </div>
                 <div className="flex items-center gap-2 text-muted-foreground">
                   <X className="w-4 h-4 text-destructive" />

@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { motion } from 'framer-motion';
 import { useNavigate } from 'react-router-dom';
-import { ArrowLeft, Zap, Plus, Filter, X } from 'lucide-react';
+import { ArrowLeft, Zap, Plus, Filter, X, RefreshCw, AlertCircle } from 'lucide-react';
 import { useMissions } from '@/hooks/useMissions';
 import { useAuth } from '@/hooks/useAuth';
 
@@ -17,7 +17,7 @@ const MissionSelect = () => {
   const [showOnlyPublic, setShowOnlyPublic] = useState(false);
   const [showOnlyMine, setShowOnlyMine] = useState(false);
 
-  const { data: missions, isLoading } = useMissions({
+  const { data: missions, isLoading, error, refetch, isRefetching } = useMissions({
     focusArea: focusFilter || undefined,
     muscleGroup: muscleFilter || undefined,
     showOnlyPublic: showOnlyPublic || !user,
@@ -174,9 +174,24 @@ const MissionSelect = () => {
         )}
 
         {/* Mission List */}
-        {isLoading ? (
+        {isLoading || isRefetching ? (
           <div className="text-center py-12">
-            <div className="font-display text-2xl text-primary animate-neon-pulse">LOADING...</div>
+            <div className="font-display text-2xl text-primary animate-neon-pulse">
+              {isRefetching ? 'REFRESHING...' : 'LOADING...'}
+            </div>
+          </div>
+        ) : error ? (
+          <div className="text-center py-12">
+            <AlertCircle className="w-12 h-12 mx-auto mb-4 text-destructive" />
+            <p className="font-display text-xl text-destructive mb-2">TRANSMISSION FAILED</p>
+            <p className="text-muted-foreground mb-6 text-sm">Unable to load missions. Check your connection.</p>
+            <button
+              onClick={() => refetch()}
+              className="px-6 py-3 bg-primary text-primary-foreground font-display rounded hover:box-glow-primary transition-all flex items-center gap-2 mx-auto"
+            >
+              <RefreshCw className="w-4 h-4" />
+              RETRY
+            </button>
           </div>
         ) : filteredMissions?.length === 0 ? (
           <div className="text-center py-12">

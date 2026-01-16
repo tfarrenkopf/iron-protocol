@@ -143,7 +143,7 @@ const ExerciseManager = () => {
         <div className="fixed inset-0 pointer-events-none scanlines opacity-30" />
         <div className="relative z-10 container mx-auto px-4 py-8 max-w-2xl">
           <header className="flex items-center gap-4 mb-8">
-            <button onClick={() => navigate('/')} className="p-2 border border-border rounded hover:border-primary transition-colors">
+            <button onClick={() => navigate(-1)} className="p-2 border border-border rounded hover:border-primary transition-colors">
               <ArrowLeft className="w-5 h-5" />
             </button>
             <h1 className="font-display text-3xl text-primary">MY EXERCISES</h1>
@@ -174,7 +174,7 @@ const ExerciseManager = () => {
           className="flex items-center justify-between mb-8"
         >
           <div className="flex items-center gap-4">
-            <button onClick={() => navigate('/')} className="p-2 border border-border rounded hover:border-primary transition-colors">
+            <button onClick={() => navigate(-1)} className="p-2 border border-border rounded hover:border-primary transition-colors">
               <ArrowLeft className="w-5 h-5" />
             </button>
             <div>
