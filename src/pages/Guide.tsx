@@ -9,8 +9,7 @@ import {
   Target,
   Flame,
   Users,
-  Plus,
-  Scroll
+  Plus
 } from 'lucide-react';
 
 const GUIDE_SECTIONS = [
@@ -196,36 +195,29 @@ const Guide = () => {
                 </div>
 
                 {/* Content Items */}
-                <div className="space-y-4">
+                <div className="space-y-3">
                   {section.content.map((item, i) => (
-                    <div key={i}>
+                    <div key={i} className="text-sm leading-relaxed">
                       {item.type === 'text' && (
-                        <p className="text-sm text-muted-foreground leading-relaxed">{item.value}</p>
+                        <p className="text-muted-foreground">{item.value}</p>
                       )}
                       {item.type === 'highlight' && (
-                        <div className="p-3 bg-primary/10 border border-primary/30 rounded-lg">
-                          <p className="text-sm text-primary font-display tracking-wide">{item.value}</p>
-                        </div>
+                        <p className="text-primary border-l-2 border-primary pl-3">{item.value}</p>
                       )}
                       {item.type === 'step' && (
-                        <div className="flex items-start gap-3">
-                          <span className="flex-shrink-0 w-6 h-6 rounded-full bg-secondary text-secondary-foreground font-display text-sm flex items-center justify-center">
-                            {item.label}
-                          </span>
-                          <p className="text-sm text-foreground leading-relaxed">{item.value}</p>
+                        <div className="flex gap-3 text-foreground">
+                          <span className="text-muted-foreground">{item.label}.</span>
+                          <span>{item.value}</span>
                         </div>
                       )}
                       {item.type === 'stat' && (
-                        <div className="flex flex-col sm:flex-row sm:items-center justify-between p-3 bg-background rounded-lg border border-border gap-1 sm:gap-2">
-                          <span className="text-xs text-muted-foreground font-display tracking-wider">{item.label}</span>
-                          <span className="text-sm text-foreground">{item.value}</span>
+                        <div className="flex gap-3 text-foreground border-l-2 border-muted pl-3">
+                          <span className="text-muted-foreground shrink-0">{item.label}:</span>
+                          <span>{item.value}</span>
                         </div>
                       )}
                       {item.type === 'tip' && (
-                        <div className="flex items-start gap-3 p-3 bg-accent/10 border border-accent/30 rounded-lg">
-                          <Scroll className="w-4 h-4 text-accent flex-shrink-0 mt-0.5" />
-                          <p className="text-sm text-accent leading-relaxed">{item.value}</p>
-                        </div>
+                        <p className="text-accent border-l-2 border-accent pl-3 italic">{item.value}</p>
                       )}
                     </div>
                   ))}
