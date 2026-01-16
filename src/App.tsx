@@ -17,6 +17,7 @@ import CreateMission from "./pages/CreateMission";
 import FrontLines from "./pages/FrontLines";
 import Legal from "./pages/Legal";
 import Donate from "./pages/Donate";
+import Guide from "./pages/Guide";
 import HandlerDashboard from "./pages/HandlerDashboard";
 import JoinSquad from "./pages/JoinSquad";
 import AssignMission from "./pages/AssignMission";
@@ -47,6 +48,7 @@ const App = () => (
             <Route path="/front-lines" element={<FrontLines />} />
             <Route path="/legal" element={<Legal />} />
             <Route path="/donate" element={<Donate />} />
+            <Route path="/guide" element={<Guide />} />
             <Route path="/handler" element={<HandlerDashboard />} />
             <Route path="/handler/assign/:squadId" element={<AssignMission />} />
             <Route path="/join/:inviteCode" element={<JoinSquad />} />

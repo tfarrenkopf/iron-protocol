@@ -6,6 +6,7 @@ import { useAuth } from '@/hooks/useAuth';
 import { useProfile } from '@/hooks/useProfile';
 import { useIsHandler } from '@/hooks/useHandlerMode';
 import { IncomingOrders } from '@/components/IncomingOrders';
+import { FirstVisitPopup } from '@/components/FirstVisitPopup';
 
 const Dashboard = () => {
   const navigate = useNavigate();
@@ -281,6 +282,13 @@ const Dashboard = () => {
         >
           <div className="flex items-center justify-center gap-4 text-xs">
             <button
+              onClick={() => navigate('/guide')}
+              className="text-muted-foreground hover:text-secondary transition-colors"
+            >
+              ? Guide
+            </button>
+            <span className="text-muted-foreground/30">|</span>
+            <button
               onClick={() => navigate('/donate')}
               className="text-muted-foreground hover:text-primary transition-colors"
             >
@@ -298,6 +306,9 @@ const Dashboard = () => {
             v1.0 // NO MERCY
           </p>
         </motion.footer>
+
+        {/* First Visit Popup */}
+        <FirstVisitPopup />
       </div>
     </div>
   );
