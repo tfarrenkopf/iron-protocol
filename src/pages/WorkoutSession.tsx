@@ -13,8 +13,8 @@ import { XPPopup } from '@/components/XPPopup';
 import { PRNotification } from '@/components/PRNotification';
 import { useCheckAndUpdatePR, PRCheckResult, usePersonalRecordsCount } from '@/hooks/usePersonalRecords';
 import { useCheckAchievements, Achievement } from '@/hooks/useAchievements';
-import { AchievementNotification } from '@/components/AchievementNotification';
 import { GuestIndicator, MomentOfLossPrompt, ConversionNudge } from '@/components/AnonymousConversion';
+import { getWeightedRandomLorePhrase } from '@/data/lorePhrases';
 
 const WorkoutSession = () => {
   const { missionId } = useParams();
@@ -53,8 +53,8 @@ const WorkoutSession = () => {
   const [showCancelConfirm, setShowCancelConfirm] = useState(false);
   const [showPRNotification, setShowPRNotification] = useState(false);
   const [newPRs, setNewPRs] = useState<PRCheckResult[]>([]);
-  const [pendingAchievements, setPendingAchievements] = useState<Achievement[]>([]);
-  const [showAchievementNotification, setShowAchievementNotification] = useState(false);
+  const [currentSetAchievement, setCurrentSetAchievement] = useState<Achievement | null>(null);
+  const [currentLorePhrase, setCurrentLorePhrase] = useState<string>('');
   const [showMomentOfLoss, setShowMomentOfLoss] = useState(false);
   const [momentOfLossTrigger, setMomentOfLossTrigger] = useState<'mission_complete' | 'pr_set'>('mission_complete');
   const prevStatsRef = useRef(stats);
@@ -132,25 +132,8 @@ const WorkoutSession = () => {
         damageDealt: stats.damageDealt,
       });
 
-      // Check for achievements
-      const totalSets = (profile?.total_sets || 0) + stats.setsCompleted;
-      const totalWeight = (profile?.total_weight || 0) + stats.totalWeight;
-      const totalPRs = (prCount || 0) + newPRs.length;
-      const completedHour = new Date().getHours();
-      
-      checkAndUnlock({
-        setsCompleted: totalSets,
-        weightLifted: totalWeight,
-        prsSet: totalPRs,
-        missionsCompleted: 1, // At least this one
-        comboReached: stats.maxCombo,
-        workoutHour: completedHour,
-      }).then(unlocked => {
-        if (unlocked.length > 0) {
-          setPendingAchievements(unlocked);
-          setShowAchievementNotification(true);
-        }
-      });
+      // Note: Achievements are now checked on each set completion (Story 14.2)
+      // Mission-level achievements are handled there too
       
       if (mission.outro_lore) {
         setShowLore('outro');
@@ -352,6 +335,11 @@ const WorkoutSession = () => {
     // Capture stats before completing
     const prevStats = { ...stats };
     let prResults: PRCheckResult[] = [];
+    let setAchievement: Achievement | null = null;
+    
+    // Get a random lore phrase for this set (Story 14.1)
+    const lorePhrase = getWeightedRandomLorePhrase();
+    setCurrentLorePhrase(lorePhrase.text);
     
     // Save weight to history and check for PRs if logged in
     if (user && missionExercise.exercise_id && exercise) {
@@ -374,6 +362,26 @@ const WorkoutSession = () => {
         // If we have new PRs, store them for display
         if (prResults.length > 0) {
           setNewPRs(prResults);
+        }
+        
+        // Story 14.2: Check for achievements on set completion
+        const currentStats = useGameStore.getState().stats;
+        const totalSets = (profile?.total_sets || 0) + currentStats.setsCompleted + 1;
+        const totalWeight = (profile?.total_weight || 0) + currentStats.totalWeight + (weight * reps);
+        const totalPRs = (prCount || 0) + prResults.length;
+        
+        const unlocked = await checkAndUnlock({
+          setsCompleted: totalSets,
+          weightLifted: totalWeight,
+          prsSet: totalPRs,
+          comboReached: currentStats.combo + 1,
+          workoutHour: new Date().getHours(),
+        });
+        
+        if (unlocked.length > 0) {
+          // Show the first unlocked achievement in the XP popup
+          setAchievement = unlocked[0];
+          setCurrentSetAchievement(setAchievement);
         }
       } catch (e) {
         // Non-blocking - continue even if weight/PR save fails
@@ -402,7 +410,7 @@ const WorkoutSession = () => {
         if (prResults.length > 0) {
           setTimeout(() => {
             setShowPRNotification(true);
-          }, 1500);
+          }, setAchievement ? 3000 : 1500); // Longer delay if achievement was shown
         }
       }, 300);
     }, 200);
@@ -466,14 +474,19 @@ const WorkoutSession = () => {
           onComplete={() => setShowExplosion(false)} 
         />
         
-        {/* XP Popup */}
+        {/* XP Popup - Story 14.2: Now includes achievement and lore phrase */}
         <XPPopup
           show={showXPPopup}
           xp={lastXPGain.xp}
           score={lastXPGain.score}
           combo={lastXPGain.combo}
           damage={lastXPGain.damage}
-          onComplete={() => setShowXPPopup(false)}
+          achievement={currentSetAchievement}
+          lorePhrase={currentSetAchievement ? undefined : currentLorePhrase}
+          onComplete={() => {
+            setShowXPPopup(false);
+            setCurrentSetAchievement(null);
+          }}
         />
         
         {/* PR Notification */}
@@ -675,18 +688,7 @@ const WorkoutSession = () => {
         )}
       </AnimatePresence>
 
-      {/* Achievement Notification */}
-      {showAchievementNotification && pendingAchievements.length > 0 && (
-        <AchievementNotification
-          achievement={pendingAchievements[0]}
-          onComplete={() => {
-            setPendingAchievements(prev => prev.slice(1));
-            if (pendingAchievements.length <= 1) {
-              setShowAchievementNotification(false);
-            }
-          }}
-        />
-      )}
+      {/* Story 14.2: Achievements now shown inside XPPopup, no separate notification */}
     </div>
   );
 };
