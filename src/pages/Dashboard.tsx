@@ -265,14 +265,14 @@ const Dashboard = () => {
                         {mission.code_name}
                       </span>
                       {/* Duration badge */}
-                      <span className={`text-[10px] px-1.5 py-0.5 rounded font-display ${
+                      <span className={`text-xs px-1.5 py-0.5 rounded font-display ${
                         mission.estimated_minutes < 20 
                           ? 'bg-secondary/20 text-secondary' 
                           : mission.estimated_minutes < 40 
                             ? 'bg-primary/20 text-primary'
                             : 'bg-accent/20 text-accent'
                       }`}>
-                        {mission.estimated_minutes < 20 ? 'QUICK' : mission.estimated_minutes < 40 ? 'STANDARD' : 'EXTENDED'}
+                        {mission.estimated_minutes < 20 ? 'QUICK' : mission.estimated_minutes < 40 ? 'STD' : 'LONG'}
                       </span>
                     </div>
                     <div className="text-xs text-muted-foreground mt-1">

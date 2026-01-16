@@ -899,7 +899,7 @@ const ExerciseManager = () => {
                               </div>
                               <div className="grid grid-cols-3 gap-2">
                                 <div>
-                                  <label className="text-[10px] text-muted-foreground">SETS</label>
+                                  <label className="text-xs text-muted-foreground">SETS</label>
                                   <input
                                     type="number"
                                     min={1}
@@ -910,7 +910,7 @@ const ExerciseManager = () => {
                                   />
                                 </div>
                                 <div>
-                                  <label className="text-[10px] text-muted-foreground">REPS</label>
+                                  <label className="text-xs text-muted-foreground">REPS</label>
                                   <input
                                     type="number"
                                     min={1}
@@ -921,7 +921,7 @@ const ExerciseManager = () => {
                                   />
                                 </div>
                                 <div>
-                                  <label className="text-[10px] text-muted-foreground">REST (s)</label>
+                                  <label className="text-xs text-muted-foreground">REST</label>
                                   <input
                                     type="number"
                                     min={0}

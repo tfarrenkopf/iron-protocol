@@ -275,11 +275,11 @@ const FrontLines = () => {
             <div className="grid grid-cols-4 gap-3 mb-4">
               <div className="text-center p-2 bg-background/50 rounded">
                 <div className="font-display text-xl text-secondary">{communityStats.activeWarriors}</div>
-                <div className="text-[10px] text-muted-foreground">WARRIORS</div>
+                <div className="text-xs uppercase tracking-wide text-muted-foreground">ACTIVE</div>
               </div>
               <div className="text-center p-2 bg-background/50 rounded">
                 <div className="font-display text-xl text-primary">{communityStats.totalMissions}</div>
-                <div className="text-[10px] text-muted-foreground">MISSIONS</div>
+                <div className="text-xs uppercase tracking-wide text-muted-foreground">MISSIONS</div>
               </div>
               <div className="text-center p-2 bg-background/50 rounded">
                 <div className="font-display text-xl text-accent">
@@ -289,7 +289,7 @@ const FrontLines = () => {
                       ? `${(communityStats.totalWeight / 1000).toFixed(0)}k` 
                       : communityStats.totalWeight}
                 </div>
-                <div className="text-[10px] text-muted-foreground">LBS LIFTED</div>
+                <div className="text-xs uppercase tracking-wide text-muted-foreground">LBS</div>
               </div>
               <div className="text-center p-2 bg-background/50 rounded">
                 <div className="font-display text-xl text-destructive">
@@ -299,7 +299,7 @@ const FrontLines = () => {
                       ? `${(communityStats.totalDamage / 1000).toFixed(0)}k` 
                       : communityStats.totalDamage}
                 </div>
-                <div className="text-[10px] text-muted-foreground">DAMAGE</div>
+                <div className="text-xs uppercase tracking-wide text-muted-foreground">DMG</div>
               </div>
             </div>
 
@@ -308,30 +308,30 @@ const FrontLines = () => {
               {communityStats.topDamageDealer && (
                 <div className="p-2 bg-destructive/10 border border-destructive/30 rounded text-center">
                   <Zap className="w-4 h-4 text-destructive mx-auto mb-1" />
-                  <div className="text-[10px] text-destructive font-display">TOP DAMAGE</div>
-                  <div className="text-xs text-foreground truncate">{communityStats.topDamageDealer.name}</div>
-                  <div className="text-[10px] text-muted-foreground">
-                    {communityStats.topDamageDealer.damage.toLocaleString()} dmg
+                  <div className="text-xs text-destructive font-display uppercase">TOP DMG</div>
+                  <div className="text-sm text-foreground truncate">{communityStats.topDamageDealer.name}</div>
+                  <div className="text-xs text-muted-foreground">
+                    {communityStats.topDamageDealer.damage.toLocaleString()}
                   </div>
                 </div>
               )}
               {communityStats.topWeightLifter && (
                 <div className="p-2 bg-accent/10 border border-accent/30 rounded text-center">
                   <Dumbbell className="w-4 h-4 text-accent mx-auto mb-1" />
-                  <div className="text-[10px] text-accent font-display">TOP LIFTER</div>
-                  <div className="text-xs text-foreground truncate">{communityStats.topWeightLifter.name}</div>
-                  <div className="text-[10px] text-muted-foreground">
-                    {communityStats.topWeightLifter.weight.toLocaleString()} lbs
+                  <div className="text-xs text-accent font-display uppercase">TOP LBS</div>
+                  <div className="text-sm text-foreground truncate">{communityStats.topWeightLifter.name}</div>
+                  <div className="text-xs text-muted-foreground">
+                    {communityStats.topWeightLifter.weight.toLocaleString()}
                   </div>
                 </div>
               )}
               {communityStats.topMissionCompleter && (
                 <div className="p-2 bg-primary/10 border border-primary/30 rounded text-center">
                   <Trophy className="w-4 h-4 text-primary mx-auto mb-1" />
-                  <div className="text-[10px] text-primary font-display">MOST MISSIONS</div>
-                  <div className="text-xs text-foreground truncate">{communityStats.topMissionCompleter.name}</div>
-                  <div className="text-[10px] text-muted-foreground">
-                    {communityStats.topMissionCompleter.missions} completed
+                  <div className="text-xs text-primary font-display uppercase">TOP OPS</div>
+                  <div className="text-sm text-foreground truncate">{communityStats.topMissionCompleter.name}</div>
+                  <div className="text-xs text-muted-foreground">
+                    {communityStats.topMissionCompleter.missions}
                   </div>
                 </div>
               )}

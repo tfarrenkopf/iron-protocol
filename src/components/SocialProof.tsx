@@ -15,9 +15,9 @@ export function PopularityBadge({ score, size = 'sm' }: PopularityBadgeProps) {
     <motion.span
       initial={{ scale: 0.8, opacity: 0 }}
       animate={{ scale: 1, opacity: 1 }}
-      className={`inline-flex items-center gap-1 px-2 py-0.5 rounded text-[10px] font-display ${tier.color} ${
+      className={`inline-flex items-center gap-1 px-2 py-0.5 rounded text-xs font-display ${tier.color} ${
         tier.glow ? 'bg-warning/20 animate-pulse' : 'bg-card border border-border'
-      } ${size === 'md' ? 'text-xs px-3 py-1' : ''}`}
+      }`}
     >
       {tier.label}
     </motion.span>
@@ -77,7 +77,7 @@ export function MissionRankBadge({ rank, totalPlayers, bestScore }: MissionRankB
           <span className="text-muted-foreground"> of {totalPlayers}</span>
         </div>
         {percentile && percentile >= 50 && (
-          <div className="text-[10px] text-muted-foreground">
+          <div className="text-xs text-muted-foreground">
             Top {100 - percentile}%
           </div>
         )}
@@ -85,7 +85,7 @@ export function MissionRankBadge({ rank, totalPlayers, bestScore }: MissionRankB
       {bestScore && (
         <div className="text-right">
           <div className="font-display text-secondary">{bestScore.toLocaleString()}</div>
-          <div className="text-[10px] text-muted-foreground">BEST</div>
+          <div className="text-xs text-muted-foreground">BEST</div>
         </div>
       )}
     </motion.div>

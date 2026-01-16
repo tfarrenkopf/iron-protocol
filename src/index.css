@@ -244,4 +244,40 @@
     line-height: 1;
     letter-spacing: 0.05em;
   }
+
+  /* ===== TYPOGRAPHY SCALE =====
+     Consistent text sizes for readability
+     Minimum body text: 14px (text-sm)
+     Labels/captions: 12px (text-xs) - avoid 10px except decorative
+  */
+  
+  /* Section headers - used for "// SECTION NAME" */
+  .text-section-header {
+    @apply font-display text-base tracking-wider text-muted-foreground;
+  }
+  
+  /* Card titles */
+  .text-card-title {
+    @apply font-display text-lg;
+  }
+  
+  /* Stat labels - minimum readable size */
+  .text-stat-label {
+    @apply text-xs uppercase tracking-wider text-muted-foreground;
+  }
+  
+  /* Large stat numbers */
+  .text-stat-value {
+    @apply font-display text-2xl;
+  }
+  
+  /* Body text - never smaller than this for readable content */
+  .text-body {
+    @apply text-sm leading-relaxed;
+  }
+  
+  /* Small but readable captions */
+  .text-caption {
+    @apply text-xs text-muted-foreground;
+  }
 }

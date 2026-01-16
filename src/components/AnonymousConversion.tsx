@@ -19,7 +19,7 @@ export function GuestIndicator({ variant = 'minimal', className = '' }: GuestInd
         className={`flex items-center gap-1.5 text-warning/80 ${className}`}
       >
         <Ghost className="w-3 h-3" />
-        <span className="text-[10px] font-display tracking-wider">GUEST RUN</span>
+        <span className="text-xs font-display tracking-wider">GUEST</span>
       </motion.div>
     );
   }
@@ -84,7 +84,7 @@ export function LossPreview({ stats }: LossPreviewProps) {
               <div className={`font-display text-lg ${item.color}`}>
                 {item.value?.toLocaleString()}
               </div>
-              <div className="text-[10px] text-muted-foreground">{item.label}</div>
+              <div className="text-xs text-muted-foreground">{item.label}</div>
             </div>
           </motion.div>
         ))}

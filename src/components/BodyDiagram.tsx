@@ -255,7 +255,7 @@ const BodyDiagram = ({ muscleStats }: BodyDiagramProps) => {
 
         {/* Legend */}
         <div className="pt-2 border-t border-border">
-          <div className="flex items-center gap-4 text-[10px] text-muted-foreground">
+          <div className="flex items-center gap-4 text-xs text-muted-foreground">
             <div className="flex items-center gap-1">
               <div className="w-3 h-3 rounded-sm bg-primary" />
               <span>HIGH</span>

@@ -229,7 +229,7 @@ export const XPPopup = ({
                       initial={{ opacity: 0 }}
                       animate={{ opacity: 1 }}
                       transition={{ delay: 0.2 }}
-                      className="text-[10px] text-accent mt-1"
+                      className="text-xs text-accent mt-1"
                     >
                       {totalWeight.toLocaleString()} lbs lifted
                       {setsCompleted > 0 && totalSets > 0 && (
@@ -243,7 +243,7 @@ export const XPPopup = ({
                       initial={{ opacity: 0 }}
                       animate={{ opacity: 1 }}
                       transition={{ delay: 0.25 }}
-                      className="text-[10px] text-success mt-1"
+                      className="text-xs text-success mt-1"
                     >
                       ↑ Increase weight for more damage!
                     </motion.div>
