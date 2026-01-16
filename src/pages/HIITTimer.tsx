@@ -291,9 +291,9 @@ const HIITTimer = () => {
 
           <div className="bg-card/50 border border-border rounded-lg p-3 mb-6">
             <p className="text-xs text-muted-foreground text-center">
-              <span className="text-secondary font-display">HIIT</span> alternates between high-intensity work and rest. 
-              Pick a protocol, then perform any exercise during <span className="text-destructive">FIGHT</span> phases. 
-              Rest during <span className="text-primary">RECOVER</span> phases.
+              <span className="text-secondary font-display text-sm">HIIT</span> alternates between high-intensity work and rest. 
+              Pick a protocol, then perform any exercise during <span className="text-destructive font-display text-sm">FIGHT</span> phases. 
+              Rest during <span className="text-primary font-display text-sm">RECOVER</span> phases.
             </p>
           </div>
 
