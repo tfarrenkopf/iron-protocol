@@ -39,6 +39,16 @@ export function useCompletedSessions() {
   });
 }
 
+interface SetData {
+  exerciseId: string;
+  setNumber: number;
+  targetReps: number;
+  actualReps: number;
+  weight: number;
+  unit: string;
+  scoreEarned: number;
+}
+
 export function useCreateWorkoutSession() {
   const queryClient = useQueryClient();
   const { user } = useAuth();
@@ -54,10 +64,12 @@ export function useCreateWorkoutSession() {
       totalWeight: number;
       maxCombo: number;
       damageDealt: number;
+      sets?: SetData[];
     }) => {
       if (!user) throw new Error('Must be logged in');
       
-      const { data, error } = await supabase
+      // Create the session first
+      const { data: session, error } = await supabase
         .from('workout_sessions')
         .insert([{
           user_id: user.id,
@@ -77,10 +89,36 @@ export function useCreateWorkoutSession() {
         .single();
       
       if (error) throw error;
-      return data;
+      
+      // Now save individual sets if provided
+      if (sessionData.sets && sessionData.sets.length > 0) {
+        const setsToInsert = sessionData.sets.map(set => ({
+          session_id: session.id,
+          exercise_id: set.exerciseId,
+          set_number: set.setNumber,
+          target_reps: set.targetReps,
+          actual_reps: set.actualReps,
+          weight: set.weight,
+          unit: set.unit,
+          score_earned: set.scoreEarned,
+        }));
+        
+        const { error: setsError } = await supabase
+          .from('workout_sets')
+          .insert(setsToInsert);
+        
+        if (setsError) {
+          console.error('Failed to save workout sets:', setsError);
+          // Non-blocking - session is already saved
+        }
+      }
+      
+      return session;
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['completed-sessions'] });
+      queryClient.invalidateQueries({ queryKey: ['weekly-summary'] });
+      queryClient.invalidateQueries({ queryKey: ['muscle-group-stats'] });
     },
   });
 }

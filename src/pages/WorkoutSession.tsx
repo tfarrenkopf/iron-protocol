@@ -116,7 +116,32 @@ const WorkoutSession = () => {
         maxCombo: stats.maxCombo,
       });
       
-      // Save workout session to database
+      // Collect all sets from the session for database persistence
+      const allSets: Array<{
+        exerciseId: string;
+        setNumber: number;
+        targetReps: number;
+        actualReps: number;
+        weight: number;
+        unit: string;
+        scoreEarned: number;
+      }> = [];
+      
+      currentSession.exercises.forEach((exercise) => {
+        exercise.sets.forEach((set) => {
+          allSets.push({
+            exerciseId: exercise.exerciseId,
+            setNumber: set.setNumber,
+            targetReps: set.targetReps,
+            actualReps: set.actualReps,
+            weight: set.weight,
+            unit: set.unit,
+            scoreEarned: Math.floor(set.actualReps * set.weight), // Approximate score per set
+          });
+        });
+      });
+
+      // Save workout session to database with individual sets
       createWorkoutSession.mutate({
         missionId: mission.id,
         missionSnapshot: {
@@ -130,6 +155,7 @@ const WorkoutSession = () => {
         totalWeight: stats.totalWeight,
         maxCombo: stats.maxCombo,
         damageDealt: stats.damageDealt,
+        sets: allSets,
       });
 
       // Note: Achievements are now checked on each set completion (Story 14.2)
