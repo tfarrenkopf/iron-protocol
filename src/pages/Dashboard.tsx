@@ -110,6 +110,9 @@ const Dashboard = () => {
           <p className="font-body text-muted-foreground text-sm tracking-widest uppercase">
             Clear Levels • Defeat Enemies • Get Stronger
           </p>
+          <p className="text-xs text-muted-foreground/60 mt-2 max-w-md mx-auto">
+            Choose a mission below to start your workout. Complete sets to earn XP and climb the ranks.
+          </p>
         </motion.header>
 
         {/* Quick Stats */}

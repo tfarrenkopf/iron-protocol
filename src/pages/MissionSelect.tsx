@@ -79,7 +79,9 @@ const MissionSelect = () => {
             </button>
             <div>
               <h1 className="font-display text-3xl text-primary">SELECT MISSION</h1>
-              <p className="text-xs text-muted-foreground tracking-wider">CHOOSE YOUR BATTLE</p>
+              <p className="text-xs text-muted-foreground tracking-wider">
+                Missions are structured workouts with exercises, sets, and reps
+              </p>
             </div>
           </div>
 
