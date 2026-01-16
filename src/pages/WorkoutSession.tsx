@@ -10,6 +10,8 @@ import { useUpdateProfileStats } from '@/hooks/useProfile';
 import { useCreateWorkoutSession } from '@/hooks/useWorkoutSessions';
 import { ExplosionEffect } from '@/components/ExplosionEffect';
 import { XPPopup } from '@/components/XPPopup';
+import { PRNotification } from '@/components/PRNotification';
+import { useCheckAndUpdatePR, PRCheckResult } from '@/hooks/usePersonalRecords';
 
 const WorkoutSession = () => {
   const { missionId } = useParams();
@@ -20,6 +22,7 @@ const WorkoutSession = () => {
   const updateWeight = useUpdateWeight();
   const updateProfileStats = useUpdateProfileStats();
   const createWorkoutSession = useCreateWorkoutSession();
+  const checkAndUpdatePR = useCheckAndUpdatePR();
 
   const { 
     currentSession, 
@@ -42,6 +45,8 @@ const WorkoutSession = () => {
   const [showLore, setShowLore] = useState<'intro' | 'outro' | null>(null);
   const [statsSaved, setStatsSaved] = useState(false);
   const [showCancelConfirm, setShowCancelConfirm] = useState(false);
+  const [showPRNotification, setShowPRNotification] = useState(false);
+  const [newPRs, setNewPRs] = useState<PRCheckResult[]>([]);
   const prevStatsRef = useRef(stats);
   const hasInitialized = useRef(false);
 
@@ -278,16 +283,32 @@ const WorkoutSession = () => {
     
     // Capture stats before completing
     const prevStats = { ...stats };
+    let prResults: PRCheckResult[] = [];
     
-    // Save weight to history if logged in
-    if (user && missionExercise.exercise_id) {
+    // Save weight to history and check for PRs if logged in
+    if (user && missionExercise.exercise_id && exercise) {
       try {
+        // Update weight history
         await updateWeight.mutateAsync({
           exerciseId: missionExercise.exercise_id,
           weight,
         });
+        
+        // Check for new PRs
+        prResults = await checkAndUpdatePR.mutateAsync({
+          exerciseId: missionExercise.exercise_id,
+          exerciseName: exercise.name || 'Unknown Exercise',
+          weight,
+          reps,
+          sessionId: currentSession?.id,
+        });
+        
+        // If we have new PRs, store them for display
+        if (prResults.length > 0) {
+          setNewPRs(prResults);
+        }
       } catch (e) {
-        // Non-blocking - continue even if weight save fails
+        // Non-blocking - continue even if weight/PR save fails
       }
     }
     
@@ -308,6 +329,13 @@ const WorkoutSession = () => {
           damage: newStats.damageDealt - prevStats.damageDealt,
         });
         setShowXPPopup(true);
+        
+        // Show PR notification after XP popup if we have PRs
+        if (prResults.length > 0) {
+          setTimeout(() => {
+            setShowPRNotification(true);
+          }, 1500);
+        }
       }, 300);
     }, 200);
   };
@@ -377,6 +405,16 @@ const WorkoutSession = () => {
           combo={lastXPGain.combo}
           damage={lastXPGain.damage}
           onComplete={() => setShowXPPopup(false)}
+        />
+        
+        {/* PR Notification */}
+        <PRNotification
+          prs={newPRs}
+          show={showPRNotification}
+          onComplete={() => {
+            setShowPRNotification(false);
+            setNewPRs([]);
+          }}
         />
 
         {/* Exercise Info */}
