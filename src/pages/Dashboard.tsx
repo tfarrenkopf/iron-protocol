@@ -1,13 +1,25 @@
-import { motion } from 'framer-motion';
-import { useNavigate } from 'react-router-dom';
-import { Zap, Target, Dumbbell, Timer, TrendingUp, Trophy, User, LogOut, Plus, Swords, ChevronRight, Users } from 'lucide-react';
-import { useMissions } from '@/hooks/useMissions';
-import { useAuth } from '@/hooks/useAuth';
-import { useProfile } from '@/hooks/useProfile';
-import { useIsHandler } from '@/hooks/useHandlerMode';
-import { IncomingOrders } from '@/components/IncomingOrders';
-import { FirstVisitPopup } from '@/components/FirstVisitPopup';
-import { WeeklySummary } from '@/components/WeeklySummary';
+import { motion } from "framer-motion";
+import { useNavigate } from "react-router-dom";
+import {
+  Zap,
+  Target,
+  Dumbbell,
+  Timer,
+  TrendingUp,
+  Trophy,
+  User,
+  LogOut,
+  Plus,
+  Swords,
+  ChevronRight,
+  Users,
+} from "lucide-react";
+import { useMissions } from "@/hooks/useMissions";
+import { useAuth } from "@/hooks/useAuth";
+import { useProfile } from "@/hooks/useProfile";
+import { useIsHandler } from "@/hooks/useHandlerMode";
+import { IncomingOrders } from "@/components/IncomingOrders";
+import { FirstVisitPopup } from "@/components/FirstVisitPopup";
 
 const Dashboard = () => {
   const navigate = useNavigate();
@@ -15,30 +27,33 @@ const Dashboard = () => {
   const { data: profile } = useProfile();
   const { data: missions } = useMissions({ showOnlyPublic: true });
   const { data: isHandler } = useIsHandler();
-  
+
   // Calculate level from XP
   const xp = profile?.total_xp || 0;
   const level = Math.max(1, Math.floor(Math.sqrt(xp / 100)) + 1);
 
   const handleSignOut = async () => {
     await signOut();
-    navigate('/');
+    navigate("/");
   };
 
   return (
     <div className="min-h-screen bg-background relative overflow-hidden">
       {/* Scanlines overlay */}
       <div className="fixed inset-0 pointer-events-none scanlines opacity-30" />
-      
+
       {/* Animated background grid */}
       <div className="fixed inset-0 opacity-5">
-        <div className="absolute inset-0" style={{
-          backgroundImage: `
+        <div
+          className="absolute inset-0"
+          style={{
+            backgroundImage: `
             linear-gradient(hsl(var(--primary) / 0.3) 1px, transparent 1px),
             linear-gradient(90deg, hsl(var(--primary) / 0.3) 1px, transparent 1px)
           `,
-          backgroundSize: '50px 50px',
-        }} />
+            backgroundSize: "50px 50px",
+          }}
+        />
       </div>
 
       <div className="relative z-10 container mx-auto px-4 py-8 max-w-4xl">
@@ -56,7 +71,7 @@ const Dashboard = () => {
               </p>
             </div>
             <button
-              onClick={() => navigate('/auth')}
+              onClick={() => navigate("/auth")}
               className="flex-shrink-0 px-4 py-2 bg-primary text-primary-foreground font-display text-sm rounded hover:box-glow-primary transition-all"
             >
               SIGN IN
@@ -73,13 +88,11 @@ const Dashboard = () => {
           >
             <div className="flex items-center gap-3">
               <button
-                onClick={() => navigate('/profile')}
+                onClick={() => navigate("/profile")}
                 className="flex items-center gap-2 px-3 py-2 bg-card border border-border rounded hover:border-primary transition-colors"
               >
                 <User className="w-4 h-4 text-primary" />
-                <span className="text-sm font-display text-primary">
-                  {profile?.display_name || 'AGENT'}
-                </span>
+                <span className="text-sm font-display text-primary">{profile?.display_name || "AGENT"}</span>
               </button>
               <button
                 onClick={handleSignOut}
@@ -89,9 +102,9 @@ const Dashboard = () => {
                 <LogOut className="w-4 h-4" />
               </button>
             </div>
-            
+
             <button
-              onClick={() => navigate('/exercises')}
+              onClick={() => navigate("/exercises")}
               className="flex items-center gap-2 px-3 py-2 text-sm text-muted-foreground hover:text-secondary transition-colors"
             >
               <Plus className="w-4 h-4" />
@@ -101,16 +114,12 @@ const Dashboard = () => {
         )}
 
         {/* Header */}
-        <motion.header 
-          initial={{ opacity: 0, y: -20 }}
-          animate={{ opacity: 1, y: 0 }}
-          className="text-center mb-12"
-        >
+        <motion.header initial={{ opacity: 0, y: -20 }} animate={{ opacity: 1, y: 0 }} className="text-center mb-12">
           <h1 className="font-display text-6xl md:text-8xl text-primary text-glow-primary tracking-wider mb-2">
             IRON PROTOCOL
           </h1>
           <p className="font-body text-muted-foreground text-sm tracking-widest uppercase">
-            Clear Levels • Defeat Enemies • Get Stronger
+            Complete Missions • Defeat Enemies • Get Stronger • Save the world
           </p>
           <p className="text-xs text-muted-foreground/60 mt-2 max-w-md mx-auto">
             Choose a mission below to start your workout. Complete sets to earn XP and climb the ranks.
@@ -118,16 +127,21 @@ const Dashboard = () => {
         </motion.header>
 
         {/* Quick Stats */}
-        <motion.div 
+        <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.1 }}
           className="grid grid-cols-3 gap-4 mb-10"
         >
           {[
-            { label: 'SETS', value: (profile?.total_sets || 0).toString(), icon: Zap, color: 'text-accent' },
-            { label: 'XP', value: (profile?.total_xp || 0).toLocaleString(), icon: TrendingUp, color: 'text-secondary' },
-            { label: 'LEVEL', value: level.toString(), icon: Target, color: 'text-primary' },
+            { label: "SETS", value: (profile?.total_sets || 0).toString(), icon: Zap, color: "text-accent" },
+            {
+              label: "XP",
+              value: (profile?.total_xp || 0).toLocaleString(),
+              icon: TrendingUp,
+              color: "text-secondary",
+            },
+            { label: "LEVEL", value: level.toString(), icon: Target, color: "text-primary" },
           ].map((stat, i) => (
             <motion.div
               key={stat.label}
@@ -135,7 +149,7 @@ const Dashboard = () => {
               animate={{ opacity: 1, scale: 1 }}
               transition={{ delay: 0.2 + i * 0.1 }}
               className="bg-card border border-border rounded p-4 text-center cursor-pointer hover:border-primary/50 transition-colors"
-              onClick={() => navigate('/stats')}
+              onClick={() => navigate("/stats")}
             >
               <stat.icon className={`w-5 h-5 mx-auto mb-2 ${stat.color}`} />
               <div className={`font-display text-3xl ${stat.color}`}>{stat.value}</div>
@@ -145,14 +159,14 @@ const Dashboard = () => {
         </motion.div>
 
         {/* Main Actions */}
-        <motion.div 
+        <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.3 }}
-          className={`grid gap-4 mb-10 ${isHandler ? 'grid-cols-2 sm:grid-cols-4' : 'grid-cols-3'}`}
+          className={`grid gap-4 mb-10 ${isHandler ? "grid-cols-2 sm:grid-cols-4" : "grid-cols-3"}`}
         >
-          <button 
-            onClick={() => navigate('/missions')}
+          <button
+            onClick={() => navigate("/missions")}
             className="group relative bg-card border-2 border-primary rounded p-6 text-left transition-all hover:box-glow-primary hover:border-primary"
           >
             <div className="absolute inset-0 bg-primary/5 group-hover:bg-primary/10 transition-colors rounded" />
@@ -160,9 +174,9 @@ const Dashboard = () => {
             <h2 className="font-display text-lg sm:text-xl text-primary relative z-10">MISSIONS</h2>
             <p className="text-xs text-muted-foreground mt-1 relative z-10">Strength</p>
           </button>
-          
-          <button 
-            onClick={() => navigate('/hiit')}
+
+          <button
+            onClick={() => navigate("/hiit")}
             className="group relative bg-card border-2 border-secondary rounded p-6 text-left transition-all hover:box-glow-secondary hover:border-secondary"
           >
             <div className="absolute inset-0 bg-secondary/5 group-hover:bg-secondary/10 transition-colors rounded" />
@@ -170,13 +184,13 @@ const Dashboard = () => {
             <h2 className="font-display text-lg sm:text-xl text-secondary relative z-10">HIIT</h2>
             <p className="text-xs text-muted-foreground mt-1 relative z-10">Timer</p>
           </button>
-          
-          <button 
-            onClick={() => navigate('/stats')}
+
+          <button
+            onClick={() => navigate("/stats")}
             className="group relative bg-card border-2 border-accent rounded p-6 text-left transition-all hover:border-accent"
-            style={{ boxShadow: 'none' }}
-            onMouseEnter={(e) => e.currentTarget.style.boxShadow = '0 0 20px hsl(20 100% 60% / 0.6)'}
-            onMouseLeave={(e) => e.currentTarget.style.boxShadow = 'none'}
+            style={{ boxShadow: "none" }}
+            onMouseEnter={(e) => (e.currentTarget.style.boxShadow = "0 0 20px hsl(20 100% 60% / 0.6)")}
+            onMouseLeave={(e) => (e.currentTarget.style.boxShadow = "none")}
           >
             <div className="absolute inset-0 bg-accent/5 group-hover:bg-accent/10 transition-colors rounded" />
             <Trophy className="w-8 h-8 text-accent mb-3 relative z-10" />
@@ -185,12 +199,12 @@ const Dashboard = () => {
           </button>
 
           {isHandler && (
-            <button 
-              onClick={() => navigate('/handler')}
+            <button
+              onClick={() => navigate("/handler")}
               className="group relative bg-card border-2 border-warning rounded p-6 text-left transition-all hover:border-warning"
-              style={{ boxShadow: 'none' }}
-              onMouseEnter={(e) => e.currentTarget.style.boxShadow = '0 0 20px hsl(var(--warning) / 0.6)'}
-              onMouseLeave={(e) => e.currentTarget.style.boxShadow = 'none'}
+              style={{ boxShadow: "none" }}
+              onMouseEnter={(e) => (e.currentTarget.style.boxShadow = "0 0 20px hsl(var(--warning) / 0.6)")}
+              onMouseLeave={(e) => (e.currentTarget.style.boxShadow = "none")}
             >
               <div className="absolute inset-0 bg-warning/5 group-hover:bg-warning/10 transition-colors rounded" />
               <Users className="w-8 h-8 text-warning mb-3 relative z-10" />
@@ -200,9 +214,6 @@ const Dashboard = () => {
           )}
         </motion.div>
 
-        {/* Weekly Summary - Only show when logged in */}
-        {!isAnonymous && <WeeklySummary />}
-
         {/* Incoming Orders - Only show when logged in */}
         {!isAnonymous && <IncomingOrders />}
 
@@ -211,7 +222,7 @@ const Dashboard = () => {
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.35 }}
-          onClick={() => navigate('/front-lines')}
+          onClick={() => navigate("/front-lines")}
           className="w-full mb-8 p-4 bg-card border border-secondary/50 rounded flex items-center justify-between hover:border-secondary hover:box-glow-secondary transition-all"
         >
           <div className="flex items-center gap-3">
@@ -225,24 +236,18 @@ const Dashboard = () => {
         </motion.button>
 
         {/* Recent Missions */}
-        <motion.section
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.4 }}
-        >
+        <motion.section initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.4 }}>
           <div className="flex items-center justify-between mb-4">
-            <h3 className="font-display text-xl text-muted-foreground tracking-wider">
-              // SELECT MISSION
-            </h3>
+            <h3 className="font-display text-xl text-muted-foreground tracking-wider">// SELECT MISSION</h3>
             <button
-              onClick={() => navigate('/missions')}
+              onClick={() => navigate("/missions")}
               className="flex items-center gap-1 text-sm font-display text-primary hover:text-glow-primary transition-all"
             >
               FULL ARSENAL
               <ChevronRight className="w-4 h-4" />
             </button>
           </div>
-          
+
           <div className="space-y-3">
             {missions?.slice(0, 3).map((mission, i) => (
               <motion.button
@@ -259,14 +264,14 @@ const Dashboard = () => {
                       {mission.code_name}
                     </div>
                     <div className="text-xs text-muted-foreground mt-1">
-                      {mission.focus_areas?.join(' • ')} • {mission.estimated_minutes}min
+                      {mission.focus_areas?.join(" • ")} • {mission.estimated_minutes}min
                     </div>
                   </div>
                   <div className="flex gap-1">
                     {[...Array(5)].map((_, j) => (
-                      <div 
+                      <div
                         key={j}
-                        className={`w-2 h-2 rounded-sm ${j < mission.difficulty ? 'bg-accent' : 'bg-muted'}`}
+                        className={`w-2 h-2 rounded-sm ${j < mission.difficulty ? "bg-accent" : "bg-muted"}`}
                       />
                     ))}
                   </div>
@@ -275,7 +280,6 @@ const Dashboard = () => {
             ))}
           </div>
         </motion.section>
-
 
         {/* Footer */}
         <motion.footer
@@ -286,29 +290,27 @@ const Dashboard = () => {
         >
           <div className="flex items-center justify-center gap-4 text-xs">
             <button
-              onClick={() => navigate('/guide')}
+              onClick={() => navigate("/guide")}
               className="text-muted-foreground hover:text-secondary transition-colors"
             >
               ? Guide
             </button>
             <span className="text-muted-foreground/30">|</span>
             <button
-              onClick={() => navigate('/donate')}
+              onClick={() => navigate("/donate")}
               className="text-muted-foreground hover:text-primary transition-colors"
             >
               ♥ Support
             </button>
             <span className="text-muted-foreground/30">|</span>
             <button
-              onClick={() => navigate('/legal')}
+              onClick={() => navigate("/legal")}
               className="text-muted-foreground hover:text-primary transition-colors"
             >
               Legal
             </button>
           </div>
-          <p className="text-xs text-muted-foreground/50 tracking-widest">
-            v1.0 // NO MERCY
-          </p>
+          <p className="text-xs text-muted-foreground/50 tracking-widest">v1.0 // NO MERCY</p>
         </motion.footer>
 
         {/* First Visit Popup */}
