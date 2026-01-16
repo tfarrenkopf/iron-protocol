@@ -1,14 +1,19 @@
 import { useState } from 'react';
 import { motion } from 'framer-motion';
 import { useNavigate, useParams, useLocation } from 'react-router-dom';
-import { ArrowLeft, Zap, Play, Clock, Dumbbell, ChevronDown, ChevronUp, RefreshCw, AlertCircle } from 'lucide-react';
+import { ArrowLeft, Zap, Play, Clock, Dumbbell, ChevronDown, ChevronUp, RefreshCw, AlertCircle, Users, Trophy } from 'lucide-react';
 import { useMission } from '@/hooks/useMissions';
+import { useMissionStats, useMissionLeaderboard, useUserMissionRank } from '@/hooks/useMissionStats';
+import { PopularityBadge, WarriorCount, MissionRankBadge, MissionLeaderboardMini, HotMissionGlow } from '@/components/SocialProof';
 
 const MissionDetail = () => {
   const location = useLocation();
   const navigate = useNavigate();
   const { missionId } = useParams();
   const { data: mission, isLoading, error, refetch } = useMission(missionId);
+  const { data: missionStats } = useMissionStats(missionId);
+  const { data: leaderboard } = useMissionLeaderboard(missionId, 5);
+  const { data: userRank } = useUserMissionRank(missionId);
   const [expandedExercise, setExpandedExercise] = useState<string | null>(null);
 
   if (isLoading) {
@@ -73,12 +78,28 @@ const MissionDetail = () => {
             <ArrowLeft className="w-5 h-5" />
           </button>
           <div>
-            <h1 className="font-display text-3xl text-primary">{mission.code_name}</h1>
+            <div className="flex items-center gap-2">
+              <h1 className="font-display text-3xl text-primary">{mission.code_name}</h1>
+              <PopularityBadge score={mission.popularity_score || 0} />
+            </div>
             <p className="text-xs text-muted-foreground tracking-wider">MISSION BRIEFING</p>
           </div>
         </motion.header>
 
+        {/* Warrior Count - Social Proof */}
+        {missionStats && (
+          <motion.div
+            initial={{ opacity: 0, y: 10 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.05 }}
+            className="mb-4"
+          >
+            <WarriorCount count={missionStats.uniquePlayers} />
+          </motion.div>
+        )}
+
         {/* Mission Overview Card */}
+        <HotMissionGlow score={mission.popularity_score || 0}>
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
@@ -146,6 +167,36 @@ const MissionDetail = () => {
             ))}
           </div>
         </motion.div>
+        </HotMissionGlow>
+
+        {/* Your Rank + Leaderboard */}
+        {(userRank || (leaderboard && leaderboard.length > 0)) && (
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.15 }}
+            className="bg-card border border-border rounded-lg p-4 mb-6"
+          >
+            <div className="flex items-center gap-2 mb-3">
+              <Trophy className="w-4 h-4 text-warning" />
+              <h3 className="font-display text-sm text-muted-foreground">MISSION RANKINGS</h3>
+            </div>
+            
+            {userRank && userRank.userRank && (
+              <div className="mb-3">
+                <MissionRankBadge 
+                  rank={userRank.userRank} 
+                  totalPlayers={userRank.totalPlayers}
+                  bestScore={userRank.userBestScore}
+                />
+              </div>
+            )}
+            
+            {leaderboard && leaderboard.length > 0 && (
+              <MissionLeaderboardMini entries={leaderboard} />
+            )}
+          </motion.div>
+        )}
 
         {/* Exercise List */}
         <motion.div

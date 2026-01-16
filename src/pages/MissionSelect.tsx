@@ -1,9 +1,11 @@
 import { useState } from 'react';
 import { motion } from 'framer-motion';
 import { useNavigate } from 'react-router-dom';
-import { ArrowLeft, Zap, Plus, Filter, X, RefreshCw, AlertCircle, Clock } from 'lucide-react';
+import { ArrowLeft, Zap, Plus, Filter, X, RefreshCw, AlertCircle, Clock, Users } from 'lucide-react';
 import { useMissions } from '@/hooks/useMissions';
 import { useAuth } from '@/hooks/useAuth';
+import { PopularityBadge } from '@/components/SocialProof';
+import { getPopularityTier } from '@/hooks/useMissionStats';
 
 const FOCUS_AREAS = ['PUSH', 'PULL', 'LEGS', 'CORE', 'CARDIO', 'ARMS', 'SHOULDERS', 'CHEST', 'BACK'];
 const MUSCLE_GROUPS = ['Chest', 'Back', 'Shoulders', 'Biceps', 'Triceps', 'Quadriceps', 'Hamstrings', 'Core'];
@@ -275,14 +277,21 @@ const MissionSelect = () => {
                     CUSTOM
                   </div>
                 )}
+
+                {/* Popularity badge */}
+                {mission.is_public && getPopularityTier(mission.popularity_score || 0) && (
+                  <div className="absolute top-2 right-2">
+                    <PopularityBadge score={mission.popularity_score || 0} />
+                  </div>
+                )}
                 
                 <div className="relative z-10">
                   <div className="flex items-start justify-between mb-3">
-                    <div>
+                    <div className="flex-1 pr-16">
                       <h2 className="font-display text-2xl text-primary group-hover:text-glow-primary transition-all">
                         {mission.code_name}
                       </h2>
-                      <p className="text-sm text-muted-foreground mt-1">{mission.description}</p>
+                      <p className="text-sm text-muted-foreground mt-1 line-clamp-2">{mission.description}</p>
                     </div>
                     <div className="flex items-center gap-1 bg-muted px-2 py-1 rounded">
                       <Zap className="w-3 h-3 text-accent" />

@@ -974,6 +974,34 @@ export type Database = {
         }
         Relationships: []
       }
+      mission_leaderboard: {
+        Row: {
+          completed_at: string | null
+          display_name: string | null
+          max_combo: number | null
+          mission_id: string | null
+          rank: number | null
+          score_earned: number | null
+          total_weight: number | null
+          user_id: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "workout_sessions_mission_id_fkey"
+            columns: ["mission_id"]
+            isOneToOne: false
+            referencedRelation: "missions"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "workout_sessions_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
     }
     Functions: {
       calculate_mission_difficulty: {
@@ -988,6 +1016,15 @@ export type Database = {
         Args: { p_user_id: string }
         Returns: number
       }
+      get_mission_stats: {
+        Args: { p_mission_id: string }
+        Returns: {
+          avg_score: number
+          completion_count: number
+          total_weight_lifted: number
+          unique_players: number
+        }[]
+      }
       get_user_assignments: {
         Args: { _user_id: string }
         Returns: {
@@ -1000,6 +1037,14 @@ export type Database = {
           mission_snapshot: Json
           squad_name: string
           status: string
+        }[]
+      }
+      get_user_mission_rank: {
+        Args: { p_mission_id: string; p_user_id: string }
+        Returns: {
+          total_players: number
+          user_best_score: number
+          user_rank: number
         }[]
       }
       has_role: {
