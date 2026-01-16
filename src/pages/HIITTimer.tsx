@@ -9,6 +9,16 @@ import { ExplosionEffect } from '@/components/ExplosionEffect';
 import { KillFeed } from '@/components/KillFeed';
 import { useHIITSounds } from '@/hooks/useHIITSounds';
 import { Progress } from '@/components/ui/progress';
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from '@/components/ui/alert-dialog';
 
 interface KillFeedItem {
   id: string;
@@ -23,6 +33,7 @@ const HIITTimer = () => {
   const [soundEnabled, setSoundEnabled] = useState(true);
   const [showExplosion, setShowExplosion] = useState(false);
   const [killFeedItems, setKillFeedItems] = useState<KillFeedItem[]>([]);
+  const [showExitDialog, setShowExitDialog] = useState(false);
   const prevRoundRef = useRef(0);
   const prevPhaseRef = useRef<string>('IDLE');
 
@@ -33,7 +44,6 @@ const HIITTimer = () => {
     timerPhase,
     currentRound,
     timeRemaining,
-    stats,
     startHIIT,
     setTimerPhase,
     nextRound,
@@ -77,25 +87,25 @@ const HIITTimer = () => {
   // Track round changes for kill feed
   useEffect(() => {
     if (currentRound > prevRoundRef.current && currentRound > 1) {
-      // Round completed
+      // Round completed - this is the ONLY notification for round completion
       addKillFeedItem(`ROUND ${currentRound - 1} COMPLETE`, 'round');
       setShowExplosion(true);
     }
     prevRoundRef.current = currentRound;
   }, [currentRound, addKillFeedItem]);
 
-  // Track phase changes for sounds and kill feed
+  // Track phase changes for sounds only (removed duplicate kill feed messages)
   useEffect(() => {
     if (prevPhaseRef.current !== timerPhase) {
       if (timerPhase === 'WORK' && prevPhaseRef.current !== 'IDLE') {
         playWorkStart();
-        addKillFeedItem('FIGHT!', 'phase');
+        // Removed: addKillFeedItem('FIGHT!', 'phase') - redundant with phase label
       } else if (timerPhase === 'REST') {
         playRestStart();
-        addKillFeedItem('RECOVER', 'phase');
+        // Removed: addKillFeedItem('RECOVER', 'phase') - redundant with phase label
       } else if (timerPhase === 'COMPLETED') {
         playComplete();
-        addKillFeedItem('VICTORY!', 'bonus');
+        addKillFeedItem('MISSION COMPLETE', 'bonus');
       }
       prevPhaseRef.current = timerPhase;
     }
@@ -150,6 +160,22 @@ const HIITTimer = () => {
     prevPhaseRef.current = 'IDLE';
     prevRoundRef.current = 0;
   }, [resetHIIT]);
+
+  // Handle back button with confirmation if progress exists
+  const handleBackPress = useCallback(() => {
+    // Show confirmation if at least one round has been started
+    if (currentRound >= 1 && timerPhase !== 'IDLE' && timerPhase !== 'COMPLETED') {
+      setShowExitDialog(true);
+    } else {
+      navigate('/');
+    }
+  }, [currentRound, timerPhase, navigate]);
+
+  const handleConfirmExit = useCallback(() => {
+    resetHIIT();
+    setShowExitDialog(false);
+    navigate('/');
+  }, [resetHIIT, navigate]);
 
   const getPhaseColor = () => {
     switch (timerPhase) {
@@ -267,33 +293,39 @@ const HIITTimer = () => {
       {/* Scanlines */}
       <div className="fixed inset-0 pointer-events-none scanlines opacity-30" />
 
-      {/* Kill Feed */}
+      {/* Kill Feed - Only shows round completions now */}
       <KillFeed items={killFeedItems} onItemComplete={removeKillFeedItem} />
 
       {/* Header */}
       <header className="relative z-10 flex items-center justify-between p-4">
         <div className="flex items-center gap-2">
           <button 
-            onClick={() => navigate('/')}
-            className="p-3 bg-background/20 backdrop-blur rounded-full"
+            onClick={handleBackPress}
+            className="p-3 bg-background/30 backdrop-blur rounded-full border border-foreground/20"
+            aria-label="Go back"
           >
             <ArrowLeft className="w-5 h-5" />
           </button>
           <button 
             onClick={handleReset}
-            className="p-3 bg-background/20 backdrop-blur rounded-full"
+            className="p-3 bg-background/30 backdrop-blur rounded-full border border-foreground/20"
+            aria-label="Return to protocol selection"
+            title="Return to protocol selection"
           >
             <RotateCcw className="w-5 h-5" />
           </button>
         </div>
 
-        <div className="font-display text-lg">
-          ROUND {currentRound}/{hiitConfig?.rounds}
+        <div className="font-display text-lg bg-background/30 backdrop-blur px-4 py-2 rounded-full border border-foreground/20">
+          <span className="text-foreground/70 text-sm mr-2">ROUND</span>
+          <span className="text-xl">{currentRound}</span>
+          <span className="text-foreground/50">/{hiitConfig?.rounds}</span>
         </div>
 
         <button 
           onClick={() => setSoundEnabled(!soundEnabled)}
-          className="p-3 bg-background/20 backdrop-blur rounded-full"
+          className="p-3 bg-background/30 backdrop-blur rounded-full border border-foreground/20"
+          aria-label={soundEnabled ? "Mute sounds" : "Enable sounds"}
         >
           {soundEnabled ? <Volume2 className="w-5 h-5" /> : <VolumeX className="w-5 h-5" />}
         </button>
@@ -325,15 +357,17 @@ const HIITTimer = () => {
             exit={{ scale: 0.8, opacity: 0 }}
             className="text-center"
           >
-            <div className="font-display text-2xl mb-4 tracking-widest opacity-80">
+            {/* Phase label - single clear status indicator */}
+            <div className="font-display text-3xl mb-4 tracking-widest drop-shadow-lg">
               {getPhaseLabel()}
             </div>
             
+            {/* Timer - high contrast with shadow */}
             <motion.div 
               key={timeRemaining}
               initial={{ scale: 1.1 }}
               animate={{ scale: 1 }}
-              className={`arcade-number text-[20vw] md:text-[200px] leading-none ${
+              className={`arcade-number text-[20vw] md:text-[200px] leading-none drop-shadow-[0_4px_8px_rgba(0,0,0,0.5)] ${
                 timeRemaining <= 3 && timerPhase === 'WORK' ? 'animate-shake text-glow-primary' : ''
               }`}
             >
@@ -346,11 +380,8 @@ const HIITTimer = () => {
                 animate={{ opacity: 1, y: 0 }}
                 className="mt-8 space-y-4"
               >
-                <div className="font-display text-4xl">
-                  SCORE: {Math.floor(stats.score).toLocaleString()}
-                </div>
-                <div className="text-xl opacity-80">
-                  MAX COMBO: {stats.maxCombo}x
+                <div className="font-display text-3xl text-foreground drop-shadow-lg">
+                  {hiitConfig?.rounds} ROUNDS COMPLETE
                 </div>
                 <button
                   onClick={handleReset}
@@ -369,7 +400,7 @@ const HIITTimer = () => {
         <footer className="relative z-10 p-6">
           <button
             onClick={() => setIsPaused(!isPaused)}
-            className="w-full py-6 bg-background/20 backdrop-blur rounded-lg font-display text-xl flex items-center justify-center gap-3"
+            className="w-full py-6 bg-background/30 backdrop-blur rounded-lg font-display text-xl flex items-center justify-center gap-3 border border-foreground/20"
           >
             {isPaused ? (
               <>
@@ -384,17 +415,27 @@ const HIITTimer = () => {
         </footer>
       )}
 
-      {/* Combo display */}
-      {stats.combo > 0 && timerPhase !== 'COMPLETED' && (
-        <motion.div
-          key={stats.combo}
-          initial={{ scale: 1.5, opacity: 0 }}
-          animate={{ scale: 1, opacity: 1 }}
-          className="absolute bottom-32 right-8 font-display text-4xl"
-        >
-          {stats.combo}x
-        </motion.div>
-      )}
+      {/* Exit Confirmation Dialog */}
+      <AlertDialog open={showExitDialog} onOpenChange={setShowExitDialog}>
+        <AlertDialogContent className="bg-card border-border">
+          <AlertDialogHeader>
+            <AlertDialogTitle className="font-display text-secondary">ABORT MISSION?</AlertDialogTitle>
+            <AlertDialogDescription className="text-muted-foreground">
+              You have completed {currentRound > 1 ? currentRound - 1 : 0} round{currentRound > 2 ? 's' : ''}. 
+              Leaving now will discard your progress.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel className="font-display">STAY</AlertDialogCancel>
+            <AlertDialogAction 
+              onClick={handleConfirmExit}
+              className="bg-destructive text-destructive-foreground font-display hover:bg-destructive/90"
+            >
+              ABORT
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 };
