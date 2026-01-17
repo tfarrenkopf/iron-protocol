@@ -37,45 +37,25 @@ export function RivalWidget() {
       return;
     }
 
-    const shareUrl = `${window.location.origin}/rival/${profile.rival_code}`;
-    const smsBody = `⚔️ YOU'VE BEEN MARKED. Accept the challenge or stay weak. ${shareUrl}`;
+    // Use the published custom domain URL
+    const baseUrl = 'https://iron-protocol.lovable.app';
+    const shareUrl = `${baseUrl}/rival/${profile.rival_code}`;
     const shareText = `⚔️ YOU'VE BEEN MARKED. Accept the challenge or stay weak.`;
+    const fullMessage = `${shareText} ${shareUrl}`;
 
-    // Check if mobile
-    const isMobile = /iPhone|iPad|iPod|Android/i.test(navigator.userAgent);
-    
-    if (isMobile) {
-      // Try SMS first on mobile
-      const smsUrl = `sms:?body=${encodeURIComponent(smsBody)}`;
-      window.location.href = smsUrl;
-      return;
-    }
-    
-    // Desktop: try native share, then clipboard
-    if (navigator.share) {
-      try {
-        await navigator.share({
-          title: 'RIVAL MODE',
-          text: shareText,
-          url: shareUrl,
-        });
-        return;
-      } catch (err: any) {
-        if (err?.name === 'AbortError') return;
-      }
-    }
-    
-    // Fallback: copy to clipboard
+    // Always copy to clipboard first
     try {
-      await navigator.clipboard.writeText(`${shareText} ${shareUrl}`);
+      await navigator.clipboard.writeText(fullMessage);
       toast({ 
-        title: 'LINK COPIED ⚔️', 
-        description: 'Send it to your target.' 
+        title: 'CHALLENGE COPIED ⚔️', 
+        description: 'Paste it anywhere to send to your target.' 
       });
     } catch {
+      // Fallback: show the link in toast if clipboard fails
       toast({ 
-        title: 'Share this link:', 
-        description: shareUrl,
+        title: 'Copy this challenge:', 
+        description: fullMessage,
+        duration: 10000,
       });
     }
   };
