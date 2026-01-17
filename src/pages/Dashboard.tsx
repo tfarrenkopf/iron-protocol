@@ -1,7 +1,7 @@
 import { useMemo } from "react";
 import { motion } from "framer-motion";
 import { useNavigate } from "react-router-dom";
-import { Crosshair, Timer, Radio, User, LogOut, ChevronRight, Users, Play } from "lucide-react";
+import { Timer, Radio, User, LogOut, ChevronRight, Users, Crosshair } from "lucide-react";
 import { useMissions } from "@/hooks/useMissions";
 import { useAuth } from "@/hooks/useAuth";
 import { useProfile } from "@/hooks/useProfile";
@@ -10,6 +10,7 @@ import { IncomingOrders } from "@/components/IncomingOrders";
 import { FirstVisitPopup } from "@/components/FirstVisitPopup";
 import { WeeklySummary } from "@/components/WeeklySummary";
 import { RivalWidget } from "@/components/RivalWidget";
+import { FightNowActions } from "@/components/FightNowActions";
 
 // Helper to get a random item from an array
 const getRandomItem = <T,>(arr: T[]): T | undefined => {
@@ -137,79 +138,47 @@ const Dashboard = () => {
           </p>
         </motion.header>
 
-        {/* Primary Action - FIGHT NOW */}
-        <motion.div
-          initial={{ opacity: 0, scale: 0.95 }}
-          animate={{ opacity: 1, scale: 1 }}
-          transition={{ delay: 0.1 }}
-          className="mb-6"
-        >
-          <button
-            onClick={() => navigate("/command")}
-            className="w-full group relative bg-gradient-to-r from-primary/20 via-primary/10 to-primary/20 border-2 border-primary rounded-lg p-6 text-center transition-all hover:box-glow-primary hover:from-primary/30 hover:via-primary/20 hover:to-primary/30"
-          >
-            <div className="flex items-center justify-center gap-4">
-              <Play className="w-10 h-10 text-primary" />
-              <div>
-                <h2 className="font-display text-3xl text-primary text-glow-primary">FIGHT NOW</h2>
-                <p className="text-sm text-muted-foreground mt-1">Select a mission and begin combat</p>
-              </div>
-            </div>
-          </button>
-        </motion.div>
+        {/* Primary Actions - Fight Now */}
+        <FightNowActions />
 
-        {/* Secondary Actions Row */}
+        {/* Utility Actions Row */}
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.2 }}
-          className={`grid gap-3 mb-8 ${isHandler ? "grid-cols-2 sm:grid-cols-4" : "grid-cols-3"}`}
+          className={`grid gap-2 mb-8 ${isHandler ? "grid-cols-4" : "grid-cols-3"}`}
         >
           <button
-            onClick={() => navigate("/command")}
-            className="group relative bg-card border-2 border-secondary rounded p-4 text-left transition-all hover:box-glow-secondary hover:border-secondary"
-          >
-            <div className="absolute inset-0 bg-secondary/5 group-hover:bg-secondary/10 transition-colors rounded" />
-            <Crosshair className="w-6 h-6 text-secondary mb-2 relative z-10" />
-            <h2 className="font-display text-base text-secondary relative z-10">COMMAND</h2>
-            <p className="text-[10px] text-muted-foreground mt-0.5 relative z-10">Arsenal</p>
-          </button>
-
-          <button
             onClick={() => navigate("/hiit")}
-            className="group relative bg-card border-2 border-accent rounded p-4 text-left transition-all"
-            style={{ boxShadow: "none" }}
-            onMouseEnter={(e) => (e.currentTarget.style.boxShadow = "0 0 20px hsl(20 100% 60% / 0.6)")}
-            onMouseLeave={(e) => (e.currentTarget.style.boxShadow = "none")}
+            className="group relative bg-card border border-accent/50 rounded p-3 text-center transition-all hover:border-accent hover:bg-accent/5"
           >
-            <div className="absolute inset-0 bg-accent/5 group-hover:bg-accent/10 transition-colors rounded" />
-            <Timer className="w-6 h-6 text-accent mb-2 relative z-10" />
-            <h2 className="font-display text-base text-accent relative z-10">HIIT</h2>
-            <p className="text-[10px] text-muted-foreground mt-0.5 relative z-10">Timer</p>
+            <Timer className="w-5 h-5 text-accent mx-auto mb-1" />
+            <h2 className="font-display text-xs text-accent">HIIT</h2>
           </button>
 
           <button
             onClick={() => navigate("/intel")}
-            className="group relative bg-card border-2 border-primary rounded p-4 text-left transition-all hover:box-glow-primary hover:border-primary"
+            className="group relative bg-card border border-primary/50 rounded p-3 text-center transition-all hover:border-primary hover:bg-primary/5"
           >
-            <div className="absolute inset-0 bg-primary/5 group-hover:bg-primary/10 transition-colors rounded" />
-            <Radio className="w-6 h-6 text-primary mb-2 relative z-10" />
-            <h2 className="font-display text-base text-primary relative z-10">INTEL</h2>
-            <p className="text-[10px] text-muted-foreground mt-0.5 relative z-10">Stats & Feed</p>
+            <Radio className="w-5 h-5 text-primary mx-auto mb-1" />
+            <h2 className="font-display text-xs text-primary">INTEL</h2>
+          </button>
+
+          <button
+            onClick={() => navigate("/command")}
+            className="group relative bg-card border border-secondary/50 rounded p-3 text-center transition-all hover:border-secondary hover:bg-secondary/5"
+          >
+            <Crosshair className="w-5 h-5 text-secondary mx-auto mb-1" />
+            <h2 className="font-display text-xs text-secondary">COMMAND</h2>
           </button>
 
           {isHandler && (
             <button
               onClick={() => navigate("/handler")}
-              className="group relative bg-card border-2 border-warning rounded p-4 text-left transition-all hover:border-warning"
-              style={{ boxShadow: "none" }}
-              onMouseEnter={(e) => (e.currentTarget.style.boxShadow = "0 0 20px hsl(var(--warning) / 0.6)")}
-              onMouseLeave={(e) => (e.currentTarget.style.boxShadow = "none")}
+              className="group relative bg-card border border-warning/50 rounded p-3 text-center transition-all hover:border-warning hover:bg-warning/5"
             >
-              <div className="absolute inset-0 bg-warning/5 group-hover:bg-warning/10 transition-colors rounded" />
-              <Users className="w-6 h-6 text-warning mb-2 relative z-10" />
-              <h2 className="font-display text-base text-warning relative z-10">HANDLER</h2>
-              <p className="text-[10px] text-muted-foreground mt-0.5 relative z-10">Squads</p>
+              <Users className="w-5 h-5 text-warning mx-auto mb-1" />
+              <h2 className="font-display text-xs text-warning">HANDLER</h2>
             </button>
           )}
         </motion.div>
