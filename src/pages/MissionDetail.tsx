@@ -49,10 +49,10 @@ const MissionDetail = () => {
       <div className="min-h-screen bg-background flex flex-col items-center justify-center gap-4">
         <div className="font-display text-2xl text-destructive">MISSION NOT FOUND</div>
         <button
-          onClick={() => navigate('/missions')}
+          onClick={() => navigate('/command')}
           className="text-sm text-muted-foreground hover:text-primary"
         >
-          Return to Mission Select
+          Return to Command
         </button>
       </div>
     );

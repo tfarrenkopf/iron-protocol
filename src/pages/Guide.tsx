@@ -80,13 +80,13 @@ const GUIDE_SECTIONS = [
     ]
   },
   {
-    id: 'arsenal',
-    title: 'THE ARSENAL',
+    id: 'command',
+    title: 'COMMAND CENTER',
     icon: Plus,
     color: 'text-primary',
     content: [
       { type: 'text', value: 'Create and manage your custom exercises and missions.' },
-      { type: 'highlight', value: 'EDIT ARSENAL on the dashboard → Add exercises → Build missions' },
+      { type: 'highlight', value: 'COMMAND on the dashboard → MY MISSIONS / MY EXERCISES tabs → Create new' },
       { type: 'text', value: 'Custom exercises are private by default. Use them in your personal missions.' },
       { type: 'text', value: 'Missions you create appear in your mission list for quick access.' },
       { type: 'tip', value: 'Include muscle groups and equipment tags for better organization' },
