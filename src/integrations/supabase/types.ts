@@ -643,6 +643,7 @@ export type Database = {
       }
       profiles: {
         Row: {
+          active_campaign_id: string | null
           created_at: string
           display_name: string | null
           equipped_icon_id: string | null
@@ -658,6 +659,7 @@ export type Database = {
           updated_at: string
         }
         Insert: {
+          active_campaign_id?: string | null
           created_at?: string
           display_name?: string | null
           equipped_icon_id?: string | null
@@ -673,6 +675,7 @@ export type Database = {
           updated_at?: string
         }
         Update: {
+          active_campaign_id?: string | null
           created_at?: string
           display_name?: string | null
           equipped_icon_id?: string | null
@@ -688,6 +691,13 @@ export type Database = {
           updated_at?: string
         }
         Relationships: [
+          {
+            foreignKeyName: "profiles_active_campaign_id_fkey"
+            columns: ["active_campaign_id"]
+            isOneToOne: false
+            referencedRelation: "collections"
+            referencedColumns: ["id"]
+          },
           {
             foreignKeyName: "profiles_equipped_icon_id_fkey"
             columns: ["equipped_icon_id"]

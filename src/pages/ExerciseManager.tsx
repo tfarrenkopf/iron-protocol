@@ -203,6 +203,7 @@ const ExerciseManager = () => {
       }
       setShowForm(false);
       resetForm();
+      navigate('/command?tab=exercises');
     } catch (err: any) {
       if (err.message?.includes("unique")) {
         setError("You already have an exercise with this name");
@@ -252,12 +253,12 @@ const ExerciseManager = () => {
           id: editingMission.id,
           ...missionData,
         });
-        // Return to Command with missions tab
-        navigate("/command?tab=missions");
+        navigate('/command?tab=missions');
       } else {
         await createMission.mutateAsync(missionData);
         setShowMissionForm(false);
         resetMissionForm();
+        navigate('/command?tab=missions');
       }
     } catch (err: any) {
       setMissionError(err.message || `Failed to ${editingMission ? "update" : "create"} mission`);
