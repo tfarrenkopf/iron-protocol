@@ -265,9 +265,14 @@ export function MissionCard({
         {variant === 'picker' && (
           <div className="flex items-center flex-shrink-0 ml-2">
             {isAdded ? (
-              <div className="w-12 h-12 rounded-lg flex items-center justify-center bg-secondary/20 text-secondary">
+              <button
+                onClick={(e) => { e.stopPropagation(); onRemove?.(); }}
+                className="w-12 h-12 rounded-lg flex items-center justify-center bg-secondary/20 text-secondary
+                           hover:bg-destructive/20 hover:text-destructive active:scale-95 transition-all"
+                aria-label="Remove mission from campaign"
+              >
                 <CheckCircle2 className="w-6 h-6" />
-              </div>
+              </button>
             ) : (
               <button
                 onClick={(e) => { e.stopPropagation(); onAdd?.(); }}

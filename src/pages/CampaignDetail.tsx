@@ -712,6 +712,7 @@ const CampaignDetail = () => {
         open={missionPickerOpen}
         onOpenChange={setMissionPickerOpen}
         onAddMission={handleAddMission}
+        onRemoveMission={(missionId) => setMissionToRemove({ id: missionId, name: missions.find(m => m?.id === missionId)?.code_name || 'Mission' })}
         existingMissionIds={missionIds}
       />
 

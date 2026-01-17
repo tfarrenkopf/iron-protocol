@@ -18,6 +18,7 @@ interface MissionPickerDialogProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   onAddMission: (missionId: string) => void;
+  onRemoveMission?: (missionId: string) => void;
   existingMissionIds: string[];
 }
 
@@ -25,6 +26,7 @@ export function MissionPickerDialog({
   open,
   onOpenChange,
   onAddMission,
+  onRemoveMission,
   existingMissionIds,
 }: MissionPickerDialogProps) {
   const [search, setSearch] = useState('');
@@ -259,6 +261,7 @@ export function MissionPickerDialog({
                   variant="picker"
                   isAdded={isAlreadyAdded(mission.id)}
                   onAdd={() => onAddMission(mission.id)}
+                  onRemove={onRemoveMission ? () => onRemoveMission(mission.id) : undefined}
                 />
               ))}
             </>
