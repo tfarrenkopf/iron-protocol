@@ -383,6 +383,7 @@ export function CollectionFormDialog({ open, onOpenChange, collectionId }: Colle
           open={missionPickerOpen}
           onOpenChange={setMissionPickerOpen}
           onAddMission={handleAddMission}
+          onRemoveMission={handleRemoveMission}
           existingMissionIds={missionIds}
         />
       )}
