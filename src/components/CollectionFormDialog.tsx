@@ -75,11 +75,19 @@ export function CollectionFormDialog({ open, onOpenChange, collectionId }: Colle
           ...data,
         });
         toast({ title: 'Campaign updated', description: `${data.code_name} has been updated.` });
+        onOpenChange(false);
       } else {
-        await createCollection.mutateAsync(data);
-        toast({ title: 'Campaign created', description: `${data.code_name} is ready to use.` });
+        const newCollection = await createCollection.mutateAsync(data);
+        toast({ 
+          title: 'Campaign created', 
+          description: `${data.code_name} is ready. Now add missions to it!`,
+        });
+        onOpenChange(false);
+        // Navigate to the new campaign to add missions
+        if (newCollection?.id) {
+          window.location.href = `/campaign/${newCollection.id}`;
+        }
       }
-      onOpenChange(false);
     } catch (error: any) {
       toast({ 
         title: 'Error', 

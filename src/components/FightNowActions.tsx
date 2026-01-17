@@ -58,18 +58,22 @@ export function FightNowActions() {
       {hasActiveCampaign ? (
         <button
           onClick={handleContinueCampaign}
-          className="w-full group relative bg-gradient-to-r from-accent/20 via-accent/10 to-accent/20 border-2 border-accent rounded-lg p-5 text-left transition-all hover:box-glow-accent hover:from-accent/30 hover:via-accent/20 hover:to-accent/30"
+          className={`w-full group relative border-2 rounded-lg p-5 text-left transition-all ${
+            isComplete 
+              ? 'bg-gradient-to-r from-secondary/20 via-secondary/10 to-secondary/20 border-secondary hover:box-glow-secondary hover:from-secondary/30 hover:via-secondary/20 hover:to-secondary/30'
+              : 'bg-gradient-to-r from-accent/20 via-accent/10 to-accent/20 border-accent hover:box-glow-accent hover:from-accent/30 hover:via-accent/20 hover:to-accent/30'
+          }`}
         >
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-4">
-              <div className="p-2 bg-accent/20 rounded-lg">
-                <Zap className="w-8 h-8 text-accent" />
+              <div className={`p-2 rounded-lg ${isComplete ? 'bg-secondary/20' : 'bg-accent/20'}`}>
+                <Zap className={`w-8 h-8 ${isComplete ? 'text-secondary' : 'text-accent'}`} />
               </div>
               <div className="flex-1">
-                <div className="text-xs text-accent/70 font-display tracking-wider mb-0.5">
-                  {isComplete ? 'REPLAY CAMPAIGN' : 'CONTINUE CAMPAIGN'}
+                <div className={`text-xs font-display tracking-wider mb-0.5 ${isComplete ? 'text-secondary/70' : 'text-accent/70'}`}>
+                  {isComplete ? '✓ CAMPAIGN COMPLETE' : 'ACTIVE CAMPAIGN'}
                 </div>
-                <h2 className="font-display text-xl text-accent">{campaign?.code_name}</h2>
+                <h2 className={`font-display text-xl ${isComplete ? 'text-secondary' : 'text-accent'}`}>{campaign?.code_name}</h2>
                 <div className="flex items-center gap-3 text-xs text-muted-foreground mt-1">
                   <span className="flex items-center gap-1">
                     <Play className="w-3 h-3" />
@@ -83,10 +87,10 @@ export function FightNowActions() {
                 {/* Equipment preview */}
                 {campaignEquipment.length > 0 && (
                   <div className="flex items-center gap-1.5 mt-2">
-                    <Dumbbell className="w-3 h-3 text-accent/60" />
+                    <Dumbbell className={`w-3 h-3 ${isComplete ? 'text-secondary/60' : 'text-accent/60'}`} />
                     <div className="flex gap-1">
                       {campaignEquipment.map(eq => (
-                        <span key={eq} className="text-[9px] px-1.5 py-0.5 bg-accent/10 text-accent/80 rounded">
+                        <span key={eq} className={`text-[9px] px-1.5 py-0.5 rounded ${isComplete ? 'bg-secondary/10 text-secondary/80' : 'bg-accent/10 text-accent/80'}`}>
                           {formatEquipment(eq)}
                         </span>
                       ))}
@@ -95,12 +99,12 @@ export function FightNowActions() {
                 )}
               </div>
             </div>
-            <ChevronRight className="w-6 h-6 text-accent group-hover:translate-x-1 transition-transform flex-shrink-0" />
+            <ChevronRight className={`w-6 h-6 group-hover:translate-x-1 transition-transform flex-shrink-0 ${isComplete ? 'text-secondary' : 'text-accent'}`} />
           </div>
           {/* Progress bar */}
-          <div className="mt-3 h-1 bg-accent/20 rounded-full overflow-hidden">
+          <div className={`mt-3 h-1 rounded-full overflow-hidden ${isComplete ? 'bg-secondary/20' : 'bg-accent/20'}`}>
             <div 
-              className="h-full bg-accent rounded-full transition-all"
+              className={`h-full rounded-full transition-all ${isComplete ? 'bg-secondary' : 'bg-accent'}`}
               style={{ width: `${totalMissions > 0 ? (completedCount / totalMissions) * 100 : 0}%` }}
             />
           </div>
