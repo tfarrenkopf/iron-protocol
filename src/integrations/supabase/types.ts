@@ -1107,6 +1107,56 @@ export type Database = {
           },
         ]
       }
+      war_report_campaign_snapshots: {
+        Row: {
+          average_completion_time_seconds: number | null
+          campaign_id: string
+          created_at: string
+          fastest_completion_seconds: number | null
+          id: string
+          replay_rate: number | null
+          total_completions: number | null
+          total_score: number | null
+          total_weight_lifted: number | null
+          unique_players_count: number | null
+          week_start_date: string
+        }
+        Insert: {
+          average_completion_time_seconds?: number | null
+          campaign_id: string
+          created_at?: string
+          fastest_completion_seconds?: number | null
+          id?: string
+          replay_rate?: number | null
+          total_completions?: number | null
+          total_score?: number | null
+          total_weight_lifted?: number | null
+          unique_players_count?: number | null
+          week_start_date: string
+        }
+        Update: {
+          average_completion_time_seconds?: number | null
+          campaign_id?: string
+          created_at?: string
+          fastest_completion_seconds?: number | null
+          id?: string
+          replay_rate?: number | null
+          total_completions?: number | null
+          total_score?: number | null
+          total_weight_lifted?: number | null
+          unique_players_count?: number | null
+          week_start_date?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "war_report_campaign_snapshots_campaign_id_fkey"
+            columns: ["campaign_id"]
+            isOneToOne: false
+            referencedRelation: "collections"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       workout_sessions: {
         Row: {
           completed_at: string | null
@@ -1289,6 +1339,32 @@ export type Database = {
           },
         ]
       }
+      war_report_current_week: {
+        Row: {
+          average_completion_time_seconds: number | null
+          campaign_code: string | null
+          campaign_id: string | null
+          campaign_name: string | null
+          created_at: string | null
+          fastest_completion_seconds: number | null
+          id: string | null
+          replay_rate: number | null
+          total_completions: number | null
+          total_score: number | null
+          total_weight_lifted: number | null
+          unique_players_count: number | null
+          week_start_date: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "war_report_campaign_snapshots_campaign_id_fkey"
+            columns: ["campaign_id"]
+            isOneToOne: false
+            referencedRelation: "collections"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
     }
     Functions: {
       calculate_mission_difficulty: {
@@ -1299,6 +1375,7 @@ export type Database = {
         }
         Returns: number
       }
+      generate_war_report_snapshot: { Args: never; Returns: undefined }
       get_completed_mission_count: {
         Args: { p_user_id: string }
         Returns: number

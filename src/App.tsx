@@ -24,6 +24,7 @@ import AssignMission from "./pages/AssignMission";
 import AssignmentWorkout from "./pages/AssignmentWorkout";
 import Collections from "./pages/Collections";
 import CampaignDetail from "./pages/CampaignDetail";
+import WarReport from "./pages/WarReport";
 import RivalInvite from "./pages/RivalInvite";
 import NotFound from "./pages/NotFound";
 import { useGoogleAnalytics } from "@/hooks/useGoogleAnalytics";
@@ -52,6 +53,7 @@ function AppContent() {
         <Route path="/front-lines" element={<FrontLines />} />
         <Route path="/legal" element={<Legal />} />
         <Route path="/donate" element={<Donate />} />
+        <Route path="/war-report" element={<WarReport />} />
         <Route path="/guide" element={<Guide />} />
         <Route path="/handler" element={<HandlerDashboard />} />
         <Route path="/handler/assign/:squadId" element={<AssignMission />} />
