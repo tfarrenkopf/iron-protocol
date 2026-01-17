@@ -9,6 +9,7 @@ import { useAuth } from '@/hooks/useAuth';
 import { MissionCard } from '@/components/MissionCard';
 import { AddToCollectionButton } from '@/components/AddToCollectionButton';
 import { CollectionFormDialog } from '@/components/CollectionFormDialog';
+import { ExerciseCard } from '@/components/ExerciseCard';
 import { FOCUS_AREAS, getMusclesForFocusArea, formatEquipment } from '@/data/muscleGroups';
 import { CollectionFilter } from '@/components/CollectionFilter';
 import { useActiveCampaign } from '@/hooks/useActiveCampaign';
@@ -550,25 +551,31 @@ const Command = () => {
                         mission={mission}
                         index={i}
                         topRightSlot={
-                          source === 'personal' && mission.created_by === user?.id ? (
+                          user ? (
                             <>
-                              <button
-                                onClick={(e) => handleEditMission(e, mission.id)}
-                                className="p-1.5 bg-secondary/20 text-secondary rounded hover:bg-secondary/30 transition-colors"
-                                title="Edit mission"
-                              >
-                                <Pencil className="w-3.5 h-3.5" />
-                              </button>
-                              <button
-                                onClick={(e) => { e.stopPropagation(); handleDeleteClick(mission.id, mission.code_name, 'mission'); }}
-                                className="p-1.5 bg-destructive/20 text-destructive rounded hover:bg-destructive/30 transition-colors"
-                                title="Delete mission"
-                              >
-                                <Trash2 className="w-3.5 h-3.5" />
-                              </button>
+                              {/* Add to Campaign - always show for logged-in users */}
+                              <AddToCollectionButton missionId={mission.id} />
+                              
+                              {/* Edit & Delete - only for owner's missions */}
+                              {source === 'personal' && mission.created_by === user?.id && (
+                                <>
+                                  <button
+                                    onClick={(e) => handleEditMission(e, mission.id)}
+                                    className="p-1.5 bg-secondary/20 text-secondary rounded hover:bg-secondary/30 transition-colors"
+                                    title="Edit mission"
+                                  >
+                                    <Pencil className="w-3.5 h-3.5" />
+                                  </button>
+                                  <button
+                                    onClick={(e) => { e.stopPropagation(); handleDeleteClick(mission.id, mission.code_name, 'mission'); }}
+                                    className="p-1.5 bg-destructive/20 text-destructive rounded hover:bg-destructive/30 transition-colors"
+                                    title="Delete mission"
+                                  >
+                                    <Trash2 className="w-3.5 h-3.5" />
+                                  </button>
+                                </>
+                              )}
                             </>
-                          ) : user ? (
-                            <AddToCollectionButton missionId={mission.id} />
                           ) : undefined
                         }
                       />
@@ -585,58 +592,41 @@ const Command = () => {
               <div className="text-center py-12">
                 <div className="font-display text-lg text-primary animate-neon-pulse">LOADING...</div>
               </div>
-            ) : myExercises.length === 0 ? (
-              <div className="text-center py-12 border border-dashed border-border rounded-lg">
-                <Dumbbell className="w-10 h-10 mx-auto mb-3 text-muted-foreground/50" />
-                <p className="text-muted-foreground mb-3">No custom exercises yet</p>
-                <button
-                  onClick={() => navigate('/exercises?newExercise=true')}
-                  className="text-sm text-primary hover:text-glow-primary font-display"
-                >
-                  + CREATE YOUR FIRST EXERCISE
-                </button>
-              </div>
             ) : (
-              <div className="space-y-2">
-                {myExercises.map((exercise, i) => (
-                  <motion.div
-                    key={exercise.id}
-                    initial={{ opacity: 0, x: -10 }}
-                    animate={{ opacity: 1, x: 0 }}
-                    transition={{ delay: i * 0.03 }}
-                    className="bg-card border border-border rounded-lg p-3 hover:border-primary/50 transition-colors group"
-                  >
-                    <div className="flex items-start justify-between">
-                      <div className="flex-1">
-                        <h3 className="font-display text-primary">{exercise.name}</h3>
-                        <div className="text-xs text-muted-foreground mt-1 space-y-0.5">
-                          <p><span className="text-secondary">Equipment:</span> {exercise.equipment?.map(e => formatEquipment(e)).join(', ') || 'None'}</p>
-                          <p><span className="text-secondary">Primary:</span> {exercise.primary_muscle_group}</p>
-                          {exercise.secondary_muscle_groups && exercise.secondary_muscle_groups.length > 0 && (
-                            <p><span className="text-secondary">Secondary:</span> {exercise.secondary_muscle_groups.join(', ')}</p>
-                          )}
-                        </div>
-                      </div>
-                      <div className="flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
-                        <button
-                          onClick={() => navigate(`/exercises?editExercise=${exercise.id}`)}
-                          className="p-1.5 hover:bg-secondary/20 rounded transition-colors"
-                          title="Edit exercise"
-                        >
-                          <Pencil className="w-3.5 h-3.5 text-secondary" />
-                        </button>
-                        <button
-                          onClick={() => handleDeleteClick(exercise.id, exercise.name, 'exercise')}
-                          className="p-1.5 hover:bg-destructive/20 rounded transition-colors"
-                          title="Delete exercise"
-                        >
-                          <Trash2 className="w-3.5 h-3.5 text-destructive" />
-                        </button>
-                      </div>
-                    </div>
-                  </motion.div>
-                ))}
-              </div>
+              <>
+                {/* Exercise instruction */}
+                <div className="mb-4 p-3 bg-primary/5 border border-primary/20 rounded-lg">
+                  <p className="text-xs text-muted-foreground">
+                    <span className="text-primary font-display">EXERCISES</span> are your building blocks. Create custom moves, then add them to missions.
+                  </p>
+                </div>
+                
+                {myExercises.length === 0 ? (
+                  <div className="text-center py-12 border border-dashed border-border rounded-lg">
+                    <Dumbbell className="w-10 h-10 mx-auto mb-3 text-muted-foreground/50" />
+                    <p className="text-muted-foreground mb-3">No custom exercises yet</p>
+                    <button
+                      onClick={() => navigate('/exercises?newExercise=true')}
+                      className="text-sm text-primary hover:text-glow-primary font-display"
+                    >
+                      + CREATE YOUR FIRST EXERCISE
+                    </button>
+                  </div>
+                ) : (
+                  <div className="space-y-2">
+                    {myExercises.map((exercise, i) => (
+                      <ExerciseCard
+                        key={exercise.id}
+                        exercise={exercise}
+                        index={i}
+                        isOwner={exercise.created_by === user?.id}
+                        onEdit={(id) => navigate(`/exercises?editExercise=${id}`)}
+                        onDelete={(id, name) => handleDeleteClick(id, name, 'exercise')}
+                      />
+                    ))}
+                  </div>
+                )}
+              </>
             )
           )}
 

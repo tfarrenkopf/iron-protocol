@@ -3,7 +3,9 @@ import { motion } from 'framer-motion';
 import { useNavigate } from 'react-router-dom';
 import { Target, ChevronRight, Trophy, RotateCcw, AlertTriangle, CheckCircle2, Circle, Clock, Zap, Play } from 'lucide-react';
 import { useActiveCampaign, useActiveCampaignDetails } from '@/hooks/useActiveCampaign';
+import { useAuth } from '@/hooks/useAuth';
 import { Progress } from '@/components/ui/progress';
+import { toast } from 'sonner';
 import {
   AlertDialog,
   AlertDialogAction,
@@ -238,14 +240,24 @@ export function StartCampaignButton({
   campaignId: string;
   size?: 'default' | 'small' | 'large';
 }) {
+  const navigate = useNavigate();
+  const { user } = useAuth();
   const { activeCampaignId, setActiveCampaign, isSettingActive } = useActiveCampaign();
   const isActive = activeCampaignId === campaignId;
   const hasOtherActive = activeCampaignId && activeCampaignId !== campaignId;
 
   const handleClick = (e: React.MouseEvent) => {
     e.stopPropagation();
+    
+    if (!user) {
+      toast.error('Sign in to start a campaign');
+      navigate('/auth');
+      return;
+    }
+    
     if (!isActive) {
       setActiveCampaign(campaignId);
+      toast.success(hasOtherActive ? 'Campaign switched!' : 'Campaign started!');
     }
   };
 
@@ -286,7 +298,7 @@ export function StartCampaignButton({
       title={hasOtherActive ? 'Switch to this campaign' : 'Start this campaign'}
     >
       <Play className={iconSizes[size]} />
-      {hasOtherActive ? 'SWITCH CAMPAIGN' : 'BEGIN CAMPAIGN'}
+      {isSettingActive ? 'STARTING...' : hasOtherActive ? 'SWITCH CAMPAIGN' : 'BEGIN CAMPAIGN'}
     </button>
   );
 }
