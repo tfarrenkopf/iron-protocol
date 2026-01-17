@@ -22,15 +22,11 @@ import HandlerDashboard from "./pages/HandlerDashboard";
 import JoinSquad from "./pages/JoinSquad";
 import AssignMission from "./pages/AssignMission";
 import AssignmentWorkout from "./pages/AssignmentWorkout";
-import Analytics from "./pages/Analytics";
 import NotFound from "./pages/NotFound";
-import { useTimeTracking } from "@/hooks/useTimeTracking";
 
 const queryClient = new QueryClient();
 
 function AppContent() {
-  useTimeTracking();
-  
   return (
     <>
       <ScrollToTop />
@@ -52,7 +48,6 @@ function AppContent() {
         <Route path="/handler" element={<HandlerDashboard />} />
         <Route path="/handler/assign/:squadId" element={<AssignMission />} />
         <Route path="/join/:inviteCode" element={<JoinSquad />} />
-        <Route path="/x7k9m2" element={<Analytics />} />
         {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
         <Route path="*" element={<NotFound />} />
       </Routes>
