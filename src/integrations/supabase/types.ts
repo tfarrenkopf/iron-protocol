@@ -68,6 +68,95 @@ export type Database = {
         }
         Relationships: []
       }
+      collection_missions: {
+        Row: {
+          added_at: string
+          collection_id: string
+          id: string
+          mission_id: string
+          order_index: number
+        }
+        Insert: {
+          added_at?: string
+          collection_id: string
+          id?: string
+          mission_id: string
+          order_index?: number
+        }
+        Update: {
+          added_at?: string
+          collection_id?: string
+          id?: string
+          mission_id?: string
+          order_index?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "collection_missions_collection_id_fkey"
+            columns: ["collection_id"]
+            isOneToOne: false
+            referencedRelation: "collections"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "collection_missions_mission_id_fkey"
+            columns: ["mission_id"]
+            isOneToOne: false
+            referencedRelation: "missions"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      collections: {
+        Row: {
+          code_name: string
+          cover_image_url: string | null
+          created_at: string
+          created_by: string | null
+          description: string | null
+          id: string
+          is_system: boolean
+          name: string
+          popularity_score: number
+          updated_at: string
+          visibility: string
+        }
+        Insert: {
+          code_name: string
+          cover_image_url?: string | null
+          created_at?: string
+          created_by?: string | null
+          description?: string | null
+          id?: string
+          is_system?: boolean
+          name: string
+          popularity_score?: number
+          updated_at?: string
+          visibility?: string
+        }
+        Update: {
+          code_name?: string
+          cover_image_url?: string | null
+          created_at?: string
+          created_by?: string | null
+          description?: string | null
+          id?: string
+          is_system?: boolean
+          name?: string
+          popularity_score?: number
+          updated_at?: string
+          visibility?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "collections_created_by_fkey"
+            columns: ["created_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       cosmetics: {
         Row: {
           code_name: string
@@ -506,6 +595,7 @@ export type Database = {
           equipped_title_id: string | null
           id: string
           max_combo: number
+          rival_code: string | null
           total_reps: number
           total_score: number
           total_sets: number
@@ -520,6 +610,7 @@ export type Database = {
           equipped_title_id?: string | null
           id: string
           max_combo?: number
+          rival_code?: string | null
           total_reps?: number
           total_score?: number
           total_sets?: number
@@ -534,6 +625,7 @@ export type Database = {
           equipped_title_id?: string | null
           id?: string
           max_combo?: number
+          rival_code?: string | null
           total_reps?: number
           total_score?: number
           total_sets?: number
