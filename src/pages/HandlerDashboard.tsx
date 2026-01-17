@@ -1,11 +1,12 @@
 import { useState, useMemo } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useNavigate } from 'react-router-dom';
-import { ArrowLeft, Users, Target, Plus, Copy, Check, Trash2, ChevronRight, Send, Calendar, Edit3, X, Save, Percent } from 'lucide-react';
+import { Users, Target, Plus, Copy, Check, Trash2, ChevronRight, Send, Calendar, Edit3, X, Save, Percent } from 'lucide-react';
 import { useAuth } from '@/hooks/useAuth';
 import { useIsHandler, useSquads, useCreateSquad, useDeleteSquad, useUpdateSquad } from '@/hooks/useHandlerMode';
 import { useHandlerAssignments } from '@/hooks/useAssignments';
 import { format } from 'date-fns';
+import { GlobalNav } from '@/components/GlobalNav';
 
 const HandlerDashboard = () => {
   const navigate = useNavigate();
@@ -161,24 +162,10 @@ const HandlerDashboard = () => {
       
       <div className="relative z-10 container mx-auto px-4 py-6 max-w-2xl">
         {/* Header */}
-        <motion.header 
-          initial={{ opacity: 0, y: -20 }}
-          animate={{ opacity: 1, y: 0 }}
-          className="flex items-center justify-between mb-8"
-        >
-          <div className="flex items-center gap-4">
-            <button 
-              onClick={() => navigate('/')}
-              className="p-2 border border-border rounded hover:border-primary transition-colors"
-            >
-              <ArrowLeft className="w-5 h-5" />
-            </button>
-            <div>
-              <h1 className="font-display text-3xl text-secondary text-glow-secondary">HANDLER OPS</h1>
-              <p className="text-xs text-muted-foreground tracking-wider">SQUAD COMMAND CENTER</p>
-            </div>
-          </div>
-        </motion.header>
+        <GlobalNav 
+          title="HANDLER OPS"
+          subtitle="SQUAD COMMAND CENTER"
+        />
 
         {/* Quick Stats */}
         <motion.div
