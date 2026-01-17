@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { FolderPlus, Check, Plus } from 'lucide-react';
+import { Flame, Check, Plus } from 'lucide-react';
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -10,7 +10,24 @@ import {
 import { useCollections, useAddMissionToCollection, useRemoveMissionFromCollection } from '@/hooks/useCollections';
 import { useAuth } from '@/hooks/useAuth';
 import { CollectionFormDialog } from '@/components/CollectionFormDialog';
-import { toast } from '@/hooks/use-toast';
+import { toast } from 'sonner';
+
+// Lore phrases for adding missions
+const ADD_LORE_PHRASES = [
+  "MISSION ACQUIRED. CAMPAIGN UPGRADED.",
+  "NEW OP INTEGRATED. GLORY AWAITS.",
+  "TARGET LOCKED. DEPLOYMENT READY.",
+  "INTEL RECEIVED. OPERATION EXPANDED.",
+  "ASSET SECURED. VICTORY APPROACHES.",
+];
+
+// Lore phrases for removing missions
+const REMOVE_LORE_PHRASES = [
+  "MISSION SCRUBBED. PARAMETERS UPDATED.",
+  "OP REMOVED. STRATEGY REFINED.",
+  "TARGET RELEASED. FOCUS SHARPENED.",
+  "INTEL PURGED. LEAN AND MEAN.",
+];
 
 interface AddToCollectionButtonProps {
   missionId: string;
@@ -38,16 +55,16 @@ export function AddToCollectionButton({ missionId, className = '' }: AddToCollec
     try {
       if (isInCollection(collectionId)) {
         await removeFromCollection.mutateAsync({ collectionId, missionId });
-        toast({ title: 'Removed from campaign', description: `Removed from ${collectionName}` });
+        const lore = REMOVE_LORE_PHRASES[Math.floor(Math.random() * REMOVE_LORE_PHRASES.length)];
+        toast.success(lore, { description: `Removed from ${collectionName}` });
       } else {
         await addToCollection.mutateAsync({ collectionId, missionId });
-        toast({ title: 'Added to campaign', description: `Added to ${collectionName}` });
+        const lore = ADD_LORE_PHRASES[Math.floor(Math.random() * ADD_LORE_PHRASES.length)];
+        toast.success(lore, { description: `Added to ${collectionName}` });
       }
     } catch (error: any) {
-      toast({ 
-        title: 'Error', 
+      toast.error('OPERATION FAILED', { 
         description: error.message || 'Failed to update campaign',
-        variant: 'destructive',
       });
     }
   };
@@ -67,10 +84,10 @@ export function AddToCollectionButton({ missionId, className = '' }: AddToCollec
         <DropdownMenuTrigger asChild>
           <button
             onClick={(e) => e.stopPropagation()}
-            className={`p-1.5 bg-secondary/20 text-secondary rounded hover:bg-secondary/30 transition-colors ${className}`}
+            className={`p-1.5 bg-accent/20 text-accent rounded hover:bg-accent/30 transition-colors ${className}`}
             title="Add to campaign"
           >
-            <FolderPlus className="w-3.5 h-3.5" />
+            <Flame className="w-3.5 h-3.5" />
           </button>
         </DropdownMenuTrigger>
         <DropdownMenuContent 
@@ -92,7 +109,7 @@ export function AddToCollectionButton({ missionId, className = '' }: AddToCollec
               >
                 <div className={`w-4 h-4 rounded border flex items-center justify-center ${
                   isInCollection(collection.id) 
-                    ? 'bg-secondary border-secondary text-secondary-foreground' 
+                    ? 'bg-accent border-accent text-accent-foreground' 
                     : 'border-border'
                 }`}>
                   {isInCollection(collection.id) && <Check className="w-3 h-3" />}
@@ -104,7 +121,7 @@ export function AddToCollectionButton({ missionId, className = '' }: AddToCollec
           <DropdownMenuSeparator />
           <DropdownMenuItem
             onClick={handleNewCollectionClick}
-            className="flex items-center gap-2 text-primary cursor-pointer"
+            className="flex items-center gap-2 text-accent cursor-pointer"
           >
             <Plus className="w-4 h-4" />
             <span className="text-sm">New Campaign</span>

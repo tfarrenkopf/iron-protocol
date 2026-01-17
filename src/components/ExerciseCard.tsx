@@ -1,9 +1,9 @@
 import { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useNavigate } from 'react-router-dom';
-import { ChevronDown, ChevronUp, Pencil, Trash2, Dumbbell, Target, Plus, Check, Loader2 } from 'lucide-react';
+import { ChevronDown, ChevronUp, Pencil, Trash2, Dumbbell, Target, Plus, Check, Loader2, X } from 'lucide-react';
 import { Exercise } from '@/hooks/useExercises';
-import { useMissions, useAddExerciseToMission } from '@/hooks/useMissions';
+import { useMissions, useAddExerciseToMission, useRemoveExerciseFromMission } from '@/hooks/useMissions';
 import { useAuth } from '@/hooks/useAuth';
 import { formatEquipment } from '@/data/muscleGroups';
 import { toast } from 'sonner';
@@ -37,6 +37,15 @@ const ADD_LORE_PHRASES = [
   "UPGRADE COMPLETE. POWER RISING.",
 ];
 
+// Lore phrases for removing exercises
+const REMOVE_LORE_PHRASES = [
+  "WEAPON DISCHARGED. LOADOUT REFINED.",
+  "ASSET REMOVED. STRATEGY OPTIMIZED.",
+  "EXERCISE PURGED. MISSION STREAMLINED.",
+  "COMBAT PROTOCOL ADJUSTED.",
+  "PAYLOAD JETTISONED. MOVING LEAN.",
+];
+
 interface ExerciseCardProps {
   exercise: Exercise;
   index?: number;
@@ -56,11 +65,12 @@ export function ExerciseCard({
   const { user } = useAuth();
   const [isExpanded, setIsExpanded] = useState(false);
   const [showDeleteWarning, setShowDeleteWarning] = useState(false);
-  const [addingToMission, setAddingToMission] = useState<string | null>(null);
+  const [processingMission, setProcessingMission] = useState<string | null>(null);
   
   // Fetch user's missions for "add to mission" functionality
   const { data: missions } = useMissions({});
   const addExerciseToMission = useAddExerciseToMission();
+  const removeExerciseFromMission = useRemoveExerciseFromMission();
   const myMissions = missions?.filter(m => m.created_by === user?.id) || [];
 
   // Check which missions already have this exercise
@@ -79,30 +89,43 @@ export function ExerciseCard({
     setShowDeleteWarning(false);
   };
 
-  const handleAddToMission = async (e: React.MouseEvent, mission: { id: string; code_name: string }) => {
+  const handleToggleMission = async (e: React.MouseEvent, mission: { id: string; code_name: string }) => {
     e.stopPropagation();
     
-    if (missionHasExercise(mission.id)) return;
-    
-    setAddingToMission(mission.id);
+    setProcessingMission(mission.id);
     
     try {
-      await addExerciseToMission.mutateAsync({
-        missionId: mission.id,
-        exerciseId: exercise.id,
-      });
+      const hasExercise = missionHasExercise(mission.id);
       
-      // Show success toast with lore
-      const lorePhrase = ADD_LORE_PHRASES[Math.floor(Math.random() * ADD_LORE_PHRASES.length)];
-      toast.success(lorePhrase, {
-        description: `${exercise.name} added to ${mission.code_name}`,
-      });
+      if (hasExercise) {
+        // Remove exercise from mission
+        await removeExerciseFromMission.mutateAsync({
+          missionId: mission.id,
+          exerciseId: exercise.id,
+        });
+        
+        const lorePhrase = REMOVE_LORE_PHRASES[Math.floor(Math.random() * REMOVE_LORE_PHRASES.length)];
+        toast.success(lorePhrase, {
+          description: `${exercise.name} removed from ${mission.code_name}`,
+        });
+      } else {
+        // Add exercise to mission
+        await addExerciseToMission.mutateAsync({
+          missionId: mission.id,
+          exerciseId: exercise.id,
+        });
+        
+        const lorePhrase = ADD_LORE_PHRASES[Math.floor(Math.random() * ADD_LORE_PHRASES.length)];
+        toast.success(lorePhrase, {
+          description: `${exercise.name} added to ${mission.code_name}`,
+        });
+      }
     } catch (error: any) {
       toast.error('DEPLOYMENT FAILED', {
-        description: error.message || 'Could not add exercise to mission',
+        description: error.message || 'Could not update mission',
       });
     } finally {
-      setAddingToMission(null);
+      setProcessingMission(null);
     }
   };
 
@@ -154,36 +177,39 @@ export function ExerciseCard({
                   align="end" 
                   className="bg-card border-border w-56 max-h-64 overflow-y-auto"
                 >
-                  <div className="px-2 py-1.5 text-xs text-muted-foreground font-display">ADD TO MISSION</div>
+                  <div className="px-2 py-1.5 text-xs text-muted-foreground font-display">MANAGE MISSIONS</div>
                   <DropdownMenuSeparator />
                   {myMissions.map(mission => {
                     const hasExercise = missionHasExercise(mission.id);
-                    const isAdding = addingToMission === mission.id;
+                    const isProcessing = processingMission === mission.id;
                     return (
                       <DropdownMenuItem
                         key={mission.id}
-                        onClick={(e) => !hasExercise && !isAdding && handleAddToMission(e, mission)}
-                        className={`flex items-center gap-2 cursor-pointer ${hasExercise || isAdding ? 'opacity-50' : ''}`}
-                        disabled={hasExercise || isAdding}
+                        onClick={(e) => !isProcessing && handleToggleMission(e, mission)}
+                        className={`flex items-center gap-2 cursor-pointer ${isProcessing ? 'opacity-50' : ''}`}
+                        disabled={isProcessing}
                       >
                         <div className={`w-4 h-4 rounded border flex items-center justify-center ${
                           hasExercise 
                             ? 'bg-secondary border-secondary text-secondary-foreground' 
                             : 'border-border'
                         }`}>
-                          {isAdding ? (
+                          {isProcessing ? (
                             <Loader2 className="w-3 h-3 animate-spin" />
                           ) : hasExercise ? (
                             <Check className="w-3 h-3" />
                           ) : null}
                         </div>
-                        <span className="text-sm truncate">{mission.code_name}</span>
+                        <span className="text-sm truncate flex-1">{mission.code_name}</span>
+                        {hasExercise && !isProcessing && (
+                          <X className="w-3 h-3 text-muted-foreground hover:text-destructive" />
+                        )}
                       </DropdownMenuItem>
                     );
                   })}
                   <DropdownMenuSeparator />
                   <DropdownMenuItem
-                    onClick={() => navigate('/exercises?newMission=true')}
+                    onClick={() => navigate('/command?tab=missions&source=personal&newMission=true')}
                     className="flex items-center gap-2 text-primary cursor-pointer"
                   >
                     <Plus className="w-4 h-4" />

@@ -301,3 +301,25 @@ export function useAddExerciseToMission() {
     },
   });
 }
+
+// Remove exercise from an existing mission
+export function useRemoveExerciseFromMission() {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: async ({ missionId, exerciseId }: { missionId: string; exerciseId: string }) => {
+      const { error } = await supabase
+        .from('mission_exercises')
+        .delete()
+        .eq('mission_id', missionId)
+        .eq('exercise_id', exerciseId);
+      
+      if (error) throw error;
+      
+      return { missionId, exerciseId };
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['missions'] });
+    },
+  });
+}
