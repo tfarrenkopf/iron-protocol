@@ -1,11 +1,13 @@
-import { useState } from 'react';
+import { useState, useMemo } from 'react';
 import { motion } from 'framer-motion';
 import { useNavigate, useParams } from 'react-router-dom';
-import { ArrowLeft, Zap, Play, Clock, Pencil, Trash2, Lock, Globe, Users, FolderOpen, Plus } from 'lucide-react';
+import { ArrowLeft, Zap, Play, Clock, Pencil, Trash2, Lock, Globe, Users, FolderOpen, Plus, Trophy, Target, CheckCircle2, Timer } from 'lucide-react';
 import { useCollection, useDeleteCollection, useRemoveMissionFromCollection } from '@/hooks/useCollections';
+import { useCampaignProgress, useCampaignCompletions, useCampaignLeaderboard } from '@/hooks/useCampaignProgress';
 import { useAuth } from '@/hooks/useAuth';
 import { GuestIndicator } from '@/components/AnonymousConversion';
 import { CollectionFormDialog } from '@/components/CollectionFormDialog';
+import { Progress } from '@/components/ui/progress';
 import {
   AlertDialog,
   AlertDialogAction,
@@ -17,21 +19,55 @@ import {
   AlertDialogTitle,
 } from '@/components/ui/alert-dialog';
 import { toast } from '@/hooks/use-toast';
+import { supabase } from '@/integrations/supabase/client';
 
 const CampaignDetail = () => {
   const navigate = useNavigate();
   const { collectionId } = useParams<{ collectionId: string }>();
   const { user, isAnonymous } = useAuth();
   const { data: collection, isLoading } = useCollection(collectionId);
+  const { data: progress } = useCampaignProgress(collectionId);
+  const { data: completions } = useCampaignCompletions(collectionId);
+  const { data: leaderboard } = useCampaignLeaderboard(collectionId);
   const deleteCollection = useDeleteCollection();
   const removeMission = useRemoveMissionFromCollection();
 
   const [editDialogOpen, setEditDialogOpen] = useState(false);
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [missionToRemove, setMissionToRemove] = useState<{ id: string; name: string } | null>(null);
+  const [completedMissionIds, setCompletedMissionIds] = useState<Set<string>>(new Set());
 
   const isOwner = user && collection?.created_by === user.id;
   const missions = collection?.collection_missions?.map(cm => cm.missions) || [];
+
+  // Fetch which missions the user has completed
+  useMemo(() => {
+    if (!user || missions.length === 0) return;
+    
+    const missionIds = missions.filter(m => m).map(m => m!.id);
+    
+    supabase
+      .from('workout_sessions')
+      .select('mission_id')
+      .eq('user_id', user.id)
+      .eq('status', 'COMPLETED')
+      .in('mission_id', missionIds)
+      .then(({ data }) => {
+        if (data) {
+          setCompletedMissionIds(new Set(data.map(s => s.mission_id)));
+        }
+      });
+  }, [user, missions]);
+
+  const progressPercent = missions.length > 0 
+    ? Math.round((completedMissionIds.size / missions.length) * 100)
+    : 0;
+
+  const formatTime = (seconds: number) => {
+    const mins = Math.floor(seconds / 60);
+    const secs = seconds % 60;
+    return `${mins}:${secs.toString().padStart(2, '0')}`;
+  };
 
   const getVisibilityIcon = (visibility: string) => {
     switch (visibility) {
@@ -169,11 +205,61 @@ const CampaignDetail = () => {
           </motion.div>
         )}
 
+        {/* Progress Section - Only show for logged in users */}
+        {user && missions.length > 0 && (
+          <motion.div
+            initial={{ opacity: 0, y: 10 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.1 }}
+            className="mb-6 p-4 bg-card border border-border rounded-lg"
+          >
+            <div className="flex items-center justify-between mb-3">
+              <div className="flex items-center gap-2">
+                <Target className="w-4 h-4 text-primary" />
+                <span className="font-display text-sm text-primary">CAMPAIGN PROGRESS</span>
+              </div>
+              <span className="text-xs text-muted-foreground">
+                {completedMissionIds.size} / {missions.length} missions
+              </span>
+            </div>
+            
+            <Progress value={progressPercent} className="h-2 mb-3" />
+            
+            <div className="grid grid-cols-3 gap-3 text-center">
+              <div>
+                <div className="text-lg font-display text-primary">{progressPercent}%</div>
+                <div className="text-[10px] text-muted-foreground">COMPLETE</div>
+              </div>
+              <div>
+                <div className="text-lg font-display text-secondary">
+                  {progress?.total_completions || 0}
+                </div>
+                <div className="text-[10px] text-muted-foreground">RUNS</div>
+              </div>
+              <div>
+                <div className="text-lg font-display text-accent">
+                  {progress?.best_completion_time_seconds 
+                    ? formatTime(progress.best_completion_time_seconds)
+                    : '--:--'}
+                </div>
+                <div className="text-[10px] text-muted-foreground">BEST TIME</div>
+              </div>
+            </div>
+
+            {progress?.completed_at && (
+              <div className="mt-3 pt-3 border-t border-border flex items-center justify-center gap-2 text-xs text-secondary">
+                <CheckCircle2 className="w-3 h-3" />
+                <span>Campaign Completed!</span>
+              </div>
+            )}
+          </motion.div>
+        )}
+
         {/* Stats */}
         <motion.div
           initial={{ opacity: 0, y: 10 }}
           animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.1 }}
+          transition={{ delay: 0.15 }}
           className="grid grid-cols-2 gap-3 mb-6"
         >
           <div className="p-3 bg-card border border-border rounded-lg text-center">
@@ -188,11 +274,47 @@ const CampaignDetail = () => {
           </div>
         </motion.div>
 
+        {/* Leaderboard - Show if there are completions */}
+        {leaderboard && leaderboard.length > 0 && (
+          <motion.section
+            initial={{ opacity: 0, y: 10 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.2 }}
+            className="mb-6"
+          >
+            <h2 className="font-display text-sm text-secondary mb-3 tracking-wider flex items-center gap-2">
+              <Trophy className="w-4 h-4" /> SPEED LEADERBOARD
+            </h2>
+            <div className="bg-card border border-border rounded-lg divide-y divide-border">
+              {leaderboard.slice(0, 5).map((entry: any, index: number) => (
+                <div key={entry.id} className="p-3 flex items-center justify-between">
+                  <div className="flex items-center gap-3">
+                    <span className={`font-display text-lg ${
+                      index === 0 ? 'text-yellow-400' : 
+                      index === 1 ? 'text-gray-300' : 
+                      index === 2 ? 'text-amber-600' : 'text-muted-foreground'
+                    }`}>
+                      #{index + 1}
+                    </span>
+                    <span className="text-sm">
+                      {entry.profiles?.display_name || 'Anonymous'}
+                    </span>
+                  </div>
+                  <div className="flex items-center gap-1 text-xs text-primary">
+                    <Timer className="w-3 h-3" />
+                    {formatTime(entry.completion_time_seconds)}
+                  </div>
+                </div>
+              ))}
+            </div>
+          </motion.section>
+        )}
+
         {/* Missions List */}
         <motion.section
           initial={{ opacity: 0, y: 10 }}
           animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.2 }}
+          transition={{ delay: 0.25 }}
         >
           <h2 className="font-display text-sm text-secondary mb-3 tracking-wider">MISSIONS IN THIS CAMPAIGN</h2>
           
@@ -212,6 +334,7 @@ const CampaignDetail = () => {
               {missions.map((mission, index) => {
                 if (!mission) return null;
                 const difficulty = getDifficultyLabel(mission.difficulty);
+                const isCompleted = completedMissionIds.has(mission.id);
                 
                 return (
                   <motion.div
@@ -219,12 +342,21 @@ const CampaignDetail = () => {
                     initial={{ opacity: 0, x: -10 }}
                     animate={{ opacity: 1, x: 0 }}
                     transition={{ delay: 0.05 * index }}
-                    className="group bg-card border border-border rounded-lg p-4 hover:border-primary/50 transition-all cursor-pointer relative overflow-hidden"
+                    className={`group bg-card border rounded-lg p-4 hover:border-primary/50 transition-all cursor-pointer relative overflow-hidden ${
+                      isCompleted ? 'border-secondary/50' : 'border-border'
+                    }`}
                     onClick={() => navigate(`/mission/${mission.id}`)}
                   >
                     <div className="absolute inset-0 bg-gradient-to-r from-primary/0 via-primary/5 to-primary/0 opacity-0 group-hover:opacity-100 transition-opacity" />
                     
-                    <div className="relative z-10">
+                    {/* Completion indicator */}
+                    {isCompleted && (
+                      <div className="absolute top-3 left-3 z-20">
+                        <CheckCircle2 className="w-4 h-4 text-secondary" />
+                      </div>
+                    )}
+                    
+                    <div className={`relative z-10 ${isCompleted ? 'pl-6' : ''}`}>
                       <div className="flex items-start justify-between mb-2">
                         <div>
                           <h3 className="font-display text-lg text-primary">{mission.code_name}</h3>
@@ -274,10 +406,14 @@ const CampaignDetail = () => {
                             e.stopPropagation();
                             navigate(`/workout/${mission.id}`);
                           }}
-                          className="flex items-center gap-1 text-xs bg-primary/20 text-primary px-2 py-1 rounded hover:bg-primary/30 transition-colors"
+                          className={`flex items-center gap-1 text-xs px-2 py-1 rounded transition-colors ${
+                            isCompleted 
+                              ? 'bg-secondary/20 text-secondary hover:bg-secondary/30'
+                              : 'bg-primary/20 text-primary hover:bg-primary/30'
+                          }`}
                         >
                           <Play className="w-3 h-3" />
-                          START
+                          {isCompleted ? 'REPLAY' : 'START'}
                         </button>
                       </div>
                     </div>
@@ -288,12 +424,42 @@ const CampaignDetail = () => {
           )}
         </motion.section>
 
+        {/* Completion History */}
+        {completions && completions.length > 0 && (
+          <motion.section
+            initial={{ opacity: 0, y: 10 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.3 }}
+            className="mt-6"
+          >
+            <h2 className="font-display text-sm text-secondary mb-3 tracking-wider">YOUR COMPLETION HISTORY</h2>
+            <div className="bg-card border border-border rounded-lg divide-y divide-border">
+              {completions.slice(0, 5).map((completion) => (
+                <div key={completion.id} className="p-3 flex items-center justify-between">
+                  <div className="flex items-center gap-3">
+                    {completion.is_personal_record && (
+                      <span className="text-yellow-400 text-xs">⚡ PR</span>
+                    )}
+                    <span className="text-xs text-muted-foreground">
+                      {new Date(completion.completed_at).toLocaleDateString()}
+                    </span>
+                  </div>
+                  <div className="flex items-center gap-4 text-xs">
+                    <span className="text-primary">{formatTime(completion.completion_time_seconds)}</span>
+                    <span className="text-muted-foreground">{completion.total_score} pts</span>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </motion.section>
+        )}
+
         {/* Add More Missions Button */}
-        {missions.length > 0 && (
+        {missions.length > 0 && isOwner && (
           <motion.div
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
-            transition={{ delay: 0.3 }}
+            transition={{ delay: 0.35 }}
             className="mt-6 text-center"
           >
             <button

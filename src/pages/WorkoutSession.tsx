@@ -148,6 +148,11 @@ const WorkoutSession = () => {
         });
       });
 
+      // Calculate session duration in seconds
+      const startTime = new Date(currentSession.startedAt).getTime();
+      const endTime = currentSession.completedAt ? new Date(currentSession.completedAt).getTime() : Date.now();
+      const durationSeconds = Math.floor((endTime - startTime) / 1000);
+
       // Save workout session to database with individual sets
       createWorkoutSession.mutate({
         missionId: mission.id,
@@ -163,6 +168,7 @@ const WorkoutSession = () => {
         maxCombo: stats.maxCombo,
         damageDealt: stats.damageDealt,
         sets: allSets,
+        durationSeconds,
       });
 
       // Note: Achievements are now checked on each set completion (Story 14.2)
