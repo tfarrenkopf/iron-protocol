@@ -283,3 +283,26 @@ export function useRemoveMissionFromCollection() {
     },
   });
 }
+
+export function useReorderMissions() {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: async ({ collectionId, missionIds }: { collectionId: string; missionIds: string[] }) => {
+      // Update each mission's order_index based on its position in the array
+      const updates = missionIds.map((missionId, index) => 
+        supabase
+          .from('collection_missions')
+          .update({ order_index: index })
+          .eq('collection_id', collectionId)
+          .eq('mission_id', missionId)
+      );
+      
+      await Promise.all(updates);
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['collections'] });
+      queryClient.invalidateQueries({ queryKey: ['collection'] });
+    },
+  });
+}

@@ -1,13 +1,15 @@
-import { useState, useMemo } from 'react';
+import { useState, useMemo, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import { useNavigate, useParams } from 'react-router-dom';
-import { ArrowLeft, Zap, Play, Clock, Pencil, Trash2, Lock, Globe, Users, FolderOpen, Plus, Trophy, Target, CheckCircle2, Timer } from 'lucide-react';
-import { useCollection, useDeleteCollection, useRemoveMissionFromCollection } from '@/hooks/useCollections';
+import { ArrowLeft, Zap, Clock, Pencil, Trash2, Lock, Globe, Users, FolderOpen, Plus, Trophy, Timer } from 'lucide-react';
+import { useCollection, useDeleteCollection, useRemoveMissionFromCollection, useAddMissionToCollection } from '@/hooks/useCollections';
 import { useCampaignProgress, useCampaignCompletions, useCampaignLeaderboard } from '@/hooks/useCampaignProgress';
 import { useAuth } from '@/hooks/useAuth';
 import { GuestIndicator } from '@/components/AnonymousConversion';
 import { CollectionFormDialog } from '@/components/CollectionFormDialog';
-import { Progress } from '@/components/ui/progress';
+import { MissionPickerDialog } from '@/components/MissionPickerDialog';
+import { CampaignMissionList } from '@/components/CampaignMissionList';
+import { CampaignProgressCard } from '@/components/CampaignProgressCard';
 import {
   AlertDialog,
   AlertDialogAction,
@@ -31,33 +33,36 @@ const CampaignDetail = () => {
   const { data: leaderboard } = useCampaignLeaderboard(collectionId);
   const deleteCollection = useDeleteCollection();
   const removeMission = useRemoveMissionFromCollection();
+  const addMission = useAddMissionToCollection();
 
   const [editDialogOpen, setEditDialogOpen] = useState(false);
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
+  const [missionPickerOpen, setMissionPickerOpen] = useState(false);
   const [missionToRemove, setMissionToRemove] = useState<{ id: string; name: string } | null>(null);
   const [completedMissionIds, setCompletedMissionIds] = useState<Set<string>>(new Set());
 
   const isOwner = user && collection?.created_by === user.id;
   const missions = collection?.collection_missions?.map(cm => cm.missions) || [];
+  const missionIds = collection?.collection_missions?.map(cm => cm.mission_id) || [];
 
   // Fetch which missions the user has completed
-  useMemo(() => {
+  useEffect(() => {
     if (!user || missions.length === 0) return;
     
-    const missionIds = missions.filter(m => m).map(m => m!.id);
+    const missionIdList = missions.filter(m => m).map(m => m!.id);
     
     supabase
       .from('workout_sessions')
       .select('mission_id')
       .eq('user_id', user.id)
       .eq('status', 'COMPLETED')
-      .in('mission_id', missionIds)
+      .in('mission_id', missionIdList)
       .then(({ data }) => {
         if (data) {
           setCompletedMissionIds(new Set(data.map(s => s.mission_id)));
         }
       });
-  }, [user, missions]);
+  }, [user, missions.length]);
 
   const progressPercent = missions.length > 0 
     ? Math.round((completedMissionIds.size / missions.length) * 100)
@@ -101,6 +106,16 @@ const CampaignDetail = () => {
         toast({ title: 'Error', description: error.message, variant: 'destructive' });
       }
       setMissionToRemove(null);
+    }
+  };
+
+  const handleAddMission = async (missionId: string) => {
+    if (!collectionId) return;
+    try {
+      await addMission.mutateAsync({ collectionId, missionId });
+      toast({ title: 'Mission added', description: 'Mission added to campaign' });
+    } catch (error: any) {
+      toast({ title: 'Error', description: error.message, variant: 'destructive' });
     }
   };
 
@@ -207,52 +222,11 @@ const CampaignDetail = () => {
 
         {/* Progress Section - Only show for logged in users */}
         {user && missions.length > 0 && (
-          <motion.div
-            initial={{ opacity: 0, y: 10 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.1 }}
-            className="mb-6 p-4 bg-card border border-border rounded-lg"
-          >
-            <div className="flex items-center justify-between mb-3">
-              <div className="flex items-center gap-2">
-                <Target className="w-4 h-4 text-primary" />
-                <span className="font-display text-sm text-primary">CAMPAIGN PROGRESS</span>
-              </div>
-              <span className="text-xs text-muted-foreground">
-                {completedMissionIds.size} / {missions.length} missions
-              </span>
-            </div>
-            
-            <Progress value={progressPercent} className="h-2 mb-3" />
-            
-            <div className="grid grid-cols-3 gap-3 text-center">
-              <div>
-                <div className="text-lg font-display text-primary">{progressPercent}%</div>
-                <div className="text-[10px] text-muted-foreground">COMPLETE</div>
-              </div>
-              <div>
-                <div className="text-lg font-display text-secondary">
-                  {progress?.total_completions || 0}
-                </div>
-                <div className="text-[10px] text-muted-foreground">RUNS</div>
-              </div>
-              <div>
-                <div className="text-lg font-display text-accent">
-                  {progress?.best_completion_time_seconds 
-                    ? formatTime(progress.best_completion_time_seconds)
-                    : '--:--'}
-                </div>
-                <div className="text-[10px] text-muted-foreground">BEST TIME</div>
-              </div>
-            </div>
-
-            {progress?.completed_at && (
-              <div className="mt-3 pt-3 border-t border-border flex items-center justify-center gap-2 text-xs text-secondary">
-                <CheckCircle2 className="w-3 h-3" />
-                <span>Campaign Completed!</span>
-              </div>
-            )}
-          </motion.div>
+          <CampaignProgressCard
+            progress={progress || null}
+            completedCount={completedMissionIds.size}
+            totalMissions={missions.length}
+          />
         )}
 
         {/* Stats */}
@@ -316,112 +290,28 @@ const CampaignDetail = () => {
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.25 }}
         >
-          <h2 className="font-display text-sm text-secondary mb-3 tracking-wider">MISSIONS IN THIS CAMPAIGN</h2>
-          
-          {missions.length === 0 ? (
-            <div className="text-center py-12 border border-dashed border-border rounded-lg">
-              <Zap className="w-10 h-10 mx-auto mb-2 text-muted-foreground/50" />
-              <p className="text-sm text-muted-foreground mb-3">No missions in this campaign yet</p>
+          <div className="flex items-center justify-between mb-3">
+            <h2 className="font-display text-sm text-secondary tracking-wider">MISSIONS IN THIS CAMPAIGN</h2>
+            {isOwner && !collection.is_system && (
               <button
-                onClick={() => navigate('/missions')}
-                className="text-xs text-primary hover:underline font-display flex items-center gap-1 mx-auto"
+                onClick={() => setMissionPickerOpen(true)}
+                className="flex items-center gap-1 text-xs text-primary hover:text-glow-primary font-display"
               >
-                <Plus className="w-3 h-3" /> ADD MISSIONS
+                <Plus className="w-3 h-3" /> ADD
               </button>
-            </div>
-          ) : (
-            <div className="space-y-3">
-              {missions.map((mission, index) => {
-                if (!mission) return null;
-                const difficulty = getDifficultyLabel(mission.difficulty);
-                const isCompleted = completedMissionIds.has(mission.id);
-                
-                return (
-                  <motion.div
-                    key={mission.id}
-                    initial={{ opacity: 0, x: -10 }}
-                    animate={{ opacity: 1, x: 0 }}
-                    transition={{ delay: 0.05 * index }}
-                    className={`group bg-card border rounded-lg p-4 hover:border-primary/50 transition-all cursor-pointer relative overflow-hidden ${
-                      isCompleted ? 'border-secondary/50' : 'border-border'
-                    }`}
-                    onClick={() => navigate(`/mission/${mission.id}`)}
-                  >
-                    <div className="absolute inset-0 bg-gradient-to-r from-primary/0 via-primary/5 to-primary/0 opacity-0 group-hover:opacity-100 transition-opacity" />
-                    
-                    {/* Completion indicator */}
-                    {isCompleted && (
-                      <div className="absolute top-3 left-3 z-20">
-                        <CheckCircle2 className="w-4 h-4 text-secondary" />
-                      </div>
-                    )}
-                    
-                    <div className={`relative z-10 ${isCompleted ? 'pl-6' : ''}`}>
-                      <div className="flex items-start justify-between mb-2">
-                        <div>
-                          <h3 className="font-display text-lg text-primary">{mission.code_name}</h3>
-                          {mission.name !== mission.code_name && (
-                            <p className="text-xs text-muted-foreground">{mission.name}</p>
-                          )}
-                        </div>
-                        
-                        <div className="flex items-center gap-2">
-                          <span className={`text-[10px] font-display ${difficulty.color}`}>
-                            {difficulty.label}
-                          </span>
-                          {isOwner && !collection.is_system && (
-                            <button
-                              onClick={(e) => {
-                                e.stopPropagation();
-                                setMissionToRemove({ id: mission.id, name: mission.code_name });
-                              }}
-                              className="p-1 hover:bg-destructive/20 rounded transition-colors opacity-0 group-hover:opacity-100"
-                              title="Remove from campaign"
-                            >
-                              <Trash2 className="w-3.5 h-3.5 text-destructive" />
-                            </button>
-                          )}
-                        </div>
-                      </div>
-                      
-                      {mission.description && (
-                        <p className="text-xs text-muted-foreground mb-3 line-clamp-2">{mission.description}</p>
-                      )}
-                      
-                      <div className="flex items-center justify-between">
-                        <div className="flex items-center gap-3 text-xs text-muted-foreground">
-                          <span className="flex items-center gap-1">
-                            <Clock className="w-3 h-3" />
-                            {mission.estimated_minutes} min
-                          </span>
-                          {mission.focus_areas && mission.focus_areas.length > 0 && (
-                            <span className="text-primary/70">
-                              {mission.focus_areas.join(' • ')}
-                            </span>
-                          )}
-                        </div>
-                        
-                        <button
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            navigate(`/workout/${mission.id}`);
-                          }}
-                          className={`flex items-center gap-1 text-xs px-2 py-1 rounded transition-colors ${
-                            isCompleted 
-                              ? 'bg-secondary/20 text-secondary hover:bg-secondary/30'
-                              : 'bg-primary/20 text-primary hover:bg-primary/30'
-                          }`}
-                        >
-                          <Play className="w-3 h-3" />
-                          {isCompleted ? 'REPLAY' : 'START'}
-                        </button>
-                      </div>
-                    </div>
-                  </motion.div>
-                );
-              })}
-            </div>
-          )}
+            )}
+          </div>
+          
+          <CampaignMissionList
+            collectionId={collectionId!}
+            missions={missions}
+            missionIds={missionIds}
+            completedMissionIds={completedMissionIds}
+            isOwner={!!isOwner}
+            isSystem={collection.is_system}
+            onRemoveMission={setMissionToRemove}
+            onAddMission={() => setMissionPickerOpen(true)}
+          />
         </motion.section>
 
         {/* Completion History */}
@@ -454,23 +344,15 @@ const CampaignDetail = () => {
           </motion.section>
         )}
 
-        {/* Add More Missions Button */}
-        {missions.length > 0 && isOwner && (
-          <motion.div
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            transition={{ delay: 0.35 }}
-            className="mt-6 text-center"
-          >
-            <button
-              onClick={() => navigate('/missions')}
-              className="text-xs text-secondary hover:text-glow-secondary font-display flex items-center gap-1 mx-auto"
-            >
-              <Plus className="w-3 h-3" /> ADD MORE MISSIONS
-            </button>
-          </motion.div>
-        )}
       </div>
+
+      {/* Mission Picker Dialog */}
+      <MissionPickerDialog
+        open={missionPickerOpen}
+        onOpenChange={setMissionPickerOpen}
+        onAddMission={handleAddMission}
+        existingMissionIds={missionIds}
+      />
 
       {/* Edit Dialog */}
       {editDialogOpen && (
