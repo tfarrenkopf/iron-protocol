@@ -203,6 +203,7 @@ const ExerciseManager = () => {
       }
       setShowForm(false);
       resetForm();
+      // Navigate back to Command exercises tab
       navigate('/command?tab=exercises');
     } catch (err: any) {
       if (err.message?.includes("unique")) {
@@ -384,7 +385,7 @@ const ExerciseManager = () => {
         >
           <div className="flex items-center gap-4">
             <button
-              onClick={() => navigate("/command?tab=missions")}
+              onClick={() => navigate("/command?tab=exercises")}
               className="p-2 border border-border rounded hover:border-primary transition-colors"
             >
               <ArrowLeft className="w-5 h-5" />
