@@ -159,7 +159,7 @@ const MissionSelect = () => {
         >
           <div className="flex items-center gap-4">
             <button 
-              onClick={() => navigate('/')}
+              onClick={() => navigate(collectionFilter ? '/collections' : '/')}
               className="p-2 border border-border rounded hover:border-primary transition-colors"
             >
               <ArrowLeft className="w-5 h-5" />
