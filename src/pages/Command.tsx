@@ -1,7 +1,7 @@
 import { useState, useEffect, useMemo } from 'react';
 import { motion } from 'framer-motion';
 import { useNavigate, useSearchParams } from 'react-router-dom';
-import { ArrowLeft, Crosshair, Dumbbell, Target, Folder, Filter, X, Clock, Plus, Pencil, Trash2, RefreshCw, AlertCircle } from 'lucide-react';
+import { ArrowLeft, Globe, Dumbbell, Target, Folder, Filter, X, Clock, Plus, Pencil, Trash2, RefreshCw, AlertCircle } from 'lucide-react';
 import { useMissions, useDeleteMission } from '@/hooks/useMissions';
 import { useCollections, useDeleteCollection, CollectionWithMissions } from '@/hooks/useCollections';
 import { useExercises, useDeleteExercise, Exercise } from '@/hooks/useExercises';
@@ -12,6 +12,8 @@ import { AddToCollectionButton } from '@/components/AddToCollectionButton';
 import { CollectionFormDialog } from '@/components/CollectionFormDialog';
 import { FOCUS_AREAS, getMusclesForFocusArea, formatEquipment } from '@/data/muscleGroups';
 import { CollectionFilter } from '@/components/CollectionFilter';
+import { ActiveCampaignHero, PinCampaignButton } from '@/components/ActiveCampaignHero';
+import { useActiveCampaign } from '@/hooks/useActiveCampaign';
 import {
   AlertDialog,
   AlertDialogAction,
@@ -23,7 +25,7 @@ import {
   AlertDialogTitle,
 } from '@/components/ui/alert-dialog';
 
-type TabType = 'browse' | 'missions' | 'exercises' | 'campaigns';
+type TabType = 'global' | 'missions' | 'exercises' | 'campaigns';
 
 const DURATION_FILTERS = [
   { label: 'Quick', value: 'short', max: 20 },
@@ -37,8 +39,10 @@ const Command = () => {
   const { user, isAnonymous } = useAuth();
   
   // Tab state
-  const initialTab = (searchParams.get('tab') as TabType) || 'browse';
+  const urlTab = searchParams.get('tab');
+  const initialTab = (urlTab === 'browse' ? 'global' : urlTab as TabType) || 'global';
   const [activeTab, setActiveTab] = useState<TabType>(initialTab);
+  const { activeCampaignId } = useActiveCampaign();
   
   // Filter states
   const [showFilters, setShowFilters] = useState(false);
@@ -163,11 +167,11 @@ const Command = () => {
     navigate(`/exercises?editMission=${missionId}`);
   };
   
-  const tabs: { id: TabType; label: string; icon: typeof Crosshair }[] = [
-    { id: 'browse', label: 'BROWSE', icon: Crosshair },
-    { id: 'missions', label: 'MY MISSIONS', icon: Target },
-    { id: 'exercises', label: 'MY EXERCISES', icon: Dumbbell },
-    { id: 'campaigns', label: 'CAMPAIGNS', icon: Folder },
+  const tabs: { id: TabType; label: string; icon: typeof Globe; description?: string }[] = [
+    { id: 'global', label: 'GLOBAL MISSIONS', icon: Globe, description: 'Public mission library' },
+    { id: 'missions', label: 'MY MISSIONS', icon: Target, description: 'Your custom creations' },
+    { id: 'exercises', label: 'MY EXERCISES', icon: Dumbbell, description: 'Custom exercise pool' },
+    { id: 'campaigns', label: 'CAMPAIGNS', icon: Folder, description: 'Curated mission sets' },
   ];
   
   return (
@@ -175,6 +179,8 @@ const Command = () => {
       <div className="fixed inset-0 pointer-events-none scanlines opacity-20" />
       
       <div className="relative z-10 container mx-auto px-4 py-6 max-w-2xl">
+        {/* Active Campaign Hero */}
+        {user && activeCampaignId && <ActiveCampaignHero />}
         {/* Header */}
         <motion.header 
           initial={{ opacity: 0, y: -20 }}
@@ -197,7 +203,7 @@ const Command = () => {
           </div>
 
           <div className="flex gap-2">
-            {activeTab === 'browse' && (
+            {activeTab === 'global' && (
               <button
                 onClick={() => setShowFilters(!showFilters)}
                 className={`p-2 border rounded transition-colors ${
@@ -207,7 +213,7 @@ const Command = () => {
                 <Filter className="w-5 h-5" />
               </button>
             )}
-            {user && activeTab !== 'browse' && (
+            {user && activeTab !== 'global' && (
               <button
                 onClick={() => {
                   if (activeTab === 'campaigns') setCampaignDialogOpen(true);
@@ -248,7 +254,7 @@ const Command = () => {
         </div>
 
         {/* Filters (Browse tab only) */}
-        {activeTab === 'browse' && showFilters && (
+        {activeTab === 'global' && showFilters && (
           <motion.div
             initial={{ opacity: 0, height: 0 }}
             animate={{ opacity: 1, height: 'auto' }}
@@ -329,8 +335,8 @@ const Command = () => {
 
         {/* Tab Content */}
         <div className="min-h-[400px]">
-          {/* Browse Tab */}
-          {activeTab === 'browse' && (
+          {/* Global Missions Tab */}
+          {activeTab === 'global' && (
             missionsLoading ? (
               <div className="text-center py-12">
                 <div className="font-display text-2xl text-primary animate-neon-pulse">LOADING...</div>
@@ -596,22 +602,27 @@ const CampaignRow = ({ collection, isSystem, isOwner, onDelete, onEdit }: Campai
           </div>
         </div>
         
-        {isOwner && !isSystem && (
-          <div className="flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
-            <button
-              onClick={(e) => { e.stopPropagation(); onEdit(collection.id); }}
-              className="p-1.5 hover:bg-secondary/20 rounded transition-colors"
-            >
-              <Pencil className="w-3.5 h-3.5 text-secondary" />
-            </button>
-            <button
-              onClick={(e) => { e.stopPropagation(); onDelete(collection.id, collection.code_name, 'campaign'); }}
-              className="p-1.5 hover:bg-destructive/20 rounded transition-colors"
-            >
-              <Trash2 className="w-3.5 h-3.5 text-destructive" />
-            </button>
-          </div>
-        )}
+        <div className="flex items-center gap-1">
+          {/* Pin button - always visible */}
+          <PinCampaignButton campaignId={collection.id} size="small" />
+          
+          {isOwner && !isSystem && (
+            <div className="flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+              <button
+                onClick={(e) => { e.stopPropagation(); onEdit(collection.id); }}
+                className="p-1.5 hover:bg-secondary/20 rounded transition-colors"
+              >
+                <Pencil className="w-3.5 h-3.5 text-secondary" />
+              </button>
+              <button
+                onClick={(e) => { e.stopPropagation(); onDelete(collection.id, collection.code_name, 'campaign'); }}
+                className="p-1.5 hover:bg-destructive/20 rounded transition-colors"
+              >
+                <Trash2 className="w-3.5 h-3.5 text-destructive" />
+              </button>
+            </div>
+          )}
+        </div>
       </div>
     </motion.div>
   );

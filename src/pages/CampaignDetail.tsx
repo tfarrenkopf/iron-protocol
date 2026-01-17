@@ -1,10 +1,11 @@
 import { useState, useMemo, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import { useNavigate, useParams } from 'react-router-dom';
-import { ArrowLeft, Zap, Clock, Pencil, Trash2, Lock, Globe, Users, FolderOpen, Plus, Trophy, Timer } from 'lucide-react';
+import { ArrowLeft, Zap, Clock, Pencil, Trash2, Lock, Globe, Users, FolderOpen, Plus, Trophy, Timer, Pin } from 'lucide-react';
 import { useCollection, useDeleteCollection, useRemoveMissionFromCollection, useAddMissionToCollection } from '@/hooks/useCollections';
 import { useCampaignProgress, useCampaignCompletions, useCampaignLeaderboard } from '@/hooks/useCampaignProgress';
 import { useAuth } from '@/hooks/useAuth';
+import { useActiveCampaign } from '@/hooks/useActiveCampaign';
 import { GuestIndicator } from '@/components/AnonymousConversion';
 import { CollectionFormDialog } from '@/components/CollectionFormDialog';
 import { MissionPickerDialog } from '@/components/MissionPickerDialog';
@@ -34,6 +35,9 @@ const CampaignDetail = () => {
   const deleteCollection = useDeleteCollection();
   const removeMission = useRemoveMissionFromCollection();
   const addMission = useAddMissionToCollection();
+  const { activeCampaignId, setActiveCampaign, isSettingActive } = useActiveCampaign();
+  
+  const isActiveCampaign = activeCampaignId === collectionId;
 
   const [editDialogOpen, setEditDialogOpen] = useState(false);
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
@@ -189,24 +193,42 @@ const CampaignDetail = () => {
             </div>
           </div>
 
-          {isOwner && !collection.is_system && (
-            <div className="flex items-center gap-2">
+          <div className="flex items-center gap-2">
+            {/* Pin/Unpin button */}
+            {user && (
               <button
-                onClick={() => setEditDialogOpen(true)}
-                className="p-2 border border-secondary text-secondary rounded hover:bg-secondary/10 transition-colors"
-                title="Edit campaign"
+                onClick={() => setActiveCampaign(isActiveCampaign ? null : collectionId!)}
+                disabled={isSettingActive}
+                className={`p-2 border rounded transition-all ${
+                  isActiveCampaign
+                    ? 'border-accent text-accent bg-accent/10 hover:bg-accent/20'
+                    : 'border-border text-muted-foreground hover:border-accent hover:text-accent'
+                }`}
+                title={isActiveCampaign ? 'Unpin campaign' : 'Set as active campaign'}
               >
-                <Pencil className="w-4 h-4" />
+                <Pin className={`w-4 h-4 ${isActiveCampaign ? 'fill-current' : ''}`} />
               </button>
-              <button
-                onClick={() => setDeleteDialogOpen(true)}
-                className="p-2 border border-destructive text-destructive rounded hover:bg-destructive/10 transition-colors"
-                title="Delete campaign"
-              >
-                <Trash2 className="w-4 h-4" />
-              </button>
-            </div>
-          )}
+            )}
+            
+            {isOwner && !collection.is_system && (
+              <>
+                <button
+                  onClick={() => setEditDialogOpen(true)}
+                  className="p-2 border border-secondary text-secondary rounded hover:bg-secondary/10 transition-colors"
+                  title="Edit campaign"
+                >
+                  <Pencil className="w-4 h-4" />
+                </button>
+                <button
+                  onClick={() => setDeleteDialogOpen(true)}
+                  className="p-2 border border-destructive text-destructive rounded hover:bg-destructive/10 transition-colors"
+                  title="Delete campaign"
+                >
+                  <Trash2 className="w-4 h-4" />
+                </button>
+              </>
+            )}
+          </div>
         </motion.header>
 
         {/* Description */}
