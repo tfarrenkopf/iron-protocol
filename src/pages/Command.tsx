@@ -305,6 +305,7 @@ const Command = () => {
         <div className="flex items-center justify-between mb-6">
           <GlobalNav 
             title="COMMAND"
+            subtitle="MISSION CONTROL & ARSENAL"
             showBack={true}
             className="mb-0 flex-1"
             section="command"

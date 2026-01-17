@@ -278,8 +278,8 @@ const HIITTimer = () => {
         
         <div className="relative z-10 container mx-auto px-4 py-6 max-w-2xl">
           <GlobalNav 
-            title="COMBAT MODE"
-            subtitle="SELECT PROTOCOL"
+            title="COMBAT HIIT TIMER"
+            subtitle="HIGH INTENSITY INTERVAL WARFARE"
             section="hiit"
           />
 

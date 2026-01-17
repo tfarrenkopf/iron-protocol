@@ -168,6 +168,31 @@
     box-shadow: var(--glow-secondary);
   }
 
+  /* Section-specific glow effects */
+  .box-glow-command {
+    box-shadow: 0 0 20px hsl(var(--section-command) / 0.6), 0 0 40px hsl(var(--section-command) / 0.3);
+  }
+
+  .box-glow-intel {
+    box-shadow: 0 0 20px hsl(var(--section-intel) / 0.6), 0 0 40px hsl(var(--section-intel) / 0.3);
+  }
+
+  .box-glow-hiit {
+    box-shadow: 0 0 20px hsl(var(--section-hiit) / 0.6), 0 0 40px hsl(var(--section-hiit) / 0.3);
+  }
+
+  .text-glow-command {
+    text-shadow: 0 0 10px hsl(var(--section-command)), 0 0 20px hsl(var(--section-command) / 0.8), 0 0 40px hsl(var(--section-command) / 0.5);
+  }
+
+  .text-glow-intel {
+    text-shadow: 0 0 10px hsl(var(--section-intel)), 0 0 20px hsl(var(--section-intel) / 0.8), 0 0 40px hsl(var(--section-intel) / 0.5);
+  }
+
+  .text-glow-hiit {
+    text-shadow: 0 0 10px hsl(var(--section-hiit)), 0 0 20px hsl(var(--section-hiit) / 0.8), 0 0 40px hsl(var(--section-hiit) / 0.5);
+  }
+
   /* Glitch animation */
   @keyframes glitch {
     0%, 100% { clip-path: inset(0 0 0 0); transform: translate(0); }
