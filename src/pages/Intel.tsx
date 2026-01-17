@@ -2,7 +2,6 @@ import { useState, useMemo } from 'react';
 import { motion } from 'framer-motion';
 import { useNavigate } from 'react-router-dom';
 import { 
-  ArrowLeft, 
   Swords, 
   Crown, 
   Medal, 
@@ -19,6 +18,7 @@ import {
   Activity,
   AlertTriangle,
 } from 'lucide-react';
+import { GlobalNav } from '@/components/GlobalNav';
 import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { format, startOfWeek, endOfWeek, subHours, subDays, subMinutes } from 'date-fns';
@@ -1052,18 +1052,10 @@ const Intel = () => {
 
       <div className="relative z-10 container mx-auto px-4 py-8 max-w-2xl">
         {/* Header */}
-        <div className="flex items-center gap-4 mb-6">
-          <button
-            onClick={() => navigate('/')}
-            className="p-2 border border-border rounded hover:border-primary transition-colors"
-          >
-            <ArrowLeft className="w-5 h-5" />
-          </button>
-          <div>
-            <h1 className="font-display text-3xl text-primary text-glow-primary">INTEL CENTER</h1>
-            <p className="text-xs text-muted-foreground tracking-wider">STATS • FEED • CAMPAIGNS • RANKINGS</p>
-          </div>
-        </div>
+        <GlobalNav 
+          title="INTEL CENTER"
+          subtitle="STATS • FEED • CAMPAIGNS • RANKINGS"
+        />
 
         {/* Tabs */}
         <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">

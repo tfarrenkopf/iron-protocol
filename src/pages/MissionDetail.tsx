@@ -1,12 +1,13 @@
 import { useState } from 'react';
 import { motion } from 'framer-motion';
 import { useNavigate, useParams, useLocation } from 'react-router-dom';
-import { ArrowLeft, Zap, Play, Clock, Dumbbell, ChevronDown, ChevronUp, RefreshCw, AlertCircle, Users, Trophy } from 'lucide-react';
+import { Zap, Play, Clock, Dumbbell, ChevronDown, ChevronUp, RefreshCw, AlertCircle, Users, Trophy } from 'lucide-react';
 import { useMission } from '@/hooks/useMissions';
 import { useMissionStats, useMissionLeaderboard, useUserMissionRank } from '@/hooks/useMissionStats';
 import { PopularityBadge, WarriorCount, MissionRankBadge, MissionLeaderboardMini, HotMissionGlow } from '@/components/SocialProof';
 import { useAuth } from '@/hooks/useAuth';
 import { GuestIndicator, ConversionNudge } from '@/components/AnonymousConversion';
+import { GlobalNav } from '@/components/GlobalNav';
 
 const MissionDetail = () => {
   const location = useLocation();
@@ -69,35 +70,28 @@ const MissionDetail = () => {
       
       <div className="relative z-10 container mx-auto px-4 py-6 max-w-2xl">
         {/* Header */}
-        <motion.header 
-          initial={{ opacity: 0, y: -20 }}
+        <GlobalNav 
+          backTo={(() => {
+            const searchParams = new URLSearchParams(location.search);
+            const campaignId = searchParams.get('campaignId');
+            return campaignId ? `/campaign/${campaignId}` : '/command?tab=missions';
+          })()}
+        />
+
+        {/* Mission title */}
+        <motion.div 
+          initial={{ opacity: 0, y: -10 }}
           animate={{ opacity: 1, y: 0 }}
-          className="flex items-center gap-4 mb-6"
+          className="mb-6"
         >
-          <button 
-            onClick={() => {
-              const searchParams = new URLSearchParams(location.search);
-              const campaignId = searchParams.get('campaignId');
-              if (campaignId) {
-                navigate(`/campaign/${campaignId}`);
-              } else {
-                navigate(-1);
-              }
-            }}
-            className="p-2 border border-border rounded hover:border-primary transition-colors"
-          >
-            <ArrowLeft className="w-5 h-5" />
-          </button>
-          <div>
-            <div className="flex items-center gap-2">
-              <h1 className="font-display text-3xl text-primary">{mission.code_name}</h1>
-              <PopularityBadge score={mission.popularity_score || 0} />
-            </div>
-            <p className="text-xs text-muted-foreground tracking-wider">
-              {isAnonymous ? <GuestIndicator variant="minimal" /> : 'MISSION BRIEFING'}
-            </p>
+          <div className="flex items-center gap-2">
+            <h1 className="font-display text-3xl text-primary">{mission.code_name}</h1>
+            <PopularityBadge score={mission.popularity_score || 0} />
           </div>
-        </motion.header>
+          <p className="text-xs text-muted-foreground tracking-wider">
+            {isAnonymous ? <GuestIndicator variant="minimal" /> : 'MISSION BRIEFING'}
+          </p>
+        </motion.div>
 
 
         {/* Mission Overview Card */}

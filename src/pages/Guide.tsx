@@ -1,7 +1,6 @@
 import { motion } from 'framer-motion';
 import { useNavigate } from 'react-router-dom';
 import { 
-  ArrowLeft, 
   Dumbbell, 
   Timer, 
   Trophy, 
@@ -11,6 +10,7 @@ import {
   Users,
   Plus
 } from 'lucide-react';
+import { GlobalNav } from '@/components/GlobalNav';
 
 const GUIDE_SECTIONS = [
   {
@@ -137,22 +137,10 @@ const Guide = () => {
       
       <div className="relative z-10 container mx-auto px-4 py-6 max-w-2xl">
         {/* Header */}
-        <motion.header 
-          initial={{ opacity: 0, y: -20 }}
-          animate={{ opacity: 1, y: 0 }}
-          className="flex items-center gap-4 mb-6"
-        >
-          <button 
-            onClick={() => navigate('/')}
-            className="p-2 border border-border rounded hover:border-primary transition-colors"
-          >
-            <ArrowLeft className="w-5 h-5" />
-          </button>
-          <div>
-            <h1 className="font-display text-3xl text-primary">FIELD MANUAL</h1>
-            <p className="text-xs text-muted-foreground tracking-wider">OPERATIONAL GUIDE</p>
-          </div>
-        </motion.header>
+        <GlobalNav 
+          title="FIELD MANUAL"
+          subtitle="OPERATIONAL GUIDE"
+        />
 
         {/* Anchor Navigation */}
         <nav className="bg-card border border-border rounded-lg p-4 mb-8 sticky top-4 z-20">

@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import { useNavigate } from 'react-router-dom';
-import { ArrowLeft, Trophy, Dumbbell, Target, Zap, Crown, Medal, Star, Users, Activity, Award, Weight } from 'lucide-react';
+import { Trophy, Dumbbell, Target, Zap, Crown, Medal, Star, Users, Activity, Award, Weight } from 'lucide-react';
 import { useProfile, useLeaderboard } from '@/hooks/useProfile';
 import { useWeightHistory } from '@/hooks/useWeightHistory';
 import { useMuscleGroupStats } from '@/hooks/useMuscleGroupStats';
@@ -11,6 +11,7 @@ import { useUserMilestones } from '@/hooks/useMilestones';
 import { MilestoneList } from '@/components/MilestoneProgress';
 import { useAchievements, useUserAchievements } from '@/hooks/useAchievements';
 import { AchievementList } from '@/components/AchievementList';
+import { GlobalNav } from '@/components/GlobalNav';
 
 // Section IDs for navigation
 const SECTIONS = [
@@ -145,18 +146,10 @@ const Stats = () => {
       
       <div className="relative z-10 container mx-auto px-4 py-6 max-w-2xl">
         {/* Header */}
-        <header className="flex items-center gap-4 mb-4">
-          <button 
-            onClick={() => navigate('/')}
-            className="p-2 border border-border rounded hover:border-primary transition-colors"
-          >
-            <ArrowLeft className="w-5 h-5" />
-          </button>
-          <div>
-            <h1 className="font-display text-3xl text-primary text-glow-primary">WAR ROOM</h1>
-            <p className="text-xs text-muted-foreground tracking-wider">STATS & LEADERBOARD</p>
-          </div>
-        </header>
+        <GlobalNav 
+          title="WAR ROOM"
+          subtitle="STATS & LEADERBOARD"
+        />
 
         {/* Guest Banner */}
         {isAnonymous && (

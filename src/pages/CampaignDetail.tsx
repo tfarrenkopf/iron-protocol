@@ -2,7 +2,8 @@ import { useState, useMemo } from 'react';
 import { motion } from 'framer-motion';
 import { useNavigate, useParams } from 'react-router-dom';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
-import { ArrowLeft, Clock, Pencil, Trash2, Lock, Globe, Users, Flame, Plus, Trophy, Timer, Rocket, Play, Zap, RefreshCw, X, Target } from 'lucide-react';
+import { Clock, Pencil, Trash2, Lock, Globe, Users, Flame, Plus, Trophy, Timer, Rocket, Play, Zap, RefreshCw, X, Target } from 'lucide-react';
+import { GlobalNav } from '@/components/GlobalNav';
 import { useCollection, useDeleteCollection, useRemoveMissionFromCollection, useAddMissionToCollection } from '@/hooks/useCollections';
 import { useCampaignProgress, useCampaignCompletions, useCampaignLeaderboard, CampaignProgress } from '@/hooks/useCampaignProgress';
 import { useAuth } from '@/hooks/useAuth';
@@ -435,26 +436,22 @@ const CampaignDetail = () => {
       <div className="fixed inset-0 pointer-events-none scanlines opacity-20" />
       
       <div className="relative z-10 container mx-auto px-4 py-6 max-w-2xl">
-        {/* Header */}
-        <motion.header 
-          initial={{ opacity: 0, y: -20 }}
+        <GlobalNav backTo="/command?tab=campaigns" />
+
+        {/* Campaign title section */}
+        <motion.div 
+          initial={{ opacity: 0, y: -10 }}
           animate={{ opacity: 1, y: 0 }}
           className="flex items-center justify-between mb-6"
         >
-          <div className="flex items-center gap-4">
-            <button 
-              onClick={() => navigate(-1)}
-              className="p-2 border border-border rounded hover:border-primary transition-colors"
-            >
-              <ArrowLeft className="w-5 h-5" />
-            </button>
+          <div className="flex items-center gap-3">
+            {isActiveCampaign ? (
+              <Rocket className="w-6 h-6 text-accent animate-pulse" />
+            ) : (
+              <Flame className="w-6 h-6 text-accent" />
+            )}
             <div>
               <div className="flex items-center gap-2">
-                {isActiveCampaign ? (
-                  <Rocket className="w-6 h-6 text-accent animate-pulse" />
-                ) : (
-                  <Flame className="w-6 h-6 text-accent" />
-                )}
                 <h1 className="font-display text-2xl text-primary">{collection.code_name}</h1>
                 {collection.is_system && (
                   <span className="text-[10px] px-1.5 py-0.5 bg-secondary/20 text-secondary rounded">
@@ -503,7 +500,7 @@ const CampaignDetail = () => {
               </>
             )}
           </div>
-        </motion.header>
+        </motion.div>
 
         {/* LAUNCH CONTROL - Primary action for active campaigns */}
         {isActiveCampaign && user && missions.length > 0 && (
