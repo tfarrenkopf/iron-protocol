@@ -10,7 +10,7 @@ import { MissionCard } from '@/components/MissionCard';
 import { AddToCollectionButton } from '@/components/AddToCollectionButton';
 import { CollectionFormDialog } from '@/components/CollectionFormDialog';
 import { ExerciseCard } from '@/components/ExerciseCard';
-import { FOCUS_AREAS, getMusclesForFocusArea, formatEquipment } from '@/data/muscleGroups';
+import { FOCUS_AREAS, getMusclesForFocusArea, formatEquipment, EQUIPMENT_OPTIONS } from '@/data/muscleGroups';
 import { CollectionFilter } from '@/components/CollectionFilter';
 import { useActiveCampaign } from '@/hooks/useActiveCampaign';
 import { TodayMissionsWidget } from '@/components/TodayMissionsWidget';
@@ -94,8 +94,27 @@ const Command = () => {
   const systemCollections = collections?.filter(c => c.is_system) || [];
   const publicCollections = collections?.filter(c => !c.is_system && c.visibility === 'public' && c.created_by !== user?.id) || [];
   
-  // Display exercises based on source
-  const displayExercises = source === 'public' ? publicExercises : myExercises;
+  // Display exercises based on source and filters
+  const displayExercises = useMemo(() => {
+    let exerciseList = source === 'public' ? publicExercises : myExercises;
+    
+    // Apply equipment filter
+    if (equipmentFilter) {
+      exerciseList = exerciseList.filter(e => e.equipment?.includes(equipmentFilter as any));
+    }
+    
+    // Apply muscle filter
+    if (muscleFilter) {
+      exerciseList = exerciseList.filter(e => e.primary_muscle_group === muscleFilter);
+    }
+    
+    // Apply focus filter
+    if (focusFilter) {
+      exerciseList = exerciseList.filter(e => e.focus_areas?.includes(focusFilter));
+    }
+    
+    return exerciseList;
+  }, [source, publicExercises, myExercises, equipmentFilter, muscleFilter, focusFilter]);
   
   // Active campaign at top
   const activeCampaign = collections?.find(c => c.id === activeCampaignId);
@@ -206,6 +225,13 @@ const Command = () => {
       });
     }
   }
+  // Apply equipment filter to missions (check if any exercise in mission uses the equipment)
+  if (equipmentFilter && filteredMissions) {
+    filteredMissions = filteredMissions.filter(m => {
+      const missionEquipment = m.mission_exercises?.flatMap(me => me.exercises?.equipment || []) || [];
+      return missionEquipment.includes(equipmentFilter as any);
+    });
+  }
   
   const hasFilters = focusFilter || muscleFilter || equipmentFilter || durationFilter || collectionFilter;
   
@@ -241,6 +267,10 @@ const Command = () => {
   const handleEditMission = (e: React.MouseEvent, missionId: string) => {
     e.stopPropagation();
     navigate(`/exercises?editMission=${missionId}&returnTo=command`);
+  };
+  
+  const handleEditExercise = (exerciseId: string) => {
+    navigate(`/exercises?editExercise=${exerciseId}&returnTo=command`);
   };
   
   const tabs: { id: TabType; label: string; icon: typeof Target }[] = [
@@ -448,68 +478,201 @@ const Command = () => {
               
               {/* Scrollable Content */}
               <div className="flex-1 overflow-y-auto p-4 space-y-5">
-                <CollectionFilter selectedCollectionId={collectionFilter} onSelect={setCollectionFilter} />
-                
-                <div>
-                  <label className="text-xs text-muted-foreground tracking-wider font-display">FOCUS AREA</label>
-                  <div className="flex flex-wrap gap-2 mt-2">
-                    {FOCUS_AREAS.map(area => (
-                      <button
-                        key={area}
-                        onClick={() => setFocusFilter(focusFilter === area ? '' : area)}
-                        className={`text-xs px-3 py-1.5 rounded-lg border transition-colors ${
-                          focusFilter === area
-                            ? 'bg-primary text-primary-foreground border-primary'
-                            : 'bg-background border-border hover:border-primary/50'
-                        }`}
-                      >
-                        {area}
-                      </button>
-                    ))}
-                  </div>
-                </div>
-
-                {availableMuscles.length > 0 && (
-                  <div>
-                    <label className="text-xs text-muted-foreground tracking-wider font-display">PRIMARY MUSCLE</label>
-                    <div className="flex flex-wrap gap-2 mt-2">
-                      {availableMuscles.map(muscle => (
-                        <button
-                          key={muscle}
-                          onClick={() => setMuscleFilter(muscleFilter === muscle ? '' : muscle)}
-                          className={`text-xs px-3 py-1.5 rounded-lg border transition-colors ${
-                            muscleFilter === muscle
-                              ? 'bg-secondary text-secondary-foreground border-secondary'
-                              : 'bg-background border-border hover:border-secondary/50'
-                          }`}
-                        >
-                          {muscle}
-                        </button>
-                      ))}
+                {/* CAMPAIGNS: Duration, Focus Area */}
+                {activeTab === 'campaigns' && (
+                  <>
+                    <div>
+                      <label className="text-xs text-muted-foreground tracking-wider font-display flex items-center gap-1">
+                        <Clock className="w-3 h-3" /> DURATION
+                      </label>
+                      <div className="flex flex-wrap gap-2 mt-2">
+                        {DURATION_FILTERS.map(duration => (
+                          <button
+                            key={duration.value}
+                            onClick={() => setDurationFilter(durationFilter === duration.value ? '' : duration.value)}
+                            className={`text-xs px-3 py-1.5 rounded-lg border transition-colors ${
+                              durationFilter === duration.value
+                                ? 'bg-accent text-accent-foreground border-accent'
+                                : 'bg-background border-border hover:border-accent/50'
+                            }`}
+                          >
+                            {duration.label}
+                          </button>
+                        ))}
+                      </div>
                     </div>
-                  </div>
+                    
+                    <div>
+                      <label className="text-xs text-muted-foreground tracking-wider font-display">FOCUS AREA</label>
+                      <div className="flex flex-wrap gap-2 mt-2">
+                        {FOCUS_AREAS.map(area => (
+                          <button
+                            key={area}
+                            onClick={() => setFocusFilter(focusFilter === area ? '' : area)}
+                            className={`text-xs px-3 py-1.5 rounded-lg border transition-colors ${
+                              focusFilter === area
+                                ? 'bg-primary text-primary-foreground border-primary'
+                                : 'bg-background border-border hover:border-primary/50'
+                            }`}
+                          >
+                            {area}
+                          </button>
+                        ))}
+                      </div>
+                    </div>
+                  </>
                 )}
+                
+                {/* MISSIONS: Duration, Equipment, Focus Area, Collection, Muscle */}
+                {activeTab === 'missions' && (
+                  <>
+                    <div>
+                      <label className="text-xs text-muted-foreground tracking-wider font-display flex items-center gap-1">
+                        <Clock className="w-3 h-3" /> DURATION
+                      </label>
+                      <div className="flex flex-wrap gap-2 mt-2">
+                        {DURATION_FILTERS.map(duration => (
+                          <button
+                            key={duration.value}
+                            onClick={() => setDurationFilter(durationFilter === duration.value ? '' : duration.value)}
+                            className={`text-xs px-3 py-1.5 rounded-lg border transition-colors ${
+                              durationFilter === duration.value
+                                ? 'bg-accent text-accent-foreground border-accent'
+                                : 'bg-background border-border hover:border-accent/50'
+                            }`}
+                          >
+                            {duration.label}
+                          </button>
+                        ))}
+                      </div>
+                    </div>
+                    
+                    <div>
+                      <label className="text-xs text-muted-foreground tracking-wider font-display">EQUIPMENT</label>
+                      <div className="flex flex-wrap gap-2 mt-2">
+                        {EQUIPMENT_OPTIONS.map(equip => (
+                          <button
+                            key={equip}
+                            onClick={() => setEquipmentFilter(equipmentFilter === equip ? '' : equip)}
+                            className={`text-xs px-3 py-1.5 rounded-lg border transition-colors ${
+                              equipmentFilter === equip
+                                ? 'bg-secondary text-secondary-foreground border-secondary'
+                                : 'bg-background border-border hover:border-secondary/50'
+                            }`}
+                          >
+                            {formatEquipment(equip)}
+                          </button>
+                        ))}
+                      </div>
+                    </div>
+                    
+                    <div>
+                      <label className="text-xs text-muted-foreground tracking-wider font-display">FOCUS AREA</label>
+                      <div className="flex flex-wrap gap-2 mt-2">
+                        {FOCUS_AREAS.map(area => (
+                          <button
+                            key={area}
+                            onClick={() => setFocusFilter(focusFilter === area ? '' : area)}
+                            className={`text-xs px-3 py-1.5 rounded-lg border transition-colors ${
+                              focusFilter === area
+                                ? 'bg-primary text-primary-foreground border-primary'
+                                : 'bg-background border-border hover:border-primary/50'
+                            }`}
+                          >
+                            {area}
+                          </button>
+                        ))}
+                      </div>
+                    </div>
+                    
+                    <CollectionFilter selectedCollectionId={collectionFilter} onSelect={setCollectionFilter} />
 
-                <div>
-                  <label className="text-xs text-muted-foreground tracking-wider font-display flex items-center gap-1">
-                    <Clock className="w-3 h-3" /> DURATION
-                  </label>
-                  <div className="flex flex-wrap gap-2 mt-2">
-                    {DURATION_FILTERS.map(duration => (
-                      <button
-                        key={duration.value}
-                        onClick={() => setDurationFilter(durationFilter === duration.value ? '' : duration.value)}
-                        className={`text-xs px-3 py-1.5 rounded-lg border transition-colors ${
-                          durationFilter === duration.value
-                            ? 'bg-accent text-accent-foreground border-accent'
-                            : 'bg-background border-border hover:border-accent/50'
-                        }`}
-                      >
-                        {duration.label}
-                      </button>
-                    ))}
-                  </div>
-                </div>
+                    {availableMuscles.length > 0 && (
+                      <div>
+                        <label className="text-xs text-muted-foreground tracking-wider font-display">PRIMARY MUSCLE</label>
+                        <div className="flex flex-wrap gap-2 mt-2">
+                          {availableMuscles.map(muscle => (
+                            <button
+                              key={muscle}
+                              onClick={() => setMuscleFilter(muscleFilter === muscle ? '' : muscle)}
+                              className={`text-xs px-3 py-1.5 rounded-lg border transition-colors ${
+                                muscleFilter === muscle
+                                  ? 'bg-secondary text-secondary-foreground border-secondary'
+                                  : 'bg-background border-border hover:border-secondary/50'
+                              }`}
+                            >
+                              {muscle}
+                            </button>
+                          ))}
+                        </div>
+                      </div>
+                    )}
+                  </>
+                )}
+                
+                {/* EXERCISES: Equipment, Primary Muscle, Focus Area */}
+                {activeTab === 'exercises' && (
+                  <>
+                    <div>
+                      <label className="text-xs text-muted-foreground tracking-wider font-display">EQUIPMENT</label>
+                      <div className="flex flex-wrap gap-2 mt-2">
+                        {EQUIPMENT_OPTIONS.map(equip => (
+                          <button
+                            key={equip}
+                            onClick={() => setEquipmentFilter(equipmentFilter === equip ? '' : equip)}
+                            className={`text-xs px-3 py-1.5 rounded-lg border transition-colors ${
+                              equipmentFilter === equip
+                                ? 'bg-secondary text-secondary-foreground border-secondary'
+                                : 'bg-background border-border hover:border-secondary/50'
+                            }`}
+                          >
+                            {formatEquipment(equip)}
+                          </button>
+                        ))}
+                      </div>
+                    </div>
+
+                    {availableMuscles.length > 0 && (
+                      <div>
+                        <label className="text-xs text-muted-foreground tracking-wider font-display">PRIMARY MUSCLE</label>
+                        <div className="flex flex-wrap gap-2 mt-2">
+                          {availableMuscles.map(muscle => (
+                            <button
+                              key={muscle}
+                              onClick={() => setMuscleFilter(muscleFilter === muscle ? '' : muscle)}
+                              className={`text-xs px-3 py-1.5 rounded-lg border transition-colors ${
+                                muscleFilter === muscle
+                                  ? 'bg-secondary text-secondary-foreground border-secondary'
+                                  : 'bg-background border-border hover:border-secondary/50'
+                              }`}
+                            >
+                              {muscle}
+                            </button>
+                          ))}
+                        </div>
+                      </div>
+                    )}
+                    
+                    <div>
+                      <label className="text-xs text-muted-foreground tracking-wider font-display">FOCUS AREA</label>
+                      <div className="flex flex-wrap gap-2 mt-2">
+                        {FOCUS_AREAS.map(area => (
+                          <button
+                            key={area}
+                            onClick={() => setFocusFilter(focusFilter === area ? '' : area)}
+                            className={`text-xs px-3 py-1.5 rounded-lg border transition-colors ${
+                              focusFilter === area
+                                ? 'bg-primary text-primary-foreground border-primary'
+                                : 'bg-background border-border hover:border-primary/50'
+                            }`}
+                          >
+                            {area}
+                          </button>
+                        ))}
+                      </div>
+                    </div>
+                  </>
+                )}
               </div>
               
               {/* Footer Actions */}
@@ -671,7 +834,7 @@ const Command = () => {
                         exercise={exercise}
                         index={i}
                         isOwner={exercise.created_by === user?.id}
-                        onEdit={(id) => navigate(`/exercises?editExercise=${id}`)}
+                        onEdit={handleEditExercise}
                         onDelete={(id, name) => handleDeleteClick(id, name, 'exercise')}
                       />
                     ))}
