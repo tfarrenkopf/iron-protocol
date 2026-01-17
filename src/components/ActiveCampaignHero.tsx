@@ -97,34 +97,48 @@ export function ActiveCampaignHero({ className = '' }: ActiveCampaignHeroProps) 
       <motion.div
         initial={{ opacity: 0, y: -10 }}
         animate={{ opacity: 1, y: 0 }}
-        className={`bg-accent/10 border-2 border-accent rounded-lg p-4 cursor-pointer hover:box-glow-accent transition-all ${className}`}
+        className={`border-2 rounded-lg p-4 cursor-pointer transition-all ${
+          isComplete 
+            ? 'bg-secondary/10 border-secondary hover:box-glow-secondary' 
+            : 'bg-accent/10 border-accent hover:box-glow-accent'
+        } ${className}`}
         onClick={() => navigate(`/campaign/${campaign.id}`)}
       >
+        {/* Header */}
         <div className="flex items-center justify-between mb-3">
           <div className="flex items-center gap-2">
-            <Flame className="w-5 h-5 text-accent animate-pulse" />
-            <span className="font-display text-xs text-accent tracking-wider">ACTIVE CAMPAIGN</span>
+            {isComplete ? (
+              <>
+                <Trophy className="w-5 h-5 text-secondary" />
+                <span className="font-display text-xs text-secondary tracking-wider">CAMPAIGN COMPLETE</span>
+              </>
+            ) : (
+              <>
+                <Flame className="w-5 h-5 text-accent animate-pulse" />
+                <span className="font-display text-xs text-accent tracking-wider">ACTIVE CAMPAIGN</span>
+              </>
+            )}
           </div>
-          <button
-            onClick={(e) => { e.stopPropagation(); setShowForfeitDialog(true); }}
-            className="text-xs text-destructive/60 hover:text-destructive font-display transition-colors"
-          >
-            FORFEIT
-          </button>
         </div>
 
-        <h2 className="font-display text-2xl text-accent mb-2">{campaign.code_name}</h2>
+        <h2 className={`font-display text-2xl mb-2 ${isComplete ? 'text-secondary' : 'text-accent'}`}>
+          {campaign.code_name}
+        </h2>
         
         {/* Progress */}
         <div className="flex items-center gap-4 mb-3">
           <div className="flex items-center gap-1.5">
-            <Play className="w-3.5 h-3.5 text-accent/70" />
+            {isComplete ? (
+              <Trophy className="w-3.5 h-3.5 text-secondary/70" />
+            ) : (
+              <Play className="w-3.5 h-3.5 text-accent/70" />
+            )}
             <span className="text-sm">
-              <span className="text-accent font-display">{completedCount}</span>
+              <span className={`font-display ${isComplete ? 'text-secondary' : 'text-accent'}`}>{completedCount}</span>
               <span className="text-muted-foreground">/{totalMissions}</span>
             </span>
           </div>
-          {remainingTime > 0 && (
+          {!isComplete && remainingTime > 0 && (
             <div className="flex items-center gap-1.5">
               <Clock className="w-3.5 h-3.5 text-muted-foreground" />
               <span className="text-sm text-muted-foreground">~{remainingTime}min left</span>
@@ -133,65 +147,67 @@ export function ActiveCampaignHero({ className = '' }: ActiveCampaignHeroProps) 
         </div>
 
         {/* Progress bar */}
-        <div className="h-2 bg-accent/20 rounded-full overflow-hidden mb-3">
+        <div className={`h-2 rounded-full overflow-hidden mb-3 ${isComplete ? 'bg-secondary/20' : 'bg-accent/20'}`}>
           <div 
-            className="h-full bg-accent rounded-full transition-all"
+            className={`h-full rounded-full transition-all ${isComplete ? 'bg-secondary' : 'bg-accent'}`}
             style={{ width: `${totalMissions > 0 ? (completedCount / totalMissions) * 100 : 0}%` }}
           />
         </div>
 
-        {/* Equipment */}
-        {equipment.length > 0 && (
-          <div className="flex items-center gap-2 mb-3">
-            <Dumbbell className="w-3.5 h-3.5 text-muted-foreground" />
-            <div className="flex gap-1 flex-wrap">
-              {equipment.slice(0, 4).map(eq => (
-                <span key={eq} className="text-[10px] px-1.5 py-0.5 bg-muted/50 text-muted-foreground rounded">
-                  {formatEquipment(eq)}
-                </span>
-              ))}
-              {equipment.length > 4 && (
-                <span className="text-[10px] px-1.5 py-0.5 bg-muted/50 text-muted-foreground rounded">
-                  +{equipment.length - 4}
-                </span>
-              )}
+        {/* Stats - always visible */}
+        <div className="flex items-center gap-4 text-xs text-muted-foreground mb-3">
+          {progress?.total_completions !== undefined && progress.total_completions > 0 && (
+            <div className="flex items-center gap-1">
+              <RefreshCw className="w-3 h-3 text-secondary" />
+              <span>{progress.total_completions}x cleared</span>
             </div>
-          </div>
-        )}
+          )}
+          {progress?.best_completion_time_seconds && (
+            <div className="flex items-center gap-1">
+              <Clock className="w-3 h-3 text-secondary" />
+              <span>Best: {formatTime(progress.best_completion_time_seconds)}</span>
+            </div>
+          )}
+          {equipment.length > 0 && (
+            <div className="flex items-center gap-1">
+              <Dumbbell className="w-3 h-3" />
+              <span>{equipment.length} equip</span>
+            </div>
+          )}
+        </div>
 
-        {/* Action button */}
-        <button
-          onClick={handleStartNext}
-          className="w-full py-3 bg-accent text-accent-foreground font-display rounded-lg hover:bg-accent/90 transition-colors flex items-center justify-center gap-2 text-lg"
-        >
-          {isComplete ? (
-            <>
-              <RefreshCw className="w-5 h-5" />
-              REPLAY CAMPAIGN
-            </>
-          ) : (
-            <>
+        {/* Action buttons */}
+        {isComplete ? (
+          <div className="flex gap-2">
+            <button
+              onClick={handleStartNext}
+              className="flex-1 py-3 bg-secondary text-secondary-foreground font-display rounded-lg hover:bg-secondary/90 transition-colors flex items-center justify-center gap-2"
+            >
+              <RefreshCw className="w-4 h-4" />
+              REPLAY
+            </button>
+            <button
+              onClick={(e) => { e.stopPropagation(); setShowForfeitDialog(true); }}
+              className="px-4 py-3 border border-muted-foreground/30 text-muted-foreground font-display rounded-lg hover:border-destructive hover:text-destructive transition-colors"
+            >
+              DISCARD
+            </button>
+          </div>
+        ) : (
+          <div className="flex gap-2">
+            <button
+              onClick={handleStartNext}
+              className="flex-1 py-3 bg-accent text-accent-foreground font-display rounded-lg hover:bg-accent/90 transition-colors flex items-center justify-center gap-2 text-lg"
+            >
               <ChevronRight className="w-5 h-5" />
               {nextMission ? `NEXT: ${nextMission.code_name}` : 'CONTINUE'}
-            </>
-          )}
-        </button>
-
-        {/* Stats */}
-        {progress && (progress.total_completions > 0 || progress.best_completion_time_seconds) && (
-          <div className="mt-3 pt-3 border-t border-accent/20 flex items-center gap-4 text-xs text-muted-foreground">
-            {progress.total_completions > 0 && (
-              <div className="flex items-center gap-1">
-                <Trophy className="w-3 h-3 text-secondary" />
-                <span>{progress.total_completions}x cleared</span>
-              </div>
-            )}
-            {progress.best_completion_time_seconds && (
-              <div className="flex items-center gap-1">
-                <Clock className="w-3 h-3 text-secondary" />
-                <span>Best: {formatTime(progress.best_completion_time_seconds)}</span>
-              </div>
-            )}
+            </button>
+            <button
+              onClick={(e) => { e.stopPropagation(); setShowForfeitDialog(true); }}
+              className="px-3 py-3 border border-muted-foreground/30 text-muted-foreground font-display text-xs rounded-lg hover:border-destructive hover:text-destructive transition-colors"
+            >
+              FORFEIT
+            </button>
           </div>
         )}
       </motion.div>

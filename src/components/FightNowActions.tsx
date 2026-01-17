@@ -223,7 +223,7 @@ export function FightNowActions() {
                 <Flame className="w-6 h-6 text-accent" />
               </div>
               <div className="flex-1 min-w-0">
-                <h3 className="font-display text-base text-accent">NEW ORDERS</h3>
+                <h3 className="font-display text-base text-accent">SELECT CAMPAIGN</h3>
                 <p className="text-[10px] text-muted-foreground">Switch battlefield</p>
               </div>
             </div>
