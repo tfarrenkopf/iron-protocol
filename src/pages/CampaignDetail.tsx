@@ -2,7 +2,7 @@ import { useState, useMemo } from 'react';
 import { motion } from 'framer-motion';
 import { useNavigate, useParams } from 'react-router-dom';
 import { useQuery } from '@tanstack/react-query';
-import { ArrowLeft, Clock, Pencil, Trash2, Lock, Globe, Users, Flame, Plus, Trophy, Timer, Rocket, Play, Zap, RefreshCw, X } from 'lucide-react';
+import { ArrowLeft, Clock, Pencil, Trash2, Lock, Globe, Users, Flame, Plus, Trophy, Timer, Rocket, Play, Zap, RefreshCw, X, Target } from 'lucide-react';
 import { useCollection, useDeleteCollection, useRemoveMissionFromCollection, useAddMissionToCollection } from '@/hooks/useCollections';
 import { useCampaignProgress, useCampaignCompletions, useCampaignLeaderboard, CampaignProgress } from '@/hooks/useCampaignProgress';
 import { useAuth } from '@/hooks/useAuth';
@@ -12,7 +12,6 @@ import { GuestIndicator } from '@/components/AnonymousConversion';
 import { CollectionFormDialog } from '@/components/CollectionFormDialog';
 import { MissionPickerDialog } from '@/components/MissionPickerDialog';
 import { CampaignMissionList } from '@/components/CampaignMissionList';
-import { CampaignProgressCard } from '@/components/CampaignProgressCard';
 import {
   AlertDialog,
   AlertDialogAction,
@@ -472,11 +471,48 @@ const CampaignDetail = () => {
           </motion.div>
         )}
 
-        {/* Missions List - MOVED UP: now directly below deploy button */}
+        {/* Core Campaign Info - Description integrated with stats */}
+        <motion.div
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          transition={{ delay: 0.1 }}
+          className="mb-6 p-4 bg-card border border-border rounded-lg"
+        >
+          {/* Campaign Description */}
+          {collection.description && (
+            <p className="text-sm text-foreground mb-4">{collection.description}</p>
+          )}
+          
+          {/* Compact inline stats */}
+          <div className="flex items-center gap-4 text-xs text-muted-foreground flex-wrap">
+            <span className="flex items-center gap-1">
+              <Target className="w-3 h-3 text-primary" />
+              {missions.length} missions
+            </span>
+            <span className="flex items-center gap-1">
+              <Clock className="w-3 h-3 text-secondary" />
+              ~{missions.reduce((acc, m) => acc + (m?.estimated_minutes || 0), 0)} min
+            </span>
+            {progress?.total_completions && progress.total_completions > 0 && (
+              <span className="flex items-center gap-1">
+                <RefreshCw className="w-3 h-3 text-accent" />
+                {progress.total_completions}x cleared
+              </span>
+            )}
+            {progress?.best_completion_time_seconds && (
+              <span className="flex items-center gap-1">
+                <Timer className="w-3 h-3 text-secondary" />
+                Best: {formatTime(progress.best_completion_time_seconds)}
+              </span>
+            )}
+          </div>
+        </motion.div>
+
+        {/* Missions List */}
         <motion.section
           initial={{ opacity: 0, y: 10 }}
           animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.1 }}
+          transition={{ delay: 0.15 }}
           className="mb-6"
         >
           <div className="flex items-center justify-between mb-3">
@@ -489,126 +525,100 @@ const CampaignDetail = () => {
                 onClick={() => setMissionPickerOpen(true)}
                 className="flex items-center gap-1 text-xs text-primary hover:text-glow-primary font-display"
               >
-                <Plus className="w-3 h-3" /> ADD
+                <Plus className="w-3 h-3" /> ADD MISSIONS
               </button>
             )}
           </div>
           
-          <CampaignMissionList
-            collectionId={collectionId!}
-            missions={missions}
-            missionIds={missionIds}
-            completedMissionIds={completedMissionIds}
-            isOwner={!!canEdit}
-            isSystem={collection.is_system || isActiveCampaign}
-            onRemoveMission={setMissionToRemove}
-            onAddMission={() => setMissionPickerOpen(true)}
-          />
+          {/* Empty state with clear CTA for adding missions */}
+          {missions.length === 0 && canEdit ? (
+            <div className="text-center py-12 border-2 border-dashed border-primary/30 rounded-lg bg-primary/5">
+              <Plus className="w-10 h-10 mx-auto mb-3 text-primary/50" />
+              <p className="text-sm text-muted-foreground mb-3">This campaign has no missions yet</p>
+              <button
+                onClick={() => setMissionPickerOpen(true)}
+                className="px-4 py-2 bg-primary text-primary-foreground font-display text-sm rounded hover:box-glow-primary transition-all"
+              >
+                ADD MISSIONS
+              </button>
+            </div>
+          ) : (
+            <CampaignMissionList
+              collectionId={collectionId!}
+              missions={missions}
+              missionIds={missionIds}
+              completedMissionIds={completedMissionIds}
+              isOwner={!!canEdit}
+              isSystem={collection.is_system || isActiveCampaign}
+              onRemoveMission={setMissionToRemove}
+              onAddMission={() => setMissionPickerOpen(true)}
+            />
+          )}
         </motion.section>
 
-        {/* Description / Briefing */}
-        {collection.description && (
-          <motion.div
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            transition={{ delay: 0.15 }}
-            className="mb-6 p-4 bg-card border border-border rounded-lg"
-          >
-            <p className="text-[10px] text-muted-foreground uppercase tracking-wider mb-1">BRIEFING</p>
-            <p className="text-sm text-foreground">{collection.description}</p>
-          </motion.div>
-        )}
-
-        {/* Stats - compact */}
-        <motion.div
-          initial={{ opacity: 0, y: 10 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.2 }}
-          className="grid grid-cols-2 gap-3 mb-6"
-        >
-          <div className="p-3 bg-card border border-border rounded-lg text-center">
-            <div className="text-2xl font-display text-primary">{missions.length}</div>
-            <div className="text-xs text-muted-foreground">MISSIONS</div>
-          </div>
-          <div className="p-3 bg-card border border-border rounded-lg text-center">
-            <div className="text-2xl font-display text-secondary">
-              {missions.reduce((acc, m) => acc + (m?.estimated_minutes || 0), 0)}
-            </div>
-            <div className="text-xs text-muted-foreground">TOTAL MINS</div>
-          </div>
-        </motion.div>
-
-        {/* Progress Section - Only show for logged in users */}
-        {user && missions.length > 0 && progress && (
-          <CampaignProgressCard
-            progress={progress || null}
-            completedCount={completedMissionIds.size}
-            totalMissions={missions.length}
-          />
-        )}
-
-        {/* Leaderboard - Show if there are completions */}
-        {leaderboard && leaderboard.length > 0 && (
+        {/* Consolidated Stats Section - Only show if there's data */}
+        {user && (leaderboard?.length > 0 || (completions && completions.length > 0)) && (
           <motion.section
             initial={{ opacity: 0, y: 10 }}
             animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.25 }}
+            transition={{ delay: 0.2 }}
             className="mb-6"
           >
             <h2 className="font-display text-sm text-secondary mb-3 tracking-wider flex items-center gap-2">
-              <Trophy className="w-4 h-4" /> SPEED LEADERBOARD
+              <Trophy className="w-4 h-4" /> CAMPAIGN STATS
             </h2>
-            <div className="bg-card border border-border rounded-lg divide-y divide-border">
-              {leaderboard.slice(0, 5).map((entry: any, index: number) => (
-                <div key={entry.id} className="p-3 flex items-center justify-between">
-                  <div className="flex items-center gap-3">
-                    <span className={`font-display text-lg ${
-                      index === 0 ? 'text-yellow-400' : 
-                      index === 1 ? 'text-gray-300' : 
-                      index === 2 ? 'text-amber-600' : 'text-muted-foreground'
-                    }`}>
-                      #{index + 1}
-                    </span>
-                    <span className="text-sm">
-                      {entry.profiles?.display_name || 'Anonymous'}
-                    </span>
-                  </div>
-                  <div className="flex items-center gap-1 text-xs text-primary">
-                    <Timer className="w-3 h-3" />
-                    {formatTime(entry.completion_time_seconds)}
-                  </div>
-                </div>
-              ))}
-            </div>
-          </motion.section>
-        )}
-
-        {/* Completion History */}
-        {completions && completions.length > 0 && (
-          <motion.section
-            initial={{ opacity: 0, y: 10 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.3 }}
-            className="mt-6"
-          >
-            <h2 className="font-display text-sm text-secondary mb-3 tracking-wider">YOUR COMPLETION HISTORY</h2>
-            <div className="bg-card border border-border rounded-lg divide-y divide-border">
-              {completions.slice(0, 5).map((completion) => (
-                <div key={completion.id} className="p-3 flex items-center justify-between">
-                  <div className="flex items-center gap-3">
-                    {completion.is_personal_record && (
-                      <span className="text-yellow-400 text-xs">⚡ PR</span>
-                    )}
-                    <span className="text-xs text-muted-foreground">
-                      {new Date(completion.completed_at).toLocaleDateString()}
-                    </span>
-                  </div>
-                  <div className="flex items-center gap-4 text-xs">
-                    <span className="text-primary">{formatTime(completion.completion_time_seconds)}</span>
-                    <span className="text-muted-foreground">{completion.total_score} pts</span>
+            <div className="bg-card border border-border rounded-lg overflow-hidden">
+              {/* Leaderboard section */}
+              {leaderboard && leaderboard.length > 0 && (
+                <div className="p-3 border-b border-border">
+                  <p className="text-[10px] text-muted-foreground uppercase tracking-wider mb-2">TOP TIMES</p>
+                  <div className="space-y-1">
+                    {leaderboard.slice(0, 3).map((entry: any, index: number) => (
+                      <div key={entry.id} className="flex items-center justify-between text-xs">
+                        <div className="flex items-center gap-2">
+                          <span className={`font-display ${
+                            index === 0 ? 'text-yellow-400' : 
+                            index === 1 ? 'text-gray-300' : 'text-amber-600'
+                          }`}>
+                            #{index + 1}
+                          </span>
+                          <span className="text-muted-foreground">
+                            {entry.profiles?.display_name || 'Anonymous'}
+                          </span>
+                        </div>
+                        <span className="text-primary font-display">
+                          {formatTime(entry.completion_time_seconds)}
+                        </span>
+                      </div>
+                    ))}
                   </div>
                 </div>
-              ))}
+              )}
+              
+              {/* Your history section */}
+              {completions && completions.length > 0 && (
+                <div className="p-3">
+                  <p className="text-[10px] text-muted-foreground uppercase tracking-wider mb-2">YOUR RUNS</p>
+                  <div className="space-y-1">
+                    {completions.slice(0, 3).map((completion) => (
+                      <div key={completion.id} className="flex items-center justify-between text-xs">
+                        <div className="flex items-center gap-2">
+                          {completion.is_personal_record && (
+                            <span className="text-yellow-400">⚡</span>
+                          )}
+                          <span className="text-muted-foreground">
+                            {new Date(completion.completed_at).toLocaleDateString()}
+                          </span>
+                        </div>
+                        <div className="flex items-center gap-3">
+                          <span className="text-primary">{formatTime(completion.completion_time_seconds)}</span>
+                          <span className="text-muted-foreground">{completion.total_score} pts</span>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
             </div>
           </motion.section>
         )}
