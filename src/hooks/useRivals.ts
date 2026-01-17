@@ -84,33 +84,48 @@ export function useRivalWeeklyStats() {
 
       const allUserIds = [user.id, ...rivals.map(r => r.rival_id)];
 
-      const { data, error } = await supabase
-        .from('rival_weekly_stats')
-        .select('*')
-        .in('user_id', allUserIds);
+      // Calculate weekly stats from workout_sessions directly
+      const weekStart = new Date();
+      weekStart.setHours(0, 0, 0, 0);
+      weekStart.setDate(weekStart.getDate() - weekStart.getDay()); // Sunday start
+
+      const { data: sessions, error } = await supabase
+        .from('workout_sessions')
+        .select('user_id, score_earned, total_weight, sets_completed, max_combo')
+        .in('user_id', allUserIds)
+        .eq('status', 'COMPLETED')
+        .gte('completed_at', weekStart.toISOString());
 
       if (error) throw error;
 
-      // Ensure all users have stats (even if 0)
-      const statsMap = new Map((data || []).map(s => [s.user_id, s]));
+      // Get profile info
+      const { data: profiles } = await supabase
+        .from('profiles')
+        .select('id, display_name, rival_code')
+        .in('id', allUserIds);
+
+      const profileMap = new Map(profiles?.map(p => [p.id, p]) || []);
+
+      // Aggregate stats by user
+      const statsMap = new Map<string, RivalWeeklyStats>();
       
-      return allUserIds.map(userId => {
-        const existing = statsMap.get(userId);
-        if (existing) return existing as RivalWeeklyStats;
+      for (const userId of allUserIds) {
+        const userSessions = sessions?.filter(s => s.user_id === userId) || [];
+        const profile = profileMap.get(userId);
         
-        // Find profile info from rivals or current user
-        const rival = rivals.find(r => r.rival_id === userId);
-        return {
+        statsMap.set(userId, {
           user_id: userId,
-          display_name: rival?.display_name || (userId === user.id ? 'You' : null),
-          rival_code: rival?.rival_code || null,
-          weekly_score: 0,
-          weekly_weight: 0,
-          weekly_sessions: 0,
-          weekly_sets: 0,
-          weekly_max_combo: 0,
-        } as RivalWeeklyStats;
-      }).sort((a, b) => b.weekly_score - a.weekly_score);
+          display_name: profile?.display_name || (userId === user.id ? 'You' : null),
+          rival_code: profile?.rival_code || null,
+          weekly_score: userSessions.reduce((sum, s) => sum + (s.score_earned || 0), 0),
+          weekly_weight: userSessions.reduce((sum, s) => sum + Number(s.total_weight || 0), 0),
+          weekly_sessions: userSessions.length,
+          weekly_sets: userSessions.reduce((sum, s) => sum + (s.sets_completed || 0), 0),
+          weekly_max_combo: Math.max(0, ...userSessions.map(s => s.max_combo || 0)),
+        });
+      }
+
+      return Array.from(statsMap.values()).sort((a, b) => b.weekly_score - a.weekly_score);
     },
     enabled: !!user && !!rivals && rivals.length > 0,
     staleTime: 60 * 1000,
@@ -130,9 +145,10 @@ export function useAddRival() {
         .from('profiles')
         .select('id, display_name, rival_code')
         .eq('rival_code', rivalCode)
-        .single();
+        .maybeSingle();
 
-      if (findError || !rivalProfile) {
+      if (findError) throw findError;
+      if (!rivalProfile) {
         throw new Error('Rival not found. Check the code and try again.');
       }
 
@@ -199,7 +215,7 @@ export function useProfileByRivalCode(rivalCode: string | undefined) {
         .from('profiles')
         .select('id, display_name, rival_code, total_score, total_xp')
         .eq('rival_code', rivalCode)
-        .single();
+        .maybeSingle();
 
       if (error) return null;
       return data;
