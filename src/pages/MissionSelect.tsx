@@ -18,8 +18,9 @@ import {
   AlertDialogTitle,
 } from '@/components/ui/alert-dialog';
 
-const FOCUS_AREAS = ['PUSH', 'PULL', 'LEGS', 'CORE', 'CARDIO', 'ARMS', 'SHOULDERS', 'CHEST', 'BACK'];
-const MUSCLE_GROUPS = ['Chest', 'Back', 'Shoulders', 'Biceps', 'Triceps', 'Quadriceps', 'Hamstrings', 'Core'];
+// Simplified focus areas - broad movement patterns (what you're doing)
+const FOCUS_AREAS = ['PUSH', 'PULL', 'LEGS', 'UPPER', 'FULL BODY', 'CORE', 'CARDIO'];
+
 const DURATION_FILTERS = [
   { label: 'Quick', value: 'short', max: 20 },
   { label: 'Standard', value: 'medium', min: 20, max: 40 },
@@ -31,7 +32,6 @@ const MissionSelect = () => {
   const { user, isAnonymous } = useAuth();
   const [showFilters, setShowFilters] = useState(false);
   const [focusFilter, setFocusFilter] = useState<string>('');
-  const [muscleFilter, setMuscleFilter] = useState<string>('');
   const [showOnlyPublic, setShowOnlyPublic] = useState(false);
   const [showOnlyMine, setShowOnlyMine] = useState(false);
   const [durationFilter, setDurationFilter] = useState<string>('');
@@ -40,7 +40,6 @@ const MissionSelect = () => {
 
   const { data: missions, isLoading, error, refetch, isRefetching } = useMissions({
     focusArea: focusFilter || undefined,
-    muscleGroup: muscleFilter || undefined,
     showOnlyPublic: showOnlyPublic || !user,
   });
 
@@ -62,19 +61,18 @@ const MissionSelect = () => {
 
   const handleEditClick = (e: React.MouseEvent, missionId: string) => {
     e.stopPropagation();
-    // Navigate to exercises page - the edit functionality is handled there via modal
-    navigate('/exercises');
+    // Navigate to exercises page with mission ID to auto-open edit dialog
+    navigate(`/exercises?editMission=${missionId}`);
   };
 
   const clearFilters = () => {
     setFocusFilter('');
-    setMuscleFilter('');
     setShowOnlyPublic(false);
     setShowOnlyMine(false);
     setDurationFilter('');
   };
 
-  const hasFilters = focusFilter || muscleFilter || showOnlyPublic || showOnlyMine || durationFilter;
+  const hasFilters = focusFilter || showOnlyPublic || showOnlyMine || durationFilter;
 
   // Filter missions for "My Missions" and duration options
   let filteredMissions = showOnlyMine && user 
@@ -184,27 +182,6 @@ const MissionSelect = () => {
                   ))}
                 </div>
               </div>
-
-              {/* Muscle Group */}
-              <div>
-                <label className="text-xs text-muted-foreground tracking-wider">MUSCLE GROUP</label>
-                <div className="flex flex-wrap gap-2 mt-2">
-                  {MUSCLE_GROUPS.map(muscle => (
-                    <button
-                      key={muscle}
-                      onClick={() => setMuscleFilter(muscleFilter === muscle ? '' : muscle)}
-                      className={`text-xs px-2 py-1 rounded border transition-colors ${
-                        muscleFilter === muscle
-                          ? 'bg-secondary text-secondary-foreground border-secondary'
-                          : 'bg-background border-border hover:border-secondary/50'
-                      }`}
-                    >
-                      {muscle}
-                    </button>
-                  ))}
-                </div>
-              </div>
-
               {/* Duration Filter */}
               <div>
                 <label className="text-xs text-muted-foreground tracking-wider flex items-center gap-1">
@@ -311,8 +288,8 @@ const MissionSelect = () => {
                 {/* Glow effect on hover */}
                 <div className="absolute inset-0 bg-gradient-to-r from-primary/0 via-primary/5 to-primary/0 opacity-0 group-hover:opacity-100 transition-opacity" />
                 
-                {/* Top-right badges - all on one line */}
-                <div className="absolute top-2 right-2 flex items-center gap-1">
+                {/* Top-right badges - single row with all elements */}
+                <div className="absolute top-3 right-3 flex items-center gap-1.5 z-20">
                   {/* Custom mission controls */}
                   {!mission.is_public && user && mission.created_by === user.id && (
                     <>
@@ -330,7 +307,7 @@ const MissionSelect = () => {
                       >
                         <Trash2 className="w-3.5 h-3.5" />
                       </button>
-                      <span className="text-xs px-2 py-0.5 bg-accent/20 text-accent rounded">
+                      <span className="text-xs px-2 py-1 bg-accent/20 text-accent rounded whitespace-nowrap">
                         CUSTOM
                       </span>
                     </>
@@ -338,7 +315,7 @@ const MissionSelect = () => {
 
                   {/* Custom mission badge (not owner) */}
                   {!mission.is_public && (!user || mission.created_by !== user.id) && (
-                    <span className="text-xs px-2 py-0.5 bg-accent/20 text-accent rounded">
+                    <span className="text-xs px-2 py-1 bg-accent/20 text-accent rounded whitespace-nowrap">
                       CUSTOM
                     </span>
                   )}
@@ -347,27 +324,29 @@ const MissionSelect = () => {
                   {mission.is_public && (
                     <>
                       {(mission.popularity_score || 0) === 0 ? (
-                        <span className="text-xs px-2 py-1 bg-primary/20 text-primary rounded font-display animate-pulse">
-                          NO SURVIVORS YET
+                        <span className="text-xs px-2 py-1 bg-primary/20 text-primary rounded font-display animate-pulse whitespace-nowrap">
+                          NO SURVIVORS
                         </span>
                       ) : getPopularityTier(mission.popularity_score || 0) ? (
                         <PopularityBadge score={mission.popularity_score || 0} />
                       ) : null}
                     </>
                   )}
+
+                  {/* Difficulty badge - moved here to avoid overlap */}
+                  <div className="flex items-center gap-1 bg-muted px-2 py-1 rounded">
+                    <Zap className="w-3 h-3 text-accent" />
+                    <span className="text-xs font-display text-accent">{mission.difficulty}</span>
+                  </div>
                 </div>
                 
                 <div className="relative z-10">
-                  <div className="flex items-start justify-between mb-3">
-                    <div className="flex-1 pr-16">
+                  <div className="flex items-start mb-3">
+                    <div className="flex-1 pr-2">
                       <h2 className="font-display text-2xl text-primary group-hover:text-glow-primary transition-all">
                         {mission.code_name}
                       </h2>
                       <p className="text-sm text-muted-foreground mt-1 line-clamp-2">{mission.description}</p>
-                    </div>
-                    <div className="flex items-center gap-1 bg-muted px-2 py-1 rounded">
-                      <Zap className="w-3 h-3 text-accent" />
-                      <span className="text-xs font-display text-accent">{mission.difficulty}</span>
                     </div>
                   </div>
                   

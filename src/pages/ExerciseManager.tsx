@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useSearchParams } from 'react-router-dom';
 import { ArrowLeft, Plus, Edit2, Trash2, X, Check, AlertCircle, Target, ChevronDown, ChevronUp, GripVertical } from 'lucide-react';
 import { useAuth } from '@/hooks/useAuth';
 import { useExercises, useCreateExercise, useUpdateExercise, useDeleteExercise, Exercise } from '@/hooks/useExercises';
@@ -33,6 +33,7 @@ interface MissionExerciseItem {
 
 const ExerciseManager = () => {
   const navigate = useNavigate();
+  const [searchParams, setSearchParams] = useSearchParams();
   const { user } = useAuth();
   const { data: exercises, isLoading } = useExercises();
   const { data: missions } = useMissions({});
@@ -73,6 +74,19 @@ const ExerciseManager = () => {
   const [missionError, setMissionError] = useState<string | null>(null);
 
   const myExercises = exercises?.filter(e => e.created_by === user?.id) || [];
+
+  // Auto-open edit mission dialog if editMission param is present
+  useEffect(() => {
+    const editMissionId = searchParams.get('editMission');
+    if (editMissionId && myMissions.length > 0) {
+      const missionToEdit = myMissions.find(m => m.id === editMissionId);
+      if (missionToEdit) {
+        handleEditMission(missionToEdit);
+        // Clear the URL param after opening
+        setSearchParams({}, { replace: true });
+      }
+    }
+  }, [searchParams, myMissions]);
 
   const resetForm = () => {
     setFormData({
@@ -547,29 +561,42 @@ const ExerciseManager = () => {
                       <h3 className="font-display text-lg text-primary">{exercise.name}</h3>
                       
                       {/* Equipment tags - first line after title */}
+                      {/* Equipment */}
                       {exercise.equipment && exercise.equipment.length > 0 && (
-                        <div className="flex gap-1 mt-1 flex-wrap">
-                          {exercise.equipment.map(eq => (
-                            <span key={eq} className="text-xs px-2 py-0.5 bg-accent/20 text-accent rounded">
-                              {eq.replace(/_/g, ' ')}
-                            </span>
-                          ))}
+                        <div className="flex items-center gap-2 mt-1 flex-wrap">
+                          <span className="text-xs text-muted-foreground">Equipment:</span>
+                          <div className="flex gap-1 flex-wrap">
+                            {exercise.equipment.map(eq => (
+                              <span key={eq} className="text-xs px-2 py-0.5 bg-accent/20 text-accent rounded">
+                                {eq.replace(/_/g, ' ')}
+                              </span>
+                            ))}
+                          </div>
                         </div>
                       )}
                       
-                      {/* Primary and secondary muscles */}
+                      {/* Primary muscle */}
                       <div className="flex items-center gap-2 mt-2">
+                        <span className="text-xs text-muted-foreground">Primary:</span>
                         <span className="text-sm text-secondary">{exercise.primary_muscle_group}</span>
-                        {exercise.secondary_muscle_groups && exercise.secondary_muscle_groups.length > 0 && (
-                          <span className="text-xs text-muted-foreground">
-                            + {exercise.secondary_muscle_groups.join(', ')}
-                          </span>
-                        )}
                       </div>
+                      
+                      {/* Secondary muscles */}
+                      {exercise.secondary_muscle_groups && exercise.secondary_muscle_groups.length > 0 && (
+                        <div className="flex items-center gap-2 mt-1">
+                          <span className="text-xs text-muted-foreground">Secondary:</span>
+                          <span className="text-xs text-muted-foreground">
+                            {exercise.secondary_muscle_groups.join(', ')}
+                          </span>
+                        </div>
+                      )}
                       
                       {/* Description preview */}
                       {exercise.description && (
-                        <p className="text-xs text-muted-foreground mt-2 line-clamp-2">{exercise.description}</p>
+                        <div className="mt-2">
+                          <span className="text-xs text-muted-foreground">Description: </span>
+                          <span className="text-xs text-muted-foreground/80 line-clamp-2">{exercise.description}</span>
+                        </div>
                       )}
                     </div>
                     <div className="flex gap-2">
