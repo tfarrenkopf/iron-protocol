@@ -4,7 +4,7 @@ import { useNavigate } from 'react-router-dom';
 import { 
   Swords, Share2, Trophy, TrendingUp, Trash2, Crown, Loader2, 
   ChevronDown, ChevronUp, Flame, Dumbbell, Target, Zap, Play,
-  AlertTriangle, Skull
+  AlertTriangle, Skull, Calendar
 } from 'lucide-react';
 import { useRivals, useRivalWeeklyStats, useRemoveRival, useRivalActivity, RivalWeeklyStats } from '@/hooks/useRivals';
 import { useAuth } from '@/hooks/useAuth';
@@ -22,7 +22,7 @@ import {
   AlertDialogTitle,
 } from '@/components/ui/alert-dialog';
 import { toast } from '@/hooks/use-toast';
-import { formatDistanceToNow } from 'date-fns';
+import { formatDistanceToNow, startOfWeek, endOfWeek, format } from 'date-fns';
 
 interface RivalWidgetProps {
   variant?: 'compact' | 'full';
@@ -47,6 +47,12 @@ export function RivalWidget({ variant = 'compact' }: RivalWidgetProps) {
   if (!user) return null;
 
   const hasRivals = rivals && rivals.length > 0;
+
+  // Calculate week range for display
+  const now = new Date();
+  const weekStart = startOfWeek(now, { weekStartsOn: 0 }); // Sunday
+  const weekEnd = endOfWeek(now, { weekStartsOn: 0 }); // Saturday
+  const weekRangeText = `${format(weekStart, 'MMM d')} - ${format(weekEnd, 'MMM d')}`;
 
   const shareRivalLink = async () => {
     if (!profile?.rival_code) {
@@ -142,22 +148,18 @@ export function RivalWidget({ variant = 'compact' }: RivalWidgetProps) {
       exit={{ opacity: 0, height: 0 }}
       className="mt-2 pt-2 border-t border-border/50"
     >
-      <div className="grid grid-cols-4 gap-2 text-center">
+      <div className="grid grid-cols-3 gap-2 text-center">
         <div>
-          <div className="font-display text-sm text-accent">{stat.weekly_weight.toLocaleString()}</div>
-          <div className="text-xs text-muted-foreground uppercase">LBS</div>
+          <div className="font-display text-sm text-foreground">{stat.weekly_weight.toLocaleString()}</div>
+          <div className="text-[10px] text-muted-foreground uppercase">LBS</div>
         </div>
         <div>
-          <div className="font-display text-sm text-secondary">{stat.weekly_sets}</div>
-          <div className="text-xs text-muted-foreground uppercase">SETS</div>
+          <div className="font-display text-sm text-foreground">{stat.weekly_sets}</div>
+          <div className="text-[10px] text-muted-foreground uppercase">SETS</div>
         </div>
         <div>
-          <div className="font-display text-sm text-primary">{stat.weekly_max_combo}x</div>
-          <div className="text-xs text-muted-foreground uppercase">COMBO</div>
-        </div>
-        <div>
-          <div className="font-display text-sm text-destructive">{stat.weekly_sessions}</div>
-          <div className="text-xs text-muted-foreground uppercase">OPS</div>
+          <div className="font-display text-sm text-foreground">{stat.weekly_max_combo}x</div>
+          <div className="text-[10px] text-muted-foreground uppercase">MAX COMBO</div>
         </div>
       </div>
     </motion.div>
@@ -210,10 +212,20 @@ export function RivalWidget({ variant = 'compact' }: RivalWidgetProps) {
           <div className="space-y-4">
             {/* Weekly Leaderboard */}
             <div>
-              <div className="text-xs text-muted-foreground mb-2 flex items-center gap-1">
-                <TrendingUp className="w-3 h-3" />
-                WEEKLY KILLBOARD
+              <div className="flex items-center justify-between mb-2">
+                <div className="text-xs text-muted-foreground flex items-center gap-1">
+                  <TrendingUp className="w-3 h-3" />
+                  <span>WEEKLY LEADERBOARD</span>
+                </div>
+                <div className="text-[10px] text-muted-foreground flex items-center gap-1">
+                  <Calendar className="w-3 h-3" />
+                  <span>{weekRangeText}</span>
+                </div>
               </div>
+              
+              <p className="text-[10px] text-muted-foreground/70 mb-2">
+                Resets every Sunday. Compete for missions completed this week.
+              </p>
               
               {statsLoading ? (
                 <div className="animate-pulse space-y-2">
@@ -249,7 +261,7 @@ export function RivalWidget({ variant = 'compact' }: RivalWidgetProps) {
                           
                           {/* Name & expand indicator */}
                           <div className="flex-1 min-w-0 flex items-center gap-1">
-                            <p className={`text-sm font-medium truncate ${isCurrentUser ? 'text-primary' : ''}`}>
+                            <p className={`text-sm font-medium truncate ${isCurrentUser ? 'text-primary' : 'text-foreground'}`}>
                               {isCurrentUser ? 'You' : stat.display_name || 'Anonymous'}
                             </p>
                             {isExpanded ? (
@@ -259,13 +271,13 @@ export function RivalWidget({ variant = 'compact' }: RivalWidgetProps) {
                             )}
                           </div>
                           
-                          {/* Score */}
+                          {/* Missions this week - primary stat */}
                           <div className="text-right flex-shrink-0">
-                            <p className={`text-sm font-display ${isCurrentUser ? 'text-primary' : 'text-secondary'}`}>
-                              {stat.weekly_score.toLocaleString()}
+                            <p className={`text-sm font-display ${isCurrentUser ? 'text-primary' : 'text-foreground'}`}>
+                              {stat.weekly_sessions}
                             </p>
                             <p className="text-[10px] text-muted-foreground">
-                              SCORE
+                              MISSIONS
                             </p>
                           </div>
 
@@ -299,8 +311,8 @@ export function RivalWidget({ variant = 'compact' }: RivalWidgetProps) {
             {variant === 'full' && (
               <div>
                 <div className="text-xs text-muted-foreground mb-2 flex items-center gap-1">
-                  <Flame className="w-3 h-3 text-section-campaigns" />
-                  <span className="text-section-campaigns">RIVAL ACTIVITY FEED</span>
+                  <Flame className="w-3 h-3" />
+                  <span>RIVAL ACTIVITY FEED</span>
                 </div>
                 
                 {activityLoading ? (
@@ -333,15 +345,15 @@ export function RivalWidget({ variant = 'compact' }: RivalWidgetProps) {
                         
                         <div className="flex items-center gap-3 text-[10px] text-muted-foreground mb-3">
                           <span className="flex items-center gap-1">
-                            <Target className="w-3 h-3 text-section-missions" />
+                            <Target className="w-3 h-3" />
                             {activity.score_earned.toLocaleString()}
                           </span>
                           <span className="flex items-center gap-1">
-                            <Dumbbell className="w-3 h-3 text-section-campaigns" />
+                            <Dumbbell className="w-3 h-3" />
                             {activity.total_weight.toLocaleString()} lbs
                           </span>
                           <span className="flex items-center gap-1">
-                            <Zap className="w-3 h-3 text-section-hiit" />
+                            <Zap className="w-3 h-3" />
                             {activity.max_combo}x
                           </span>
                         </div>
@@ -371,33 +383,53 @@ export function RivalWidget({ variant = 'compact' }: RivalWidgetProps) {
               </div>
             )}
 
-            {/* Compact Activity Feed - show only 2 items */}
+            {/* Compact Activity Feed - show only 2 items with prominent CTA */}
             {variant === 'compact' && rivalActivity && rivalActivity.length > 0 && (
               <div>
                 <div className="text-xs text-muted-foreground mb-2 flex items-center gap-1">
-                  <Flame className="w-3 h-3 text-section-campaigns" />
-                  <span className="text-section-campaigns">RECENT ACTIVITY</span>
+                  <Flame className="w-3 h-3" />
+                  <span>RECENT ACTIVITY</span>
                 </div>
                 
                 <div className="space-y-2">
                   {rivalActivity.slice(0, 2).map((activity) => (
                     <div
                       key={activity.id}
-                      className="p-2 bg-background border border-section-rivals/30 rounded flex items-center justify-between gap-2"
+                      className="p-3 bg-background border border-section-rivals/30 rounded-lg"
                     >
-                      <div className="flex-1 min-w-0">
-                        <span className="text-xs text-section-rivals font-display">{activity.display_name}</span>
-                        <span className="text-[10px] text-muted-foreground"> • </span>
-                        <span className="text-xs text-section-missions font-display truncate">
-                          {activity.mission_snapshot?.code_name || 'MISSION'}
+                      <div className="flex items-start justify-between gap-2 mb-2">
+                        <div className="flex-1 min-w-0">
+                          <span className="text-xs text-section-rivals font-display">{activity.display_name}</span>
+                          <span className="text-[10px] text-muted-foreground"> completed </span>
+                          <span className="text-xs text-section-missions font-display">
+                            {activity.mission_snapshot?.code_name || 'MISSION'}
+                          </span>
+                        </div>
+                        <span className="text-[10px] text-muted-foreground flex-shrink-0">
+                          {formatRelativeTime(activity.completed_at)}
                         </span>
                       </div>
+                      
+                      {/* Stats row */}
+                      <div className="flex items-center gap-3 text-[10px] text-muted-foreground mb-2">
+                        <span className="flex items-center gap-1">
+                          <Target className="w-3 h-3" />
+                          {activity.score_earned.toLocaleString()}
+                        </span>
+                        <span className="flex items-center gap-1">
+                          <Dumbbell className="w-3 h-3" />
+                          {activity.total_weight.toLocaleString()} lbs
+                        </span>
+                      </div>
+                      
+                      {/* Prominent CTA */}
                       {activity.mission_id && (
                         <button
                           onClick={() => handleJoinMission(activity.mission_id!)}
-                          className="p-1.5 border border-section-missions/50 rounded text-section-missions hover:bg-section-missions/10 transition-colors flex-shrink-0"
+                          className="w-full py-2 border-2 border-section-missions rounded text-xs font-display text-section-missions hover:bg-section-missions/10 transition-colors flex items-center justify-center gap-2"
                         >
                           <Play className="w-3 h-3" />
+                          ACCEPT CHALLENGE
                         </button>
                       )}
                     </div>
