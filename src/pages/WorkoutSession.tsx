@@ -378,94 +378,88 @@ const WorkoutSession = () => {
   const progress = (completedSets / totalSets) * 100;
 
   const handleCompleteSet = async () => {
+    if (isCompleting) return; // Prevent double-tap
     setIsCompleting(true);
     
     // Capture stats before completing
     const prevStats = { ...stats };
-    let prResults: PRCheckResult[] = [];
-    let setAchievement: Achievement | null = null;
     
     // Get a random lore phrase for this set (Story 14.1)
     const lorePhrase = getWeightedRandomLorePhrase();
     setCurrentLorePhrase(lorePhrase.text);
     
-    // Save weight to history and check for PRs if logged in
+    // IMMEDIATELY update game state - don't wait for DB operations
+    completeSet(reps, weight);
+    
+    // Trigger explosion immediately
+    setShowExplosion(true);
+    
+    // Calculate gains for popup immediately
+    const newStats = useGameStore.getState().stats;
+    const missionTotalSets = missionExercises.reduce((acc, e) => acc + e.target_sets, 0);
+    setLastXPGain({
+      xp: newStats.xp - prevStats.xp,
+      score: newStats.score - prevStats.score,
+      combo: newStats.combo,
+      damage: newStats.damageDealt - prevStats.damageDealt,
+      totalWeight: newStats.totalWeight,
+      setsCompleted: newStats.setsCompleted,
+      totalSets: missionTotalSets,
+    });
+    
+    // Show XP popup with minimal delay
+    setTimeout(() => {
+      setShowXPPopup(true);
+      setIsCompleting(false);
+    }, 100);
+    
+    // Run all DB operations in parallel (non-blocking)
     if (user && missionExercise.exercise_id && exercise) {
-      try {
+      // Fire and forget - don't await these
+      Promise.all([
         // Update weight history
-        await updateWeight.mutateAsync({
+        updateWeight.mutateAsync({
           exerciseId: missionExercise.exercise_id,
           weight,
-        });
+        }).catch(() => {}), // Silently catch errors
         
         // Check for new PRs
-        prResults = await checkAndUpdatePR.mutateAsync({
+        checkAndUpdatePR.mutateAsync({
           exerciseId: missionExercise.exercise_id,
           exerciseName: exercise.name || 'Unknown Exercise',
           weight,
           reps,
           sessionId: currentSession?.id,
-        });
-        
-        // If we have new PRs, store them for display
-        if (prResults.length > 0) {
-          setNewPRs(prResults);
+        }).then(prResults => {
+          if (prResults.length > 0) {
+            setNewPRs(prResults);
+            setTimeout(() => setShowPRNotification(true), 1500);
+          }
+        }).catch(() => {}),
+      ]).then(async () => {
+        // Check achievements after PR check completes (needs PR count)
+        try {
+          const currentStats = useGameStore.getState().stats;
+          const totalSets = (profile?.total_sets || 0) + currentStats.setsCompleted;
+          const totalWeight = (profile?.total_weight || 0) + currentStats.totalWeight;
+          const totalPRs = (prCount || 0) + newPRs.length;
+          
+          const unlocked = await checkAndUnlock({
+            setsCompleted: totalSets,
+            weightLifted: totalWeight,
+            prsSet: totalPRs,
+            comboReached: currentStats.combo,
+            workoutHour: new Date().getHours(),
+          });
+          
+          if (unlocked.length > 0) {
+            setCurrentSetAchievement(unlocked[0]);
+          }
+        } catch (e) {
+          // Non-blocking
         }
-        
-        // Story 14.2: Check for achievements on set completion
-        const currentStats = useGameStore.getState().stats;
-        const totalSets = (profile?.total_sets || 0) + currentStats.setsCompleted + 1;
-        const totalWeight = (profile?.total_weight || 0) + currentStats.totalWeight + (weight * reps);
-        const totalPRs = (prCount || 0) + prResults.length;
-        
-        const unlocked = await checkAndUnlock({
-          setsCompleted: totalSets,
-          weightLifted: totalWeight,
-          prsSet: totalPRs,
-          comboReached: currentStats.combo + 1,
-          workoutHour: new Date().getHours(),
-        });
-        
-        if (unlocked.length > 0) {
-          // Show the first unlocked achievement in the XP popup
-          setAchievement = unlocked[0];
-          setCurrentSetAchievement(setAchievement);
-        }
-      } catch (e) {
-        // Non-blocking - continue even if weight/PR save fails
-      }
+      });
     }
-    
-    setTimeout(() => {
-      completeSet(reps, weight);
-      setIsCompleting(false);
-      
-      // Trigger explosion
-      setShowExplosion(true);
-      
-      // Calculate gains for popup
-      setTimeout(() => {
-        const newStats = useGameStore.getState().stats;
-        const missionTotalSets = missionExercises.reduce((acc, e) => acc + e.target_sets, 0);
-        setLastXPGain({
-          xp: newStats.xp - prevStats.xp,
-          score: newStats.score - prevStats.score,
-          combo: newStats.combo,
-          damage: newStats.damageDealt - prevStats.damageDealt,
-          totalWeight: newStats.totalWeight,
-          setsCompleted: newStats.setsCompleted,
-          totalSets: missionTotalSets,
-        });
-        setShowXPPopup(true);
-        
-        // Show PR notification after XP popup if we have PRs
-        if (prResults.length > 0) {
-          setTimeout(() => {
-            setShowPRNotification(true);
-          }, setAchievement ? 3000 : 1500); // Longer delay if achievement was shown
-        }
-      }, 300);
-    }, 200);
   };
 
   const adjustValue = (setter: React.Dispatch<React.SetStateAction<number>>, delta: number, min = 0) => {
