@@ -307,6 +307,7 @@ const Command = () => {
             title="COMMAND"
             showBack={true}
             className="mb-0 flex-1"
+            section="command"
           />
           
           <div className="flex gap-2 ml-3">
@@ -331,23 +332,30 @@ const Command = () => {
           </div>
         </div>
 
-        {/* Tab Navigation */}
+        {/* Tab Navigation - each tab has its own section color */}
         <div className="flex gap-1 mb-4 overflow-x-auto scrollbar-hide">
           {tabs.map((tab) => {
             const Icon = tab.icon;
             const isActive = activeTab === tab.id;
             // Hide exercises tab for guests
             if (tab.id === 'exercises' && !user) return null;
+            
+            // Section-specific colors for each tab
+            const tabColors = {
+              campaigns: { active: 'bg-section-campaigns text-white border-section-campaigns', inactive: 'hover:border-section-campaigns/50' },
+              missions: { active: 'bg-section-missions text-white border-section-missions', inactive: 'hover:border-section-missions/50' },
+              exercises: { active: 'bg-section-command text-white border-section-command', inactive: 'hover:border-section-command/50' },
+            };
+            const colors = tabColors[tab.id];
+            
             return (
               <button
                 key={tab.id}
                 onClick={() => setActiveTab(tab.id)}
                 className={`flex items-center gap-1.5 px-4 py-2.5 rounded-lg font-display text-sm whitespace-nowrap transition-all border-2 ${
                   isActive
-                    ? tab.id === 'campaigns' 
-                      ? 'bg-accent text-accent-foreground border-accent'
-                      : 'bg-primary text-primary-foreground border-primary'
-                    : 'border-border text-muted-foreground hover:text-foreground hover:border-primary/50'
+                    ? colors.active
+                    : `border-border text-muted-foreground hover:text-foreground ${colors.inactive}`
                 }`}
               >
                 <Icon className="w-4 h-4" />
@@ -365,9 +373,9 @@ const Command = () => {
             className="mb-4"
           >
             {/* Mission instruction */}
-            <div className="mb-3 p-3 bg-primary/5 border border-primary/20 rounded-lg">
+            <div className="mb-3 p-3 bg-section-missions/5 border border-section-missions/20 rounded-lg">
               <p className="text-xs text-muted-foreground">
-                <span className="text-primary font-display">MISSIONS</span> are single combat ops. Pick one. Execute. Get stronger.
+                <span className="text-section-missions font-display">MISSIONS</span> are single combat ops. Pick one. Execute. Get stronger.
               </p>
             </div>
             {user && (
@@ -389,9 +397,9 @@ const Command = () => {
             className="mb-4"
           >
             {/* Campaign instruction */}
-            <div className="mb-3 p-3 bg-accent/5 border border-accent/20 rounded-lg">
+            <div className="mb-3 p-3 bg-section-campaigns/5 border border-section-campaigns/20 rounded-lg">
               <p className="text-xs text-muted-foreground">
-                <span className="text-accent font-display">CAMPAIGNS</span> are multi-mission operations. Commit to one. Complete all missions. Earn glory.
+                <span className="text-section-campaigns font-display">CAMPAIGNS</span> are multi-mission operations. Commit to one. Complete all missions. Earn glory.
               </p>
             </div>
             <div className="flex rounded-lg border border-border overflow-hidden">

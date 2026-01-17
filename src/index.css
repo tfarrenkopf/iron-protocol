@@ -47,6 +47,28 @@
     --warning: 45 100% 55%;
     --warning-foreground: 0 0% 0%;
 
+    /* ===== SECTION COLORS =====
+       Each major section has its own identity color
+       Used for nav icons, headers, borders, and accents */
+    
+    /* COMMAND: Electric Cyan - tactical, strategic */
+    --section-command: 177 100% 50%;
+    
+    /* CAMPAIGNS: Neon Orange/Accent - multi-mission ops */
+    --section-campaigns: 20 100% 60%;
+    
+    /* MISSIONS: Hot Pink/Primary - individual combat ops */
+    --section-missions: 343 100% 59%;
+    
+    /* INTEL: Purple - intelligence, data analysis */
+    --section-intel: 280 100% 65%;
+    
+    /* HIIT: Destructive Red - combat mode, intensity */
+    --section-hiit: 0 85% 50%;
+    
+    /* RIVALS: Warning Amber - competition */
+    --section-rivals: 45 100% 55%;
+
     /* Borders and inputs */
     --border: 240 10% 20%;
     --input: 240 10% 15%;
@@ -237,13 +259,27 @@
     @apply min-h-[72px] min-w-[72px] flex items-center justify-center;
   }
 
-  /* Arcade-style number display */
-  .arcade-number {
-    font-family: var(--font-display);
-    font-size: clamp(3rem, 15vw, 8rem);
-    line-height: 1;
-    letter-spacing: 0.05em;
-  }
+  /* Section color utilities - for direct text/bg color usage */
+  .text-section-command { color: hsl(var(--section-command)); }
+  .text-section-campaigns { color: hsl(var(--section-campaigns)); }
+  .text-section-missions { color: hsl(var(--section-missions)); }
+  .text-section-intel { color: hsl(var(--section-intel)); }
+  .text-section-hiit { color: hsl(var(--section-hiit)); }
+  .text-section-rivals { color: hsl(var(--section-rivals)); }
+  
+  .bg-section-command { background-color: hsl(var(--section-command)); }
+  .bg-section-campaigns { background-color: hsl(var(--section-campaigns)); }
+  .bg-section-missions { background-color: hsl(var(--section-missions)); }
+  .bg-section-intel { background-color: hsl(var(--section-intel)); }
+  .bg-section-hiit { background-color: hsl(var(--section-hiit)); }
+  .bg-section-rivals { background-color: hsl(var(--section-rivals)); }
+  
+  .border-section-command { border-color: hsl(var(--section-command)); }
+  .border-section-campaigns { border-color: hsl(var(--section-campaigns)); }
+  .border-section-missions { border-color: hsl(var(--section-missions)); }
+  .border-section-intel { border-color: hsl(var(--section-intel)); }
+  .border-section-hiit { border-color: hsl(var(--section-hiit)); }
+  .border-section-rivals { border-color: hsl(var(--section-rivals)); }
 
   /* ===== TYPOGRAPHY SCALE =====
      Consistent text sizes for readability

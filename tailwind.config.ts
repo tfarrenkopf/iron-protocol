@@ -47,6 +47,15 @@ export default {
           DEFAULT: "hsl(var(--accent))",
           foreground: "hsl(var(--accent-foreground))",
         },
+        // Section colors for navigation consistency
+        section: {
+          command: "hsl(var(--section-command))",
+          campaigns: "hsl(var(--section-campaigns))",
+          missions: "hsl(var(--section-missions))",
+          intel: "hsl(var(--section-intel))",
+          hiit: "hsl(var(--section-hiit))",
+          rivals: "hsl(var(--section-rivals))",
+        },
         popover: {
           DEFAULT: "hsl(var(--popover))",
           foreground: "hsl(var(--popover-foreground))",

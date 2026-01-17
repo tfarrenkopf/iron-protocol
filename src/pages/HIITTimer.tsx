@@ -280,11 +280,12 @@ const HIITTimer = () => {
           <GlobalNav 
             title="COMBAT MODE"
             subtitle="SELECT PROTOCOL"
+            section="hiit"
           />
 
-          <div className="bg-card/50 border border-border rounded-lg p-3 mb-6">
+          <div className="bg-card/50 border border-section-hiit/30 rounded-lg p-3 mb-6">
             <p className="text-xs text-muted-foreground text-center">
-              <span className="text-secondary font-display text-sm">HIIT</span> alternates between high-intensity work and rest. 
+              <span className="text-section-hiit font-display text-sm">HIIT</span> alternates between high-intensity work and rest. 
               Pick a protocol, then perform any exercise during <span className="text-destructive font-display text-sm">FIGHT</span> phases. 
               Rest during <span className="text-primary font-display text-sm">RECOVER</span> phases.
             </p>

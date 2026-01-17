@@ -1056,42 +1056,43 @@ const Intel = () => {
         <GlobalNav 
           title="INTEL CENTER"
           subtitle="STATS • FEED • CAMPAIGNS • RANKINGS"
+          section="intel"
         />
 
         {/* Tabs */}
         <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-          <TabsList className="grid w-full grid-cols-5 mb-6 bg-card border border-border">
+          <TabsList className="grid w-full grid-cols-5 mb-6 bg-card border border-section-intel/30">
             <TabsTrigger 
               value="feed" 
-              className="font-display text-xs data-[state=active]:bg-primary data-[state=active]:text-primary-foreground"
+              className="font-display text-xs data-[state=active]:bg-section-intel data-[state=active]:text-white"
             >
               <Swords className="w-3.5 h-3.5 mr-1" />
               FEED
             </TabsTrigger>
             <TabsTrigger 
               value="rivals" 
-              className="font-display text-xs data-[state=active]:bg-primary data-[state=active]:text-primary-foreground"
+              className="font-display text-xs data-[state=active]:bg-section-rivals data-[state=active]:text-black"
             >
               <Users className="w-3.5 h-3.5 mr-1" />
               RIVALS
             </TabsTrigger>
             <TabsTrigger 
               value="campaigns" 
-              className="font-display text-xs data-[state=active]:bg-primary data-[state=active]:text-primary-foreground"
+              className="font-display text-xs data-[state=active]:bg-section-campaigns data-[state=active]:text-white"
             >
               <BarChart3 className="w-3.5 h-3.5 mr-1" />
               OPS
             </TabsTrigger>
             <TabsTrigger 
               value="rankings" 
-              className="font-display text-xs data-[state=active]:bg-primary data-[state=active]:text-primary-foreground"
+              className="font-display text-xs data-[state=active]:bg-section-intel data-[state=active]:text-white"
             >
               <Trophy className="w-3.5 h-3.5 mr-1" />
               RANKS
             </TabsTrigger>
             <TabsTrigger 
               value="stats" 
-              className="font-display text-xs data-[state=active]:bg-primary data-[state=active]:text-primary-foreground"
+              className="font-display text-xs data-[state=active]:bg-section-intel data-[state=active]:text-white"
             >
               <Target className="w-3.5 h-3.5 mr-1" />
               STATS

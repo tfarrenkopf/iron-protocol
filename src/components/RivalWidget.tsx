@@ -168,20 +168,20 @@ export function RivalWidget({ variant = 'compact' }: RivalWidgetProps) {
       <motion.div
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
-        className="bg-card border border-border rounded-lg p-4"
+        className="bg-card border border-section-rivals/50 rounded-lg p-4"
       >
         {/* Header */}
         <div className="flex items-center justify-between mb-4">
           <div className="flex items-center gap-2">
-            <Swords className="w-5 h-5 text-primary" />
-            <h3 className="font-display text-lg text-primary">RIVAL MODE</h3>
+            <Swords className="w-5 h-5 text-section-rivals" />
+            <h3 className="font-display text-lg text-section-rivals">RIVAL MODE</h3>
           </div>
           <button
             onClick={shareRivalLink}
-            className="p-1.5 hover:bg-primary/10 rounded transition-colors"
+            className="p-1.5 hover:bg-section-rivals/10 rounded transition-colors"
             title="Challenge a rival"
           >
-            <Share2 className="w-4 h-4 text-primary" />
+            <Share2 className="w-4 h-4 text-section-rivals" />
           </button>
         </div>
 
@@ -296,62 +296,78 @@ export function RivalWidget({ variant = 'compact' }: RivalWidgetProps) {
             </div>
 
             {/* Activity Feed - Full variant only */}
-            {variant === 'full' && rivalActivity && rivalActivity.length > 0 && (
+            {variant === 'full' && (
               <div>
                 <div className="text-xs text-muted-foreground mb-2 flex items-center gap-1">
-                  <Flame className="w-3 h-3" />
-                  RIVAL ACTIVITY
+                  <Flame className="w-3 h-3 text-section-campaigns" />
+                  <span className="text-section-campaigns">RIVAL ACTIVITY FEED</span>
                 </div>
                 
-                <div className="space-y-2 max-h-64 overflow-y-auto">
-                  {rivalActivity.map((activity, index) => (
-                    <motion.div
-                      key={activity.id}
-                      initial={{ opacity: 0, y: 10 }}
-                      animate={{ opacity: 1, y: 0 }}
-                      transition={{ delay: index * 0.05 }}
-                      className="p-3 bg-background border border-border rounded-lg"
-                    >
-                      <div className="flex items-start justify-between gap-2 mb-2">
-                        <div>
-                          <span className="font-display text-sm text-primary">{activity.display_name}</span>
-                          <span className="text-xs text-muted-foreground ml-1">completed</span>
+                {activityLoading ? (
+                  <div className="animate-pulse space-y-2">
+                    {[1, 2, 3].map(i => (
+                      <div key={i} className="h-24 bg-muted/20 rounded" />
+                    ))}
+                  </div>
+                ) : rivalActivity && rivalActivity.length > 0 ? (
+                  <div className="space-y-2 max-h-80 overflow-y-auto">
+                    {rivalActivity.map((activity, index) => (
+                      <motion.div
+                        key={activity.id}
+                        initial={{ opacity: 0, y: 10 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        transition={{ delay: index * 0.05 }}
+                        className="p-3 bg-background border border-section-rivals/30 rounded-lg hover:border-section-rivals/60 transition-colors"
+                      >
+                        <div className="flex items-start justify-between gap-2 mb-2">
+                          <div>
+                            <span className="font-display text-sm text-section-rivals">{activity.display_name}</span>
+                            <span className="text-xs text-muted-foreground ml-1">completed</span>
+                          </div>
+                          <span className="text-[10px] text-muted-foreground">{formatRelativeTime(activity.completed_at)}</span>
                         </div>
-                        <span className="text-[10px] text-muted-foreground">{formatRelativeTime(activity.completed_at)}</span>
-                      </div>
-                      
-                      <div className="font-display text-secondary mb-2">
-                        {activity.mission_snapshot?.code_name || 'CLASSIFIED'}
-                      </div>
-                      
-                      <div className="flex items-center gap-3 text-[10px] text-muted-foreground mb-3">
-                        <span className="flex items-center gap-1">
-                          <Target className="w-3 h-3" />
-                          {activity.score_earned.toLocaleString()}
-                        </span>
-                        <span className="flex items-center gap-1">
-                          <Dumbbell className="w-3 h-3" />
-                          {activity.total_weight.toLocaleString()} lbs
-                        </span>
-                        <span className="flex items-center gap-1">
-                          <Zap className="w-3 h-3" />
-                          {activity.max_combo}x
-                        </span>
-                      </div>
+                        
+                        <div className="font-display text-section-missions mb-2">
+                          {activity.mission_snapshot?.code_name || 'CLASSIFIED MISSION'}
+                        </div>
+                        
+                        <div className="flex items-center gap-3 text-[10px] text-muted-foreground mb-3">
+                          <span className="flex items-center gap-1">
+                            <Target className="w-3 h-3 text-section-missions" />
+                            {activity.score_earned.toLocaleString()}
+                          </span>
+                          <span className="flex items-center gap-1">
+                            <Dumbbell className="w-3 h-3 text-section-campaigns" />
+                            {activity.total_weight.toLocaleString()} lbs
+                          </span>
+                          <span className="flex items-center gap-1">
+                            <Zap className="w-3 h-3 text-section-hiit" />
+                            {activity.max_combo}x
+                          </span>
+                        </div>
 
-                      {/* Action buttons */}
-                      {activity.mission_id && (
-                        <button
-                          onClick={() => handleJoinMission(activity.mission_id!)}
-                          className="w-full py-2 border border-primary/50 rounded text-xs font-display text-primary hover:bg-primary/10 transition-colors flex items-center justify-center gap-1"
-                        >
-                          <Play className="w-3 h-3" />
-                          ACCEPT CHALLENGE
-                        </button>
-                      )}
-                    </motion.div>
-                  ))}
-                </div>
+                        {/* Action button - Join Mission */}
+                        {activity.mission_id && (
+                          <button
+                            onClick={() => handleJoinMission(activity.mission_id!)}
+                            className="w-full py-2.5 border-2 border-section-missions rounded text-xs font-display text-section-missions hover:bg-section-missions/10 transition-colors flex items-center justify-center gap-2"
+                          >
+                            <Play className="w-4 h-4" />
+                            ACCEPT CHALLENGE
+                          </button>
+                        )}
+                      </motion.div>
+                    ))}
+                  </div>
+                ) : (
+                  <div className="text-center py-6 border border-dashed border-border rounded-lg">
+                    <Flame className="w-8 h-8 mx-auto mb-2 text-muted-foreground/30" />
+                    <p className="text-sm text-muted-foreground mb-1">No recent rival activity</p>
+                    <p className="text-xs text-muted-foreground/70">
+                      Your rivals haven't completed any missions in the last 7 days.
+                    </p>
+                  </div>
+                )}
               </div>
             )}
 
@@ -359,27 +375,27 @@ export function RivalWidget({ variant = 'compact' }: RivalWidgetProps) {
             {variant === 'compact' && rivalActivity && rivalActivity.length > 0 && (
               <div>
                 <div className="text-xs text-muted-foreground mb-2 flex items-center gap-1">
-                  <Flame className="w-3 h-3" />
-                  RECENT ACTIVITY
+                  <Flame className="w-3 h-3 text-section-campaigns" />
+                  <span className="text-section-campaigns">RECENT ACTIVITY</span>
                 </div>
                 
                 <div className="space-y-2">
                   {rivalActivity.slice(0, 2).map((activity) => (
                     <div
                       key={activity.id}
-                      className="p-2 bg-background border border-border rounded flex items-center justify-between gap-2"
+                      className="p-2 bg-background border border-section-rivals/30 rounded flex items-center justify-between gap-2"
                     >
                       <div className="flex-1 min-w-0">
-                        <span className="text-xs text-primary font-display">{activity.display_name}</span>
+                        <span className="text-xs text-section-rivals font-display">{activity.display_name}</span>
                         <span className="text-[10px] text-muted-foreground"> • </span>
-                        <span className="text-xs text-secondary font-display truncate">
+                        <span className="text-xs text-section-missions font-display truncate">
                           {activity.mission_snapshot?.code_name || 'MISSION'}
                         </span>
                       </div>
                       {activity.mission_id && (
                         <button
                           onClick={() => handleJoinMission(activity.mission_id!)}
-                          className="p-1.5 border border-primary/50 rounded text-primary hover:bg-primary/10 transition-colors flex-shrink-0"
+                          className="p-1.5 border border-section-missions/50 rounded text-section-missions hover:bg-section-missions/10 transition-colors flex-shrink-0"
                         >
                           <Play className="w-3 h-3" />
                         </button>
