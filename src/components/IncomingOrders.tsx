@@ -26,7 +26,6 @@ export function IncomingOrders() {
     <motion.div
       initial={{ opacity: 0, y: 20 }}
       animate={{ opacity: 1, y: 0 }}
-      className="mb-8"
     >
       <div className="flex items-center gap-2 mb-4">
         <ClipboardList className="w-5 h-5 text-warning" />

@@ -163,7 +163,7 @@ export function WeeklySummary() {
     <motion.div
       initial={{ opacity: 0, y: 20 }}
       animate={{ opacity: 1, y: 0 }}
-      className={`mb-8 bg-card border rounded-lg overflow-hidden ${
+      className={`bg-card border rounded-lg overflow-hidden ${
         isAnonymous ? 'border-warning/30' : 'border-secondary/30'
       }`}
     >
