@@ -1,8 +1,9 @@
 import { useNavigate, useLocation } from "react-router-dom";
 import { motion } from "framer-motion";
-import { Home, Crosshair, Timer, Radio, ArrowLeft, Users } from "lucide-react";
+import { Home, Crosshair, Timer, Radio, ArrowLeft, Users, User, LogOut } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useIsHandler } from "@/hooks/useHandlerMode";
+import { useAuth } from "@/hooks/useAuth";
 
 // Section color mapping - ensures visual consistency throughout the app
 export const SECTION_COLORS = {
@@ -99,10 +100,12 @@ export function GlobalNav({
   const navigate = useNavigate();
   const location = useLocation();
   const { data: isHandler } = useIsHandler();
+  const { user, signOut, isLoading } = useAuth();
 
   // Auto-detect section from current path or use override
   const currentSection = sectionOverride || getSectionFromPath(location.pathname);
   const sectionColors = SECTION_COLORS[currentSection];
+  const isHomePage = location.pathname === "/";
 
   const navItems = [
     { path: "/", icon: Home, label: "HOME", section: "home" as SectionType },
@@ -113,6 +116,11 @@ export function GlobalNav({
     ...(isHandler ? [{ path: "/handler", icon: Users, label: "HANDLER", section: "handler" as SectionType }] : []),
   ];
 
+  const handleSignOut = async () => {
+    await signOut();
+    navigate("/");
+  };
+
   return (
     <motion.header
       initial={{ opacity: 0, y: -20 }}
@@ -121,24 +129,34 @@ export function GlobalNav({
     >
       {/* Primary nav row */}
       <div className="flex items-center justify-between mb-3">
-        {/* Back button */}
-        {showBack ? (
-          <button
-            onClick={() => navigate(backTo)}
-            className={cn(
-              "p-2 border rounded transition-colors flex-shrink-0",
-              sectionColors.border,
-              "hover:bg-muted"
-            )}
-            aria-label="Go back"
-          >
-            <ArrowLeft className={cn("w-5 h-5", sectionColors.text)} />
-          </button>
-        ) : (
-          <div className="w-9 flex-shrink-0" /> // Spacer for alignment
-        )}
+        {/* Left side: Back button + Branding */}
+        <div className="flex items-center gap-2 min-w-0">
+          {/* Back button */}
+          {showBack ? (
+            <button
+              onClick={() => navigate(backTo)}
+              className={cn(
+                "p-2 border rounded transition-colors flex-shrink-0",
+                sectionColors.border,
+                "hover:bg-muted"
+              )}
+              aria-label="Go back"
+            >
+              <ArrowLeft className={cn("w-5 h-5", sectionColors.text)} />
+            </button>
+          ) : (
+            <div className="w-9 flex-shrink-0" /> // Spacer for alignment
+          )}
 
-        {/* Quick nav icons + action buttons */}
+          {/* IRON PROTOCOL branding - subdued on home page */}
+          {!isHomePage && (
+            <span className="font-display text-sm text-primary/80 tracking-wider truncate">
+              IRON PROTOCOL
+            </span>
+          )}
+        </div>
+
+        {/* Right side: Nav icons + Auth controls */}
         <div className="flex items-center gap-1">
           <nav className="flex items-center gap-1">
             {navItems.map((item) => {
@@ -176,6 +194,36 @@ export function GlobalNav({
           {actions && (
             <div className="flex items-center gap-1 ml-1 pl-1 border-l border-border">
               {actions}
+            </div>
+          )}
+
+          {/* Auth controls - only shown when logged in */}
+          {!isLoading && user && (
+            <div className={cn(
+              "flex items-center gap-1 ml-1 pl-1 border-l border-border",
+              isHomePage && "opacity-70"
+            )}>
+              <button
+                onClick={() => navigate("/profile")}
+                className={cn(
+                  "p-2 rounded transition-colors",
+                  location.pathname === "/profile"
+                    ? "text-primary bg-primary/10"
+                    : "text-muted-foreground hover:text-foreground hover:bg-muted/50"
+                )}
+                aria-label="Profile"
+                title="Profile"
+              >
+                <User className="w-4 h-4" />
+              </button>
+              <button
+                onClick={handleSignOut}
+                className="p-2 rounded text-muted-foreground hover:text-destructive hover:bg-destructive/10 transition-colors"
+                aria-label="Sign out"
+                title="Sign out"
+              >
+                <LogOut className="w-4 h-4" />
+              </button>
             </div>
           )}
         </div>
