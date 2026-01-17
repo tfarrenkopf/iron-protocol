@@ -1,7 +1,7 @@
 import { useMemo } from "react";
 import { motion } from "framer-motion";
 import { useNavigate } from "react-router-dom";
-import { Dumbbell, Timer, Trophy, User, LogOut, Plus, Swords, ChevronRight, Users, Crosshair, Folder, BarChart3 } from "lucide-react";
+import { Dumbbell, Timer, Trophy, User, LogOut, Plus, ChevronRight, Users, Crosshair, Folder, Radio } from "lucide-react";
 import { useMissions } from "@/hooks/useMissions";
 import { useAuth } from "@/hooks/useAuth";
 import { useProfile } from "@/hooks/useProfile";
@@ -231,17 +231,17 @@ const Dashboard = () => {
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.35 }}
-          className="grid grid-cols-3 gap-3 mb-8"
+          className="grid grid-cols-2 gap-3 mb-8"
         >
           <button
-            onClick={() => navigate("/front-lines")}
+            onClick={() => navigate("/intel")}
             className="p-4 bg-card border border-secondary/50 rounded flex items-center justify-between hover:border-secondary hover:box-glow-secondary transition-all"
           >
             <div className="flex items-center gap-3">
-              <Swords className="w-5 h-5 text-secondary" />
+              <Radio className="w-5 h-5 text-secondary" />
               <div className="text-left">
-                <div className="font-display text-sm text-secondary">FRONT LINES</div>
-                <div className="text-[10px] text-muted-foreground">Live feed</div>
+                <div className="font-display text-sm text-secondary">INTEL CENTER</div>
+                <div className="text-[10px] text-muted-foreground">Feed & Reports</div>
               </div>
             </div>
             <ChevronRight className="w-4 h-4 text-secondary" />
@@ -262,20 +262,6 @@ const Dashboard = () => {
               </div>
             </div>
             <ChevronRight className="w-4 h-4 text-accent" />
-          </button>
-
-          <button
-            onClick={() => navigate("/war-report")}
-            className="p-4 bg-card border border-primary/50 rounded flex items-center justify-between hover:border-primary hover:box-glow-primary transition-all"
-          >
-            <div className="flex items-center gap-3">
-              <BarChart3 className="w-5 h-5 text-primary" />
-              <div className="text-left">
-                <div className="font-display text-sm text-primary">WAR REPORT</div>
-                <div className="text-[10px] text-muted-foreground">Intel</div>
-              </div>
-            </div>
-            <ChevronRight className="w-4 h-4 text-primary" />
           </button>
         </motion.div>
 
