@@ -170,7 +170,7 @@ function ActiveCampaignControl({
           <div className="flex gap-2">
             <button
               onClick={async () => {
-                if (!user || !missions[0]) return;
+                if (!user) return;
                 setIsStartingNewRun(true);
                 try {
                   // Reset the current_run_started_at to now
@@ -192,8 +192,7 @@ function ActiveCampaignControl({
                   queryClient.invalidateQueries({ queryKey: ['active-campaign-progress'] });
                   queryClient.invalidateQueries({ queryKey: ['active-campaign-completed-missions'] });
 
-                  // Navigate to first mission
-                  navigate(`/workout/${missions[0].id}?campaignId=${collection.id}`);
+                  toast({ title: 'New run started', description: 'Progress has been reset. Deploy when ready!' });
                 } catch (error) {
                   console.error('Failed to start new run:', error);
                   toast({ title: 'Error', description: 'Failed to start new run', variant: 'destructive' });
