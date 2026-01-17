@@ -97,7 +97,11 @@ export function CollectionFormDialog({ open, onOpenChange, collectionId }: Colle
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="bg-card border-border max-w-md">
+      <DialogContent 
+        className="bg-card border-border max-w-md"
+        onClick={(e) => e.stopPropagation()}
+        onPointerDown={(e) => e.stopPropagation()}
+      >
         <div className="flex items-center gap-2 mb-4">
           <Folder className="w-5 h-5 text-primary" />
           <h2 className="font-display text-xl text-primary">
