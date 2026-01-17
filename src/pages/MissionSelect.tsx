@@ -11,6 +11,7 @@ import { GuestIndicator } from '@/components/AnonymousConversion';
 import { FOCUS_AREAS, getMusclesForFocusArea, EQUIPMENT_OPTIONS, formatEquipment } from '@/data/muscleGroups';
 import { CollectionFilter } from '@/components/CollectionFilter';
 import { AddToCollectionButton } from '@/components/AddToCollectionButton';
+import { MissionCard } from '@/components/MissionCard';
 import {
   AlertDialog,
   AlertDialogAction,
@@ -376,113 +377,66 @@ const MissionSelect = () => {
         ) : (
           <div className="space-y-4">
             {filteredMissions?.map((mission, i) => (
-              <motion.button
+              <MissionCard
                 key={mission.id}
-                initial={{ opacity: 0, x: -30 }}
-                animate={{ opacity: 1, x: 0 }}
-                transition={{ delay: i * 0.05 }}
-                onClick={() => navigate(`/mission/${mission.id}`)}
-                className="w-full group bg-card border border-border rounded-lg p-5 text-left hover:border-primary transition-all relative overflow-hidden"
-              >
-                {/* Glow effect on hover */}
-                <div className="absolute inset-0 bg-gradient-to-r from-primary/0 via-primary/5 to-primary/0 opacity-0 group-hover:opacity-100 transition-opacity" />
-                
-                {/* Top-right badges - single row with all elements */}
-                <div className="absolute top-3 right-3 flex items-center gap-1.5 z-20">
-                  {/* Add to collection button */}
-                  {user && <AddToCollectionButton missionId={mission.id} />}
-                  
-                  {/* Custom mission controls */}
-                  {!mission.is_public && user && mission.created_by === user.id && (
-                    <>
-                      <button
-                        onClick={(e) => handleEditClick(e, mission.id)}
-                        className="p-1.5 bg-secondary/20 text-secondary rounded hover:bg-secondary/30 transition-colors"
-                        title="Edit mission"
-                      >
-                        <Pencil className="w-3.5 h-3.5" />
-                      </button>
-                      <button
-                        onClick={(e) => handleDeleteClick(e, mission)}
-                        className="p-1.5 bg-destructive/20 text-destructive rounded hover:bg-destructive/30 transition-colors"
-                        title="Delete mission"
-                      >
-                        <Trash2 className="w-3.5 h-3.5" />
-                      </button>
+                mission={mission}
+                index={i}
+                topRightSlot={
+                  <>
+                    {/* Add to collection button */}
+                    {user && <AddToCollectionButton missionId={mission.id} />}
+                    
+                    {/* Custom mission controls */}
+                    {!mission.is_public && user && mission.created_by === user.id && (
+                      <>
+                        <button
+                          onClick={(e) => handleEditClick(e, mission.id)}
+                          className="p-1.5 bg-secondary/20 text-secondary rounded hover:bg-secondary/30 transition-colors"
+                          title="Edit mission"
+                        >
+                          <Pencil className="w-3.5 h-3.5" />
+                        </button>
+                        <button
+                          onClick={(e) => handleDeleteClick(e, mission)}
+                          className="p-1.5 bg-destructive/20 text-destructive rounded hover:bg-destructive/30 transition-colors"
+                          title="Delete mission"
+                        >
+                          <Trash2 className="w-3.5 h-3.5" />
+                        </button>
+                        <span className="text-xs px-2 py-1 bg-accent/20 text-accent rounded whitespace-nowrap">
+                          CUSTOM
+                        </span>
+                      </>
+                    )}
+
+                    {/* Custom mission badge (not owner) */}
+                    {!mission.is_public && (!user || mission.created_by !== user.id) && (
                       <span className="text-xs px-2 py-1 bg-accent/20 text-accent rounded whitespace-nowrap">
                         CUSTOM
                       </span>
-                    </>
-                  )}
+                    )}
 
-                  {/* Custom mission badge (not owner) */}
-                  {!mission.is_public && (!user || mission.created_by !== user.id) && (
-                    <span className="text-xs px-2 py-1 bg-accent/20 text-accent rounded whitespace-nowrap">
-                      CUSTOM
-                    </span>
-                  )}
+                    {/* Popularity badge OR "No survivors" encouragement */}
+                    {mission.is_public && (
+                      <>
+                        {(mission.popularity_score || 0) === 0 ? (
+                          <span className="text-xs px-2 py-1 bg-primary/20 text-primary rounded font-display animate-pulse whitespace-nowrap">
+                            NO SURVIVORS
+                          </span>
+                        ) : getPopularityTier(mission.popularity_score || 0) ? (
+                          <PopularityBadge score={mission.popularity_score || 0} />
+                        ) : null}
+                      </>
+                    )}
 
-                  {/* Popularity badge OR "No survivors" encouragement */}
-                  {mission.is_public && (
-                    <>
-                      {(mission.popularity_score || 0) === 0 ? (
-                        <span className="text-xs px-2 py-1 bg-primary/20 text-primary rounded font-display animate-pulse whitespace-nowrap">
-                          NO SURVIVORS
-                        </span>
-                      ) : getPopularityTier(mission.popularity_score || 0) ? (
-                        <PopularityBadge score={mission.popularity_score || 0} />
-                      ) : null}
-                    </>
-                  )}
-
-                  {/* Difficulty badge */}
-                  <div className="flex items-center gap-1 bg-muted px-2 py-1 rounded">
-                    <Zap className="w-3 h-3 text-accent" />
-                    <span className="text-xs font-display text-accent">{mission.difficulty}</span>
-                  </div>
-                </div>
-                
-                <div className="relative z-10">
-                  <div className="flex items-start mb-3">
-                    <div className="flex-1 pr-2">
-                      <h2 className="font-display text-2xl text-primary group-hover:text-glow-primary transition-all">
-                        {mission.code_name}
-                      </h2>
-                      <p className="text-sm text-muted-foreground mt-1 line-clamp-2">{mission.description}</p>
+                    {/* Difficulty badge */}
+                    <div className="flex items-center gap-1 bg-muted px-2 py-1 rounded">
+                      <Zap className="w-3 h-3 text-accent" />
+                      <span className="text-xs font-display text-accent">{mission.difficulty}</span>
                     </div>
-                  </div>
-                  
-                  <div className="flex items-center justify-between">
-                    <div className="flex gap-2">
-                      {mission.focus_areas?.slice(0, 3).map((area) => (
-                        <span 
-                          key={area}
-                          className="text-xs px-2 py-1 bg-muted rounded text-muted-foreground"
-                        >
-                          {area}
-                        </span>
-                      ))}
-                    </div>
-                    <div className="text-sm text-muted-foreground">
-                      {mission.mission_exercises?.length || 0} exercises • {mission.estimated_minutes}min
-                    </div>
-                  </div>
-
-                  {/* Difficulty bar */}
-                  <div className="flex gap-1 mt-4">
-                    {[...Array(5)].map((_, j) => (
-                      <div 
-                        key={j}
-                        className={`h-1 flex-1 rounded-full transition-all ${
-                          j < mission.difficulty 
-                            ? 'bg-gradient-to-r from-accent to-primary' 
-                            : 'bg-muted'
-                        }`}
-                      />
-                    ))}
-                  </div>
-                </div>
-              </motion.button>
+                  </>
+                }
+              />
             ))}
           </div>
         )}
