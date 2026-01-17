@@ -1,4 +1,4 @@
-import { useMemo, useState } from "react";
+import { useState } from "react";
 import { motion } from "framer-motion";
 import { useNavigate } from "react-router-dom";
 import { Timer, Radio, User, LogOut, ChevronRight, Users, Crosshair } from "lucide-react";
@@ -23,46 +23,11 @@ import {
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
 
-// Helper to get a random item from an array
-const getRandomItem = <T,>(arr: T[]): T | undefined => {
-  if (arr.length === 0) return undefined;
-  return arr[Math.floor(Math.random() * arr.length)];
-};
-
 const Dashboard = () => {
   const navigate = useNavigate();
   const { user, isAnonymous, signOut } = useAuth();
   const { data: profile } = useProfile();
   const { data: missions } = useMissions({ showOnlyPublic: true });
-
-  // Select 3 random missions (1 short, 1 medium, 1 long)
-  const featuredMissions = useMemo(() => {
-    if (!missions || missions.length === 0) return [];
-
-    const shortMissions = missions.filter((m) => m.estimated_minutes < 20);
-    const mediumMissions = missions.filter((m) => m.estimated_minutes >= 20 && m.estimated_minutes < 40);
-    const longMissions = missions.filter((m) => m.estimated_minutes >= 40);
-
-    const selected: typeof missions = [];
-
-    const short = getRandomItem(shortMissions);
-    const medium = getRandomItem(mediumMissions);
-    const long = getRandomItem(longMissions);
-
-    if (short) selected.push(short);
-    if (medium) selected.push(medium);
-    if (long) selected.push(long);
-
-    const selectedIds = new Set(selected.map((m) => m.id));
-    const remaining = missions.filter((m) => !selectedIds.has(m.id));
-
-    while (selected.length < 3 && remaining.length > 0) {
-      const randomIndex = Math.floor(Math.random() * remaining.length);
-      selected.push(remaining.splice(randomIndex, 1)[0]);
-    }
-
-    return selected.sort((a, b) => a.estimated_minutes - b.estimated_minutes);
-  }, [missions]);
   
   const { data: isHandler } = useIsHandler();
   const [showSignOutDialog, setShowSignOutDialog] = useState(false);
@@ -223,64 +188,14 @@ const Dashboard = () => {
             </motion.div>
           )}
 
-          {/* Featured Missions */}
+          {/* Access Command Button */}
           <motion.section initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.4 }}>
-            <div className="flex items-center justify-between mb-4">
-              <h3 className="font-display text-xl text-muted-foreground tracking-wider">// TODAY'S MISSIONS</h3>
-            </div>
-
-            <div className="space-y-4">
-              {featuredMissions.map((mission, i) => (
-                <motion.button
-                  key={mission.id}
-                  initial={{ opacity: 0, x: -20 }}
-                  animate={{ opacity: 1, x: 0 }}
-                  transition={{ delay: 0.5 + i * 0.1 }}
-                  onClick={() => navigate(`/mission/${mission.id}`)}
-                  className="w-full group bg-card border border-border rounded-lg p-4 text-left hover:border-primary/50 transition-all"
-                >
-                  <div className="flex items-center justify-between">
-                    <div className="flex-1">
-                      <div className="flex items-center gap-2">
-                        <span className="font-display text-lg text-primary group-hover:text-glow-primary transition-all">
-                          {mission.code_name}
-                        </span>
-                        <span
-                          className={`text-xs px-1.5 py-0.5 rounded font-display ${
-                            mission.estimated_minutes < 20
-                              ? "bg-secondary/20 text-secondary"
-                              : mission.estimated_minutes < 40
-                                ? "bg-primary/20 text-primary"
-                                : "bg-accent/20 text-accent"
-                          }`}
-                        >
-                          {mission.estimated_minutes < 20 ? "QUICK" : mission.estimated_minutes < 40 ? "STD" : "LONG"}
-                        </span>
-                      </div>
-                      <div className="text-xs text-muted-foreground mt-1 uppercase">
-                        {mission.focus_areas?.join(" • ")} • {mission.estimated_minutes}min
-                      </div>
-                    </div>
-                    <div className="flex gap-1">
-                      {[...Array(5)].map((_, j) => (
-                        <div
-                          key={j}
-                          className={`w-2 h-2 rounded-sm ${j < mission.difficulty ? "bg-accent" : "bg-muted"}`}
-                        />
-                      ))}
-                    </div>
-                  </div>
-                </motion.button>
-              ))}
-            </div>
-
-            {/* Full Arsenal Button */}
             <motion.button
               initial={{ opacity: 0, y: 10 }}
               animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: 0.7 }}
+              transition={{ delay: 0.5 }}
               onClick={() => navigate("/command")}
-              className="w-full mt-4 group bg-card border-2 border-section-command/50 rounded-lg p-4 flex items-center justify-between hover:border-section-command hover:box-glow-command transition-all"
+              className="w-full group bg-card border-2 border-section-command/50 rounded-lg p-4 flex items-center justify-between hover:border-section-command hover:box-glow-command transition-all"
             >
               <div className="flex items-center gap-3">
                 <Crosshair className="w-6 h-6 text-section-command" />
