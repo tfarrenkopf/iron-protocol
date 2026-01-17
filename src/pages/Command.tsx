@@ -6,7 +6,7 @@ import { useMissions, useDeleteMission } from '@/hooks/useMissions';
 import { useCollections, useDeleteCollection, CollectionWithMissions } from '@/hooks/useCollections';
 import { useExercises, useDeleteExercise, Exercise } from '@/hooks/useExercises';
 import { useAuth } from '@/hooks/useAuth';
-import { GuestIndicator } from '@/components/AnonymousConversion';
+// GuestIndicator removed - using minimal header
 import { MissionCard } from '@/components/MissionCard';
 import { AddToCollectionButton } from '@/components/AddToCollectionButton';
 import { CollectionFormDialog } from '@/components/CollectionFormDialog';
@@ -179,29 +179,21 @@ const Command = () => {
       <div className="fixed inset-0 pointer-events-none scanlines opacity-20" />
       
       <div className="relative z-10 container mx-auto px-4 py-6 max-w-2xl">
-        {/* Active Campaign Hero */}
-        {user && activeCampaignId && <ActiveCampaignHero />}
-        {/* Header */}
+        {/* Minimal Header */}
         <motion.header 
           initial={{ opacity: 0, y: -20 }}
           animate={{ opacity: 1, y: 0 }}
-          className="flex items-center justify-between mb-4"
+          className="flex items-center justify-between mb-6"
         >
-          <div className="flex items-center gap-4">
-            <button 
-              onClick={() => navigate('/')}
-              className="p-2 border border-border rounded hover:border-primary transition-colors"
-            >
-              <ArrowLeft className="w-5 h-5" />
-            </button>
-            <div>
-              <h1 className="font-display text-3xl text-primary text-glow-primary">COMMAND</h1>
-              <p className="text-xs text-muted-foreground tracking-wider">
-                {isAnonymous ? <GuestIndicator variant="minimal" /> : 'Your arsenal awaits, warrior'}
-              </p>
-            </div>
-          </div>
-
+          <button 
+            onClick={() => navigate('/')}
+            className="p-2 border border-border rounded hover:border-primary transition-colors"
+          >
+            <ArrowLeft className="w-5 h-5" />
+          </button>
+          
+          <h1 className="font-display text-2xl text-primary">COMMAND</h1>
+          
           <div className="flex gap-2">
             {activeTab === 'global' && (
               <button
@@ -213,7 +205,7 @@ const Command = () => {
                 <Filter className="w-5 h-5" />
               </button>
             )}
-            {user && activeTab !== 'global' && (
+            {user && (activeTab === 'campaigns' || activeTab === 'missions' || activeTab === 'exercises') && (
               <button
                 onClick={() => {
                   if (activeTab === 'campaigns') setCampaignDialogOpen(true);
@@ -229,8 +221,11 @@ const Command = () => {
           </div>
         </motion.header>
 
-        {/* Tabs */}
-        <div className="flex gap-1 mb-4 overflow-x-auto scrollbar-hide border-b border-border pb-2">
+        {/* Active Campaign Hero - Prominent at top */}
+        {user && activeCampaignId && <ActiveCampaignHero />}
+
+        {/* Tab Navigation - Cleaner */}
+        <div className="flex gap-1 mb-4 overflow-x-auto scrollbar-hide">
           {tabs.map((tab) => {
             const Icon = tab.icon;
             const isActive = activeTab === tab.id;
@@ -240,10 +235,10 @@ const Command = () => {
               <button
                 key={tab.id}
                 onClick={() => setActiveTab(tab.id)}
-                className={`flex items-center gap-1.5 px-3 py-2 rounded-t font-display text-xs whitespace-nowrap transition-all ${
+                className={`flex items-center gap-1.5 px-3 py-2 rounded font-display text-xs whitespace-nowrap transition-all border ${
                   isActive
-                    ? 'bg-primary text-primary-foreground'
-                    : 'text-muted-foreground hover:text-foreground hover:bg-card'
+                    ? 'bg-primary text-primary-foreground border-primary'
+                    : 'border-border text-muted-foreground hover:text-foreground hover:border-primary/50'
                 }`}
               >
                 <Icon className="w-3.5 h-3.5" />
