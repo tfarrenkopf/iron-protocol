@@ -1,7 +1,7 @@
 import { ReactNode, useMemo } from 'react';
 import { motion } from 'framer-motion';
 import { useNavigate } from 'react-router-dom';
-import { Zap, Clock, Play, CheckCircle2, Plus, ChevronUp, ChevronDown, Trash2, Dumbbell } from 'lucide-react';
+import { Zap, Clock, Play, CheckCircle2, Plus, ChevronUp, ChevronDown, Trash2, Dumbbell, Trophy } from 'lucide-react';
 import { Tables } from '@/integrations/supabase/types';
 import { PopularityBadge } from '@/components/SocialProof';
 import { getPopularityTier } from '@/hooks/useMissionStats';
@@ -127,10 +127,14 @@ export function MissionCard({
           </div>
         )}
 
-        {/* Completion indicator */}
+        {/* Completion indicator - Trophy for campaign missions */}
         {isCompleted && !showOrder && (
           <div className="flex-shrink-0 flex items-center">
-            <CheckCircle2 className="w-5 h-5 text-secondary" />
+            {variant === 'campaign' ? (
+              <Trophy className="w-5 h-5 text-yellow-400" />
+            ) : (
+              <CheckCircle2 className="w-5 h-5 text-secondary" />
+            )}
           </div>
         )}
 
@@ -260,11 +264,11 @@ export function MissionCard({
               className={`flex items-center gap-1.5 text-xs px-3 py-1.5 rounded font-display transition-colors ${
                 isCompleted 
                   ? 'bg-secondary/20 text-secondary hover:bg-secondary/30'
-                  : 'bg-primary/20 text-primary hover:bg-primary/30'
+                  : 'bg-accent/20 text-accent hover:bg-accent/30'
               }`}
             >
               <Play className="w-3 h-3" />
-              {isCompleted ? 'REPLAY' : 'START'}
+              {isCompleted ? 'REPLAY' : 'DEPLOY'}
             </button>
           </div>
         )}
