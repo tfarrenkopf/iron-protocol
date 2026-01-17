@@ -26,8 +26,9 @@ import {
   AlertDialogTitle,
 } from '@/components/ui/alert-dialog';
 
-type TabType = 'missions' | 'exercises' | 'campaigns';
+type TabType = 'campaigns' | 'missions' | 'exercises';
 type Source = 'public' | 'personal';
+type CampaignSource = 'standard' | 'personal' | 'community';
 
 const DURATION_FILTERS = [
   { label: 'Quick', value: 'short', max: 20 },
@@ -40,14 +41,18 @@ const Command = () => {
   const [searchParams, setSearchParams] = useSearchParams();
   const { user, isAnonymous } = useAuth();
   
-  // Tab state - map legacy 'global' to 'missions'
+  // Tab state - default to campaigns
   const urlTab = searchParams.get('tab');
-  const initialTab = (urlTab === 'browse' || urlTab === 'global') ? 'missions' : (urlTab as TabType) || 'missions';
+  const initialTab = (urlTab === 'browse' || urlTab === 'global') ? 'missions' : (urlTab as TabType) || 'campaigns';
   const [activeTab, setActiveTab] = useState<TabType>(initialTab);
   
-  // Source toggle state (public vs personal)
+  // Source toggle state (public vs personal for missions)
   const urlSource = searchParams.get('source');
   const [source, setSource] = useState<Source>((urlSource as Source) || 'public');
+  
+  // Campaign source toggle (standard, personal, community)
+  const urlCampaignSource = searchParams.get('campaignSource');
+  const [campaignSource, setCampaignSource] = useState<CampaignSource>((urlCampaignSource as CampaignSource) || 'standard');
   
   const { activeCampaignId } = useActiveCampaign();
   
@@ -90,30 +95,25 @@ const Command = () => {
   // Active campaign at top
   const activeCampaign = collections?.find(c => c.id === activeCampaignId);
   
-  // Sort campaigns with active first
-  const sortedCampaigns = useMemo(() => {
-    const all: { collection: CollectionWithMissions; section: 'active' | 'system' | 'mine' | 'community' }[] = [];
+  // Filter campaigns by source
+  const filteredCampaigns = useMemo(() => {
+    let campaigns: CollectionWithMissions[] = [];
     
-    if (activeCampaign) {
-      all.push({ collection: activeCampaign, section: 'active' });
+    if (campaignSource === 'standard') {
+      campaigns = systemCollections;
+    } else if (campaignSource === 'personal') {
+      campaigns = myCollections;
+    } else if (campaignSource === 'community') {
+      campaigns = publicCollections;
     }
     
-    systemCollections.forEach(c => {
-      if (c.id !== activeCampaignId) all.push({ collection: c, section: 'system' });
-    });
-    
-    if (user) {
-      myCollections.forEach(c => {
-        if (c.id !== activeCampaignId) all.push({ collection: c, section: 'mine' });
-      });
+    // Always put active campaign at top if it's in current view
+    if (activeCampaign && campaigns.find(c => c.id === activeCampaignId)) {
+      campaigns = [activeCampaign, ...campaigns.filter(c => c.id !== activeCampaignId)];
     }
     
-    publicCollections.forEach(c => {
-      if (c.id !== activeCampaignId) all.push({ collection: c, section: 'community' });
-    });
-    
-    return all;
-  }, [activeCampaign, systemCollections, myCollections, publicCollections, activeCampaignId, user]);
+    return campaigns;
+  }, [campaignSource, systemCollections, myCollections, publicCollections, activeCampaign, activeCampaignId]);
   
   const availableMuscles = getMusclesForFocusArea(focusFilter || null);
   
@@ -122,6 +122,7 @@ const Command = () => {
     const params = new URLSearchParams(searchParams);
     params.set('tab', activeTab);
     params.set('source', source);
+    params.set('campaignSource', campaignSource);
     if (focusFilter) params.set('focus', focusFilter);
     else params.delete('focus');
     if (muscleFilter) params.set('muscle', muscleFilter);
@@ -133,7 +134,7 @@ const Command = () => {
     if (collectionFilter) params.set('collection', collectionFilter);
     else params.delete('collection');
     setSearchParams(params, { replace: true });
-  }, [activeTab, source, focusFilter, muscleFilter, equipmentFilter, durationFilter, collectionFilter]);
+  }, [activeTab, source, campaignSource, focusFilter, muscleFilter, equipmentFilter, durationFilter, collectionFilter]);
   
   // Clear muscle filter if not available
   useEffect(() => {
@@ -208,8 +209,8 @@ const Command = () => {
   };
   
   const tabs: { id: TabType; label: string; icon: typeof Target }[] = [
-    { id: 'missions', label: 'MISSIONS', icon: Target },
     { id: 'campaigns', label: 'CAMPAIGNS', icon: Flame },
+    { id: 'missions', label: 'MISSIONS', icon: Target },
     { id: 'exercises', label: 'EXERCISES', icon: Dumbbell },
   ];
   
@@ -249,7 +250,7 @@ const Command = () => {
           <h1 className="font-display text-2xl text-primary">COMMAND</h1>
           
           <div className="flex gap-2">
-            {activeTab === 'missions' && (
+            {(activeTab === 'missions' || activeTab === 'campaigns') && (
               <button
                 onClick={() => setShowFilters(!showFilters)}
                 className={`p-2 border rounded transition-colors ${
@@ -298,18 +299,76 @@ const Command = () => {
         </div>
 
         {/* Source Toggle (for missions tab) */}
-        {activeTab === 'missions' && user && (
+        {activeTab === 'missions' && (
           <motion.div 
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             className="mb-4"
           >
-            <SourceToggle 
-              value={source} 
-              onChange={setSource}
-              publicLabel="GLOBAL"
-              personalLabel="MY MISSIONS"
-            />
+            {/* Mission instruction */}
+            <div className="mb-3 p-3 bg-primary/5 border border-primary/20 rounded-lg">
+              <p className="text-xs text-muted-foreground">
+                <span className="text-primary font-display">MISSIONS</span> are single combat ops. Pick one. Execute. Get stronger.
+              </p>
+            </div>
+            {user && (
+              <SourceToggle 
+                value={source} 
+                onChange={setSource}
+                publicLabel="GLOBAL"
+                personalLabel="MY MISSIONS"
+              />
+            )}
+          </motion.div>
+        )}
+
+        {/* Campaign Source Toggle */}
+        {activeTab === 'campaigns' && (
+          <motion.div 
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            className="mb-4"
+          >
+            {/* Campaign instruction */}
+            <div className="mb-3 p-3 bg-accent/5 border border-accent/20 rounded-lg">
+              <p className="text-xs text-muted-foreground">
+                <span className="text-accent font-display">CAMPAIGNS</span> are multi-mission operations. Commit to one. Complete all missions. Earn glory.
+              </p>
+            </div>
+            <div className="flex rounded-lg border border-border overflow-hidden">
+              <button
+                onClick={() => setCampaignSource('standard')}
+                className={`flex-1 py-2.5 font-display text-xs transition-colors ${
+                  campaignSource === 'standard' 
+                    ? 'bg-secondary text-secondary-foreground' 
+                    : 'bg-card text-muted-foreground hover:text-foreground'
+                }`}
+              >
+                STANDARD
+              </button>
+              {user && (
+                <button
+                  onClick={() => setCampaignSource('personal')}
+                  className={`flex-1 py-2.5 font-display text-xs transition-colors border-x border-border ${
+                    campaignSource === 'personal' 
+                      ? 'bg-primary text-primary-foreground' 
+                      : 'bg-card text-muted-foreground hover:text-foreground'
+                  }`}
+                >
+                  MY OPS
+                </button>
+              )}
+              <button
+                onClick={() => setCampaignSource('community')}
+                className={`flex-1 py-2.5 font-display text-xs transition-colors ${
+                  campaignSource === 'community' 
+                    ? 'bg-accent text-accent-foreground' 
+                    : 'bg-card text-muted-foreground hover:text-foreground'
+                }`}
+              >
+                COMMUNITY
+              </button>
+            </div>
           </motion.div>
         )}
 
@@ -587,11 +646,18 @@ const Command = () => {
               <div className="text-center py-12">
                 <div className="font-display text-lg text-primary animate-neon-pulse">LOADING...</div>
               </div>
-            ) : sortedCampaigns.length === 0 ? (
+            ) : filteredCampaigns.length === 0 ? (
               <div className="text-center py-12 border border-dashed border-border rounded-lg">
                 <Flame className="w-10 h-10 mx-auto mb-3 text-muted-foreground/50" />
-                <p className="text-muted-foreground mb-3">No campaigns available</p>
-                {user && (
+                <p className="text-muted-foreground mb-3">
+                  {campaignSource === 'personal' 
+                    ? 'No custom campaigns yet' 
+                    : campaignSource === 'community'
+                      ? 'No community campaigns available'
+                      : 'No standard campaigns available'
+                  }
+                </p>
+                {campaignSource === 'personal' && user && (
                   <button
                     onClick={() => setCampaignDialogOpen(true)}
                     className="text-sm text-accent hover:text-glow-accent font-display"
@@ -602,99 +668,38 @@ const Command = () => {
               </div>
             ) : (
               <div className="space-y-3">
-                {/* Active Campaign Section */}
-                {activeCampaign && (
-                  <div className="mb-6">
-                    <div className="flex items-center gap-2 mb-3">
-                      <Flame className="w-4 h-4 text-accent" />
-                      <span className="font-display text-sm text-accent tracking-wider">ACTIVE CAMPAIGN</span>
+                {/* Active Campaign at top if in current view */}
+                {activeCampaign && filteredCampaigns.find(c => c.id === activeCampaignId) && (
+                  <div className="mb-2">
+                    <div className="flex items-center gap-2 mb-2">
+                      <Flame className="w-4 h-4 text-accent animate-pulse" />
+                      <span className="font-display text-xs text-accent tracking-wider">YOUR ACTIVE OP</span>
                     </div>
-                    <CampaignCard 
-                      collection={activeCampaign} 
-                      isActive 
-                      isOwner={activeCampaign.created_by === user?.id}
-                      isSystem={activeCampaign.is_system}
-                      onEdit={setEditCampaignId}
-                      onDelete={(id, name) => handleDeleteClick(id, name, 'campaign')}
-                    />
                   </div>
                 )}
-
-                {/* Official Campaigns */}
-                {systemCollections.filter(c => c.id !== activeCampaignId).length > 0 && (
-                  <section className="mb-4">
-                    <div className="flex items-center gap-2 mb-3">
-                      <Crown className="w-4 h-4 text-secondary" />
-                      <span className="font-display text-sm text-secondary tracking-wider">OFFICIAL</span>
-                    </div>
-                    <div className="space-y-3">
-                      {systemCollections.filter(c => c.id !== activeCampaignId).map((c, i) => (
-                        <CampaignCard 
-                          key={c.id} 
-                          collection={c} 
-                          index={i}
-                          isSystem 
-                          onEdit={setEditCampaignId}
-                          onDelete={(id, name) => handleDeleteClick(id, name, 'campaign')}
-                        />
-                      ))}
-                    </div>
-                  </section>
-                )}
-
-                {/* My Campaigns */}
-                {user && (
-                  <section className="mb-4">
-                    <div className="flex items-center gap-2 mb-3">
-                      <Target className="w-4 h-4 text-primary" />
-                      <span className="font-display text-sm text-primary tracking-wider">MY CAMPAIGNS</span>
-                    </div>
-                    {myCollections.filter(c => c.id !== activeCampaignId).length === 0 ? (
-                      <div className="text-center py-6 border border-dashed border-border rounded-lg">
-                        <p className="text-sm text-muted-foreground mb-2">No custom campaigns yet</p>
-                        <button
-                          onClick={() => setCampaignDialogOpen(true)}
-                          className="text-xs text-accent hover:text-glow-accent font-display"
-                        >
-                          + CREATE CAMPAIGN
-                        </button>
-                      </div>
-                    ) : (
-                      <div className="space-y-3">
-                        {myCollections.filter(c => c.id !== activeCampaignId).map((c, i) => (
-                          <CampaignCard 
-                            key={c.id} 
-                            collection={c} 
-                            index={i}
-                            isOwner 
-                            onEdit={setEditCampaignId}
-                            onDelete={(id, name) => handleDeleteClick(id, name, 'campaign')}
-                          />
-                        ))}
-                      </div>
-                    )}
-                  </section>
-                )}
-
-                {/* Community Campaigns */}
-                {publicCollections.filter(c => c.id !== activeCampaignId).length > 0 && (
-                  <section>
-                    <div className="flex items-center gap-2 mb-3">
-                      <Target className="w-4 h-4 text-muted-foreground" />
-                      <span className="font-display text-sm text-muted-foreground tracking-wider">COMMUNITY</span>
-                    </div>
-                    <div className="space-y-3">
-                      {publicCollections.filter(c => c.id !== activeCampaignId).map((c, i) => (
-                        <CampaignCard 
-                          key={c.id} 
-                          collection={c} 
-                          index={i}
-                          onEdit={setEditCampaignId}
-                          onDelete={(id, name) => handleDeleteClick(id, name, 'campaign')}
-                        />
-                      ))}
-                    </div>
-                  </section>
+                
+                {/* Campaign list */}
+                {filteredCampaigns.map((c, i) => (
+                  <CampaignCard 
+                    key={c.id} 
+                    collection={c} 
+                    index={i}
+                    isActive={c.id === activeCampaignId}
+                    isOwner={c.created_by === user?.id}
+                    isSystem={c.is_system}
+                    onEdit={setEditCampaignId}
+                    onDelete={(id, name) => handleDeleteClick(id, name, 'campaign')}
+                  />
+                ))}
+                
+                {/* Create button for personal tab */}
+                {campaignSource === 'personal' && user && filteredCampaigns.length > 0 && (
+                  <button
+                    onClick={() => setCampaignDialogOpen(true)}
+                    className="w-full py-4 border-2 border-dashed border-accent/30 rounded-lg text-accent/60 hover:border-accent hover:text-accent transition-colors font-display text-sm"
+                  >
+                    + CREATE NEW CAMPAIGN
+                  </button>
                 )}
               </div>
             )

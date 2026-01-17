@@ -236,7 +236,7 @@ export function StartCampaignButton({
   size = 'default' 
 }: { 
   campaignId: string;
-  size?: 'default' | 'small';
+  size?: 'default' | 'small' | 'large';
 }) {
   const { activeCampaignId, setActiveCampaign, isSettingActive } = useActiveCampaign();
   const isActive = activeCampaignId === campaignId;
@@ -249,10 +249,23 @@ export function StartCampaignButton({
     }
   };
 
+  const sizeClasses = {
+    small: 'text-[10px] px-1.5 py-0.5',
+    default: 'text-xs px-2 py-1',
+    large: 'text-sm px-4 py-3 w-full'
+  };
+  
+  const iconSizes = {
+    small: 'w-2.5 h-2.5',
+    default: 'w-3 h-3',
+    large: 'w-4 h-4'
+  };
+
   if (isActive) {
     return (
-      <span className={`${size === 'small' ? 'text-[10px] px-1.5 py-0.5' : 'text-xs px-2 py-1'} bg-accent/20 text-accent rounded font-display`}>
-        ACTIVE
+      <span className={`${sizeClasses[size]} bg-accent/20 text-accent rounded font-display flex items-center justify-center gap-2`}>
+        <Play className={iconSizes[size]} />
+        ACTIVE OP
       </span>
     );
   }
@@ -261,17 +274,19 @@ export function StartCampaignButton({
     <button
       onClick={handleClick}
       disabled={isSettingActive}
-      className={`${size === 'small' ? 'text-[10px] px-1.5 py-0.5' : 'text-xs px-2 py-1'} rounded font-display transition-all ${
-        hasOtherActive
-          ? 'text-muted-foreground hover:text-primary hover:bg-primary/10'
-          : 'bg-primary/10 text-primary hover:bg-primary/20'
+      className={`${sizeClasses[size]} rounded font-display transition-all flex items-center justify-center gap-2 ${
+        size === 'large' 
+          ? hasOtherActive
+            ? 'border-2 border-primary/50 text-primary hover:bg-primary/10 hover:box-glow-primary'
+            : 'bg-primary text-primary-foreground hover:box-glow-primary'
+          : hasOtherActive
+            ? 'text-muted-foreground hover:text-primary hover:bg-primary/10'
+            : 'bg-primary/10 text-primary hover:bg-primary/20'
       }`}
       title={hasOtherActive ? 'Switch to this campaign' : 'Start this campaign'}
     >
-      <span className="flex items-center gap-1">
-        <Play className={`${size === 'small' ? 'w-2.5 h-2.5' : 'w-3 h-3'}`} />
-        {hasOtherActive ? 'SWITCH' : 'START'}
-      </span>
+      <Play className={iconSizes[size]} />
+      {hasOtherActive ? 'SWITCH CAMPAIGN' : 'BEGIN CAMPAIGN'}
     </button>
   );
 }
