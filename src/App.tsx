@@ -23,6 +23,7 @@ import JoinSquad from "./pages/JoinSquad";
 import AssignMission from "./pages/AssignMission";
 import AssignmentWorkout from "./pages/AssignmentWorkout";
 import Collections from "./pages/Collections";
+import CampaignDetail from "./pages/CampaignDetail";
 import RivalInvite from "./pages/RivalInvite";
 import NotFound from "./pages/NotFound";
 import { useGoogleAnalytics } from "@/hooks/useGoogleAnalytics";
@@ -41,6 +42,7 @@ function AppContent() {
         <Route path="/profile" element={<ProfilePage />} />
         <Route path="/missions" element={<MissionSelect />} />
         <Route path="/collections" element={<Collections />} />
+        <Route path="/campaign/:collectionId" element={<CampaignDetail />} />
         <Route path="/mission/:missionId" element={<MissionDetail />} />
         <Route path="/workout/:missionId" element={<WorkoutSession />} />
         <Route path="/workout/assignment/:assignmentId" element={<AssignmentWorkout />} />

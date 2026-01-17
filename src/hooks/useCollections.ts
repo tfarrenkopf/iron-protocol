@@ -110,7 +110,7 @@ export function useCreateCollection() {
       visibility?: 'private' | 'public' | 'shared';
       mission_ids?: string[];
     }) => {
-      if (!user) throw new Error('Must be logged in to create collections');
+      if (!user) throw new Error('Must be logged in to create campaigns');
       
       const { data: collectionData, error: collectionError } = await supabase
         .from('collections')
@@ -165,7 +165,7 @@ export function useUpdateCollection() {
       visibility?: 'private' | 'public' | 'shared';
       mission_ids?: string[];
     }) => {
-      if (!user) throw new Error('Must be logged in to update collections');
+      if (!user) throw new Error('Must be logged in to update campaigns');
       
       const { error: collectionError } = await supabase
         .from('collections')

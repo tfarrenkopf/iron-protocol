@@ -35,7 +35,7 @@ export function CollectionFilter({ selectedCollectionId, onSelect }: CollectionF
   return (
     <div>
       <label className="text-xs text-muted-foreground tracking-wider flex items-center gap-1 mb-2">
-        <Folder className="w-3 h-3" /> COLLECTION
+        <Folder className="w-3 h-3" /> CAMPAIGN
       </label>
       <div className="flex flex-wrap gap-2">
         {allCollections.map(collection => {

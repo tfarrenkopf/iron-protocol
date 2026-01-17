@@ -257,7 +257,7 @@ const Dashboard = () => {
             <div className="flex items-center gap-3">
               <Folder className="w-5 h-5 text-accent" />
               <div className="text-left">
-                <div className="font-display text-sm text-accent">COLLECTIONS</div>
+                <div className="font-display text-sm text-accent">CAMPAIGNS</div>
                 <div className="text-[10px] text-muted-foreground">Organize</div>
               </div>
             </div>

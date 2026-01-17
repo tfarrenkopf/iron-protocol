@@ -43,7 +43,7 @@ const CollectionCard = ({ collection, isSystem = false, isOwner = false, onEdit,
       initial={{ opacity: 0, y: 10 }}
       animate={{ opacity: 1, y: 0 }}
       className="group bg-card border border-border rounded-lg p-4 hover:border-primary/50 transition-all cursor-pointer relative overflow-hidden"
-      onClick={() => navigate(`/missions?collection=${collection.id}`)}
+      onClick={() => navigate(`/campaign/${collection.id}`)}
     >
       <div className="absolute inset-0 bg-gradient-to-r from-primary/0 via-primary/5 to-primary/0 opacity-0 group-hover:opacity-100 transition-opacity" />
       
@@ -152,13 +152,13 @@ const Collections = () => {
             <div>
               <h1 className="font-display text-3xl text-primary flex items-center gap-2">
                 <Folder className="w-7 h-7" />
-                COLLECTIONS
+                CAMPAIGNS
               </h1>
               <p className="text-xs text-muted-foreground tracking-wider">
                 {isAnonymous ? (
                   <GuestIndicator variant="minimal" />
                 ) : (
-                  'Organize missions into themed groups'
+                  'Organize missions into themed campaigns'
                 )}
               </p>
             </div>
@@ -168,7 +168,7 @@ const Collections = () => {
             <button
               onClick={() => setCreateDialogOpen(true)}
               className="p-2 border border-primary text-primary rounded hover:bg-primary/10 transition-colors"
-              title="Create new collection"
+              title="Create new campaign"
             >
               <Plus className="w-5 h-5" />
             </button>
@@ -181,10 +181,10 @@ const Collections = () => {
           </div>
         ) : (
           <div className="space-y-8">
-            {/* Official Collections */}
+            {/* Official Campaigns */}
             {systemCollections.length > 0 && (
               <section>
-                <h2 className="font-display text-sm text-secondary mb-3 tracking-wider">OFFICIAL COLLECTIONS</h2>
+                <h2 className="font-display text-sm text-secondary mb-3 tracking-wider">OFFICIAL CAMPAIGNS</h2>
                 <div className="grid gap-3">
                   {systemCollections.map(collection => (
                     <CollectionCard 
@@ -199,19 +199,19 @@ const Collections = () => {
               </section>
             )}
 
-            {/* My Collections */}
+            {/* My Campaigns */}
             {user && (
               <section>
-                <h2 className="font-display text-sm text-secondary mb-3 tracking-wider">MY COLLECTIONS</h2>
+                <h2 className="font-display text-sm text-secondary mb-3 tracking-wider">MY CAMPAIGNS</h2>
                 {myCollections.length === 0 ? (
                   <div className="text-center py-8 border border-dashed border-border rounded-lg">
                     <Folder className="w-10 h-10 mx-auto mb-2 text-muted-foreground/50" />
-                    <p className="text-sm text-muted-foreground mb-3">No collections yet</p>
+                    <p className="text-sm text-muted-foreground mb-3">No campaigns yet</p>
                     <button
                       onClick={() => setCreateDialogOpen(true)}
                       className="text-xs text-secondary hover:text-glow-secondary font-display"
                     >
-                      + CREATE YOUR FIRST COLLECTION
+                      + CREATE YOUR FIRST CAMPAIGN
                     </button>
                   </div>
                 ) : (
@@ -230,10 +230,10 @@ const Collections = () => {
               </section>
             )}
 
-            {/* Public Collections */}
+            {/* Public Campaigns */}
             {publicCollections.length > 0 && (
               <section>
-                <h2 className="font-display text-sm text-secondary mb-3 tracking-wider">COMMUNITY COLLECTIONS</h2>
+                <h2 className="font-display text-sm text-secondary mb-3 tracking-wider">COMMUNITY CAMPAIGNS</h2>
                 <div className="grid gap-3">
                   {publicCollections.map(collection => (
                     <CollectionCard 
@@ -268,7 +268,7 @@ const Collections = () => {
       <AlertDialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
         <AlertDialogContent className="bg-card border-destructive/50">
           <AlertDialogHeader>
-            <AlertDialogTitle className="font-display text-destructive">DELETE COLLECTION</AlertDialogTitle>
+            <AlertDialogTitle className="font-display text-destructive">DELETE CAMPAIGN</AlertDialogTitle>
             <AlertDialogDescription>
               Are you sure you want to delete "{collectionToDelete?.name}"? This will not delete the missions inside.
             </AlertDialogDescription>
