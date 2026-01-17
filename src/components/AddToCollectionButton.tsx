@@ -102,10 +102,12 @@ export function AddToCollectionButton({ missionId, className = '' }: AddToCollec
         </DropdownMenuContent>
       </DropdownMenu>
 
-      <CollectionFormDialog
-        open={createDialogOpen}
-        onOpenChange={setCreateDialogOpen}
-      />
+      {createDialogOpen && (
+        <CollectionFormDialog
+          open={createDialogOpen}
+          onOpenChange={setCreateDialogOpen}
+        />
+      )}
     </>
   );
 }

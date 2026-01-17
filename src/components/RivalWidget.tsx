@@ -9,8 +9,6 @@ import { Input } from '@/components/ui/input';
 import {
   Dialog,
   DialogContent,
-  DialogHeader,
-  DialogTitle,
 } from '@/components/ui/dialog';
 import {
   AlertDialog,
@@ -159,7 +157,10 @@ export function RivalWidget() {
         ) : !hasRivals ? (
           <div className="text-center py-6 border border-dashed border-border rounded-lg">
             <Swords className="w-10 h-10 mx-auto mb-2 text-muted-foreground/50" />
-            <p className="text-sm text-muted-foreground mb-3">No rivals yet</p>
+            <p className="text-sm text-muted-foreground mb-2">No rivals yet</p>
+            <p className="text-xs text-muted-foreground/70 mb-4 max-w-xs mx-auto">
+              Challenge a friend by sharing your code, or enter their code to compete head-to-head!
+            </p>
             <div className="flex gap-2 justify-center">
               <Button
                 size="sm"
@@ -168,7 +169,7 @@ export function RivalWidget() {
                 className="text-xs"
               >
                 <Share2 className="w-3 h-3 mr-1" />
-                Invite
+                Share My Code
               </Button>
               <Button
                 size="sm"
@@ -177,7 +178,7 @@ export function RivalWidget() {
                 className="text-xs"
               >
                 <UserPlus className="w-3 h-3 mr-1" />
-                Add Code
+                Enter Friend's Code
               </Button>
             </div>
           </div>
@@ -275,22 +276,23 @@ export function RivalWidget() {
       {/* Add Rival Dialog */}
       <Dialog open={showAddDialog} onOpenChange={setShowAddDialog}>
         <DialogContent className="bg-card border-border max-w-sm">
-          <DialogHeader>
-            <DialogTitle className="font-display text-xl text-primary flex items-center gap-2">
-              <UserPlus className="w-5 h-5" />
-              ADD RIVAL
-            </DialogTitle>
-          </DialogHeader>
+          <div className="flex items-center gap-2 mb-4">
+            <UserPlus className="w-5 h-5 text-primary" />
+            <h2 className="font-display text-xl text-primary">ADD RIVAL</h2>
+          </div>
           <div className="space-y-4">
             <div>
-              <label className="text-xs text-muted-foreground tracking-wider">RIVAL CODE</label>
+              <label className="text-xs text-muted-foreground tracking-wider block mb-1">FRIEND'S RIVAL CODE</label>
               <Input
                 value={rivalCode}
                 onChange={(e) => setRivalCode(e.target.value.toLowerCase())}
-                placeholder="Enter 8-character code"
-                className="bg-background border-border mt-1 font-mono"
+                placeholder="e.g., a1b2c3d4"
+                className="bg-background border-border font-mono"
                 maxLength={8}
               />
+              <p className="text-xs text-muted-foreground mt-2">
+                Ask your friend to share their code from the Rival Mode widget on their dashboard.
+              </p>
             </div>
             <div className="flex gap-2">
               <Button
