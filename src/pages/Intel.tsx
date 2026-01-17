@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useMemo } from 'react';
 import { motion } from 'framer-motion';
 import { useNavigate } from 'react-router-dom';
 import { 
@@ -17,13 +17,11 @@ import {
   TrendingUp,
   RefreshCw,
   Activity,
-  Star,
-  Award,
-  Weight
+  AlertTriangle,
 } from 'lucide-react';
 import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
-import { format, startOfWeek, endOfWeek } from 'date-fns';
+import { format, startOfWeek, endOfWeek, subHours, subDays, subMinutes } from 'date-fns';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
@@ -35,7 +33,6 @@ import {
   getFocusAreaLabel 
 } from '@/hooks/useWarReport';
 import { useProfile, useLeaderboard } from '@/hooks/useProfile';
-import { useWeightHistory } from '@/hooks/useWeightHistory';
 import { useMuscleGroupStats } from '@/hooks/useMuscleGroupStats';
 import { useAuth } from '@/hooks/useAuth';
 import BodyDiagram from '@/components/BodyDiagram';
@@ -43,6 +40,31 @@ import { useUserMilestones } from '@/hooks/useMilestones';
 import { MilestoneList } from '@/components/MilestoneProgress';
 import { useAchievements, useUserAchievements } from '@/hooks/useAchievements';
 import { AchievementList } from '@/components/AchievementList';
+import { useMissions } from '@/hooks/useMissions';
+
+// ==================== HACKER PSEUDONYMS ====================
+const HACKER_NAMES = [
+  'ZERO_COOL',
+  'ACID_BURN', 
+  'CRASH_OVERRIDE',
+  'THE_PLAGUE',
+  'LORD_NIKON',
+  'PHANTOM_PHREAK',
+  'CEREAL_KILLER',
+  'RAZOR',
+  'BLADE',
+  'GHOST_PROTOCOL',
+  'NEO',
+  'MORPHEUS',
+  'TRINITY',
+  'CYPHER',
+  'TANK',
+  'D4RK_M4TTER',
+  'SH4D0W_RUN',
+  'NETW0RK_GHOST',
+  'CIPHER_PUNK',
+  'SILICON_SAINT',
+];
 
 // ==================== TYPES ====================
 
@@ -75,6 +97,111 @@ interface CommunityStats {
   topDamageDealer: { name: string; damage: number } | null;
   topWeightLifter: { name: string; weight: number } | null;
   topMissionCompleter: { name: string; missions: number } | null;
+}
+
+// ==================== SYNTHETIC DATA GENERATOR ====================
+
+function generateSyntheticFeed(missions: any[]): CompletedSession[] {
+  if (!missions || missions.length === 0) return [];
+  
+  const now = new Date();
+  const syntheticSessions: CompletedSession[] = [];
+  
+  // Generate 15-20 synthetic sessions spread over the past week
+  const sessionCount = 15 + Math.floor(Math.random() * 6);
+  
+  for (let i = 0; i < sessionCount; i++) {
+    const mission = missions[Math.floor(Math.random() * missions.length)];
+    const hackerName = HACKER_NAMES[Math.floor(Math.random() * HACKER_NAMES.length)];
+    
+    // Spread timestamps: some hours ago, some days ago
+    let completedAt: Date;
+    if (i < 3) {
+      // Recent: 1-6 hours ago
+      completedAt = subHours(now, 1 + Math.floor(Math.random() * 5));
+    } else if (i < 8) {
+      // Today/yesterday: 6-48 hours ago
+      completedAt = subHours(now, 6 + Math.floor(Math.random() * 42));
+    } else {
+      // This week: 2-6 days ago
+      completedAt = subDays(now, 2 + Math.floor(Math.random() * 5));
+    }
+    
+    syntheticSessions.push({
+      id: `synth-${i}-${mission.id}`,
+      completed_at: completedAt.toISOString(),
+      score_earned: 500 + Math.floor(Math.random() * 2000),
+      xp_earned: 100 + Math.floor(Math.random() * 400),
+      sets_completed: 8 + Math.floor(Math.random() * 20),
+      total_reps: 40 + Math.floor(Math.random() * 100),
+      total_weight: 1000 + Math.floor(Math.random() * 15000),
+      damage_dealt: 200 + Math.floor(Math.random() * 1000),
+      mission_snapshot: { name: mission.name, code_name: mission.code_name },
+      mission_id: mission.id,
+      user_id: `synth-user-${i}`,
+      profiles: { display_name: hackerName },
+    });
+  }
+  
+  // Sort by completed_at descending
+  return syntheticSessions.sort((a, b) => 
+    new Date(b.completed_at).getTime() - new Date(a.completed_at).getTime()
+  );
+}
+
+function generateSyntheticCommunityStats(): CommunityStats {
+  return {
+    activeWarriors: 12 + Math.floor(Math.random() * 20),
+    totalWeight: 150000 + Math.floor(Math.random() * 300000),
+    totalDamage: 25000 + Math.floor(Math.random() * 50000),
+    totalMissions: 45 + Math.floor(Math.random() * 80),
+    topDamageDealer: { name: HACKER_NAMES[0], damage: 8500 + Math.floor(Math.random() * 5000) },
+    topWeightLifter: { name: HACKER_NAMES[1], weight: 45000 + Math.floor(Math.random() * 30000) },
+    topMissionCompleter: { name: HACKER_NAMES[2], missions: 12 + Math.floor(Math.random() * 10) },
+  };
+}
+
+function generateSyntheticStreakLeaders(): StreakLeader[] {
+  return [
+    { user_id: 'synth-1', display_name: HACKER_NAMES[0], streak: 7 + Math.floor(Math.random() * 5) },
+    { user_id: 'synth-2', display_name: HACKER_NAMES[3], streak: 4 + Math.floor(Math.random() * 3) },
+    { user_id: 'synth-3', display_name: HACKER_NAMES[5], streak: 2 + Math.floor(Math.random() * 2) },
+  ];
+}
+
+function generateSyntheticLeaderboard() {
+  return HACKER_NAMES.slice(0, 10).map((name, i) => ({
+    rank: i + 1,
+    display_name: name,
+    total_score: 50000 - (i * 4000) + Math.floor(Math.random() * 2000),
+    total_xp: 8000 - (i * 600) + Math.floor(Math.random() * 300),
+    total_sets: 200 - (i * 15) + Math.floor(Math.random() * 20),
+    max_combo: 15 - i + Math.floor(Math.random() * 3),
+  }));
+}
+
+function generateSyntheticWarReport() {
+  return {
+    totalCampaignsActive: 8 + Math.floor(Math.random() * 5),
+    totalCompletionsThisWeek: 45 + Math.floor(Math.random() * 30),
+    totalPlayersThisWeek: 18 + Math.floor(Math.random() * 12),
+    totalWeightThisWeek: 250000 + Math.floor(Math.random() * 150000),
+    mostCompletedCampaigns: [
+      { id: '1', campaign_id: 'c1', campaign_name: 'IRON FURY', total_completions: 24, campaign_code: 'PUSH' },
+      { id: '2', campaign_id: 'c2', campaign_name: 'GHOST PROTOCOL', total_completions: 18, campaign_code: 'FULL' },
+      { id: '3', campaign_id: 'c3', campaign_name: 'SHADOW OPS', total_completions: 12, campaign_code: 'PULL' },
+    ],
+    fastestCampaigns: [
+      { id: '1', campaign_id: 'c1', campaign_name: 'QUICK STRIKE', fastest_completion_seconds: 1200, campaign_code: 'CARDIO' },
+      { id: '2', campaign_id: 'c2', campaign_name: 'BLITZ ASSAULT', fastest_completion_seconds: 1800, campaign_code: 'UPPER' },
+      { id: '3', campaign_id: 'c3', campaign_name: 'RAPID FIRE', fastest_completion_seconds: 2400, campaign_code: 'CORE' },
+    ],
+    mostReplayedCampaigns: [
+      { id: '1', campaign_id: 'c1', campaign_name: 'GRINDER SPECIAL', replay_rate: 85, campaign_code: 'LEGS' },
+      { id: '2', campaign_id: 'c2', campaign_name: 'DAILY DOSE', replay_rate: 72, campaign_code: 'PUSH' },
+      { id: '3', campaign_id: 'c3', campaign_name: 'PAIN TRAIN', replay_rate: 65, campaign_code: 'FULL' },
+    ],
+  };
 }
 
 // ==================== HOOKS ====================
@@ -246,13 +373,49 @@ function useStreakLeaders() {
   });
 }
 
+// ==================== SAMPLE DATA BANNER ====================
+
+const SampleDataBanner = () => (
+  <motion.div
+    initial={{ opacity: 0, y: -10 }}
+    animate={{ opacity: 1, y: 0 }}
+    className="mb-4 p-3 bg-warning/10 border border-warning/30 rounded-lg flex items-center gap-3"
+  >
+    <AlertTriangle className="w-5 h-5 text-warning flex-shrink-0" />
+    <div>
+      <p className="text-xs text-warning font-display">SAMPLE DATA PREVIEW</p>
+      <p className="text-[10px] text-muted-foreground">Sign in to see real community activity</p>
+    </div>
+  </motion.div>
+);
+
 // ==================== COMPONENTS ====================
 
-const LiveFeedTab = () => {
+const LiveFeedTab = ({ isGuest }: { isGuest: boolean }) => {
   const navigate = useNavigate();
-  const { data: feed, isLoading } = usePublicFeed();
-  const { data: streakLeaders } = useStreakLeaders();
-  const { data: communityStats } = useCommunityStats();
+  const { data: realFeed, isLoading: feedLoading } = usePublicFeed();
+  const { data: realStreakLeaders } = useStreakLeaders();
+  const { data: realCommunityStats } = useCommunityStats();
+  const { data: missions } = useMissions({ showOnlyPublic: true });
+
+  // Generate stable synthetic data for guests
+  const syntheticFeed = useMemo(() => 
+    isGuest && missions ? generateSyntheticFeed(missions) : [],
+    [isGuest, missions]
+  );
+  const syntheticStats = useMemo(() => 
+    isGuest ? generateSyntheticCommunityStats() : null,
+    [isGuest]
+  );
+  const syntheticStreaks = useMemo(() => 
+    isGuest ? generateSyntheticStreakLeaders() : null,
+    [isGuest]
+  );
+
+  const feed = isGuest ? syntheticFeed : realFeed;
+  const streakLeaders = isGuest ? syntheticStreaks : realStreakLeaders;
+  const communityStats = isGuest ? syntheticStats : realCommunityStats;
+  const isLoading = isGuest ? false : feedLoading;
 
   const rankIcons = [Crown, Medal, Flame];
   const rankColors = ['text-yellow-400', 'text-slate-300', 'text-orange-500'];
@@ -260,8 +423,24 @@ const LiveFeedTab = () => {
   const weekStart = startOfWeek(new Date(), { weekStartsOn: 1 });
   const weekEnd = endOfWeek(new Date(), { weekStartsOn: 1 });
 
+  const formatRelativeTime = (dateStr: string) => {
+    const date = new Date(dateStr);
+    const now = new Date();
+    const diffMs = now.getTime() - date.getTime();
+    const diffMins = Math.floor(diffMs / 60000);
+    const diffHours = Math.floor(diffMs / 3600000);
+    const diffDays = Math.floor(diffMs / 86400000);
+
+    if (diffMins < 60) return `${diffMins}m ago`;
+    if (diffHours < 24) return `${diffHours}h ago`;
+    if (diffDays < 7) return `${diffDays}d ago`;
+    return format(date, 'MMM d');
+  };
+
   return (
     <div className="space-y-6">
+      {isGuest && <SampleDataBanner />}
+      
       {/* Community Stats */}
       {communityStats && (
         <motion.div
@@ -387,17 +566,16 @@ const LiveFeedTab = () => {
           <div className="text-center py-12">
             <div className="font-display text-muted-foreground animate-pulse">LOADING TRANSMISSIONS...</div>
           </div>
-        ) : feed?.length === 0 ? (
+        ) : !feed || feed.length === 0 ? (
           <div className="text-center py-12">
             <Swords className="w-12 h-12 text-muted-foreground mx-auto mb-4" />
             <p className="font-display text-muted-foreground">NO COMBAT DATA YET</p>
             <p className="text-xs text-muted-foreground mt-2">Be the first to complete a mission</p>
           </div>
         ) : (
-          feed?.map((session, i) => {
+          feed.slice(0, 20).map((session, i) => {
             const missionName = session.mission_snapshot?.code_name || 'CLASSIFIED MISSION';
             const displayName = session.profiles?.display_name || 'Unknown Agent';
-            const completedDate = session.completed_at ? new Date(session.completed_at) : new Date();
             
             return (
               <motion.div
@@ -421,11 +599,8 @@ const LiveFeedTab = () => {
                     </div>
                   </div>
                   <div className="text-right flex-shrink-0">
-                    <div className="text-xs text-muted-foreground">
-                      {format(completedDate, 'MMM d')}
-                    </div>
-                    <div className="text-xs text-muted-foreground">
-                      {format(completedDate, 'h:mm a')}
+                    <div className="text-xs text-muted-foreground font-display">
+                      {formatRelativeTime(session.completed_at)}
                     </div>
                   </div>
                 </div>
@@ -448,11 +623,19 @@ const LiveFeedTab = () => {
   );
 };
 
-const CampaignIntelTab = () => {
+const CampaignIntelTab = ({ isGuest }: { isGuest: boolean }) => {
   const navigate = useNavigate();
-  const { data: report, isLoading, error } = useWarReport();
+  const { data: realReport, isLoading: realLoading, error } = useWarReport();
+  
+  const syntheticReport = useMemo(() => 
+    isGuest ? generateSyntheticWarReport() : null,
+    [isGuest]
+  );
+  
+  const report = isGuest ? syntheticReport : realReport;
+  const isLoading = isGuest ? false : realLoading;
 
-  if (error) {
+  if (!isGuest && error) {
     return (
       <div className="text-center py-12">
         <Shield className="w-12 h-12 text-destructive mx-auto mb-4" />
@@ -464,6 +647,8 @@ const CampaignIntelTab = () => {
 
   return (
     <div className="space-y-6">
+      {isGuest && <SampleDataBanner />}
+      
       {/* Trust Message */}
       <motion.div 
         initial={{ opacity: 0, y: 10 }}
@@ -524,6 +709,7 @@ const CampaignIntelTab = () => {
         isLoading={isLoading}
         metric="completions"
         navigate={navigate}
+        isGuest={isGuest}
       />
 
       <CampaignSection
@@ -533,6 +719,7 @@ const CampaignIntelTab = () => {
         isLoading={isLoading}
         metric="speed"
         navigate={navigate}
+        isGuest={isGuest}
       />
 
       <CampaignSection
@@ -542,6 +729,7 @@ const CampaignIntelTab = () => {
         isLoading={isLoading}
         metric="replay"
         navigate={navigate}
+        isGuest={isGuest}
       />
     </div>
   );
@@ -582,9 +770,10 @@ interface CampaignSectionProps {
   isLoading: boolean;
   metric: 'completions' | 'speed' | 'replay' | 'score';
   navigate: (path: string) => void;
+  isGuest?: boolean;
 }
 
-const CampaignSection = ({ title, icon, campaigns, isLoading, metric, navigate }: CampaignSectionProps) => {
+const CampaignSection = ({ title, icon, campaigns, isLoading, metric, navigate, isGuest }: CampaignSectionProps) => {
   const getMetricValue = (campaign: any) => {
     switch (metric) {
       case 'completions':
@@ -625,8 +814,10 @@ const CampaignSection = ({ title, icon, campaigns, isLoading, metric, navigate }
             campaigns.slice(0, 3).map((campaign, index) => (
               <button
                 key={campaign.id}
-                onClick={() => navigate(`/campaign/${campaign.campaign_id}`)}
-                className="w-full flex items-center justify-between p-3 bg-muted/30 rounded-lg hover:bg-muted/50 transition-colors text-left"
+                onClick={() => !isGuest && navigate(`/campaign/${campaign.campaign_id}`)}
+                className={`w-full flex items-center justify-between p-3 bg-muted/30 rounded-lg transition-colors text-left ${
+                  isGuest ? 'cursor-default' : 'hover:bg-muted/50'
+                }`}
               >
                 <div className="flex items-center gap-3">
                   <span className="font-display text-lg text-primary w-6">
@@ -657,11 +848,191 @@ const CampaignSection = ({ title, icon, campaigns, isLoading, metric, navigate }
   );
 };
 
+// Rankings Tab
+const RankingsTab = ({ isGuest }: { isGuest: boolean }) => {
+  const { data: profile } = useProfile();
+  const { data: realLeaderboard, isLoading: realLoading } = useLeaderboard();
+  
+  const syntheticLeaderboard = useMemo(() => 
+    isGuest ? generateSyntheticLeaderboard() : null,
+    [isGuest]
+  );
+  
+  const leaderboard = isGuest ? syntheticLeaderboard : realLeaderboard;
+  const isLoading = isGuest ? false : realLoading;
+
+  const getRankIcon = (rank: number) => {
+    switch (rank) {
+      case 1: return <Crown className="w-5 h-5 text-warning" />;
+      case 2: return <Medal className="w-5 h-5 text-muted-foreground" />;
+      case 3: return <Medal className="w-5 h-5 text-accent" />;
+      default: return <span className="w-5 h-5 flex items-center justify-center text-muted-foreground font-display">{rank}</span>;
+    }
+  };
+
+  if (isLoading) {
+    return <div className="text-center py-12"><div className="font-display text-lg text-primary animate-neon-pulse">LOADING...</div></div>;
+  }
+
+  if (!leaderboard || leaderboard.length === 0) {
+    return (
+      <div className="bg-card border border-border rounded-lg p-6 text-center">
+        <Trophy className="w-8 h-8 mx-auto mb-3 text-muted-foreground" />
+        <p className="text-muted-foreground text-sm">No rankings yet. Be the first!</p>
+      </div>
+    );
+  }
+
+  return (
+    <div className="space-y-4">
+      {isGuest && <SampleDataBanner />}
+      
+      <div className="bg-card border border-border rounded-lg overflow-hidden">
+        <div className="grid grid-cols-4 gap-2 p-3 border-b border-border text-xs text-muted-foreground font-display">
+          <span>RANK</span><span>OPERATOR</span><span className="text-right">SCORE</span><span className="text-right">LVL</span>
+        </div>
+        {leaderboard.map((entry: any, i: number) => {
+          const entryLevel = Math.max(1, Math.floor(Math.sqrt((entry.total_xp || 0) / 100)) + 1);
+          const isCurrentUser = !isGuest && profile && entry.display_name === profile.display_name;
+          return (
+            <div key={entry.rank || i} className={`grid grid-cols-4 gap-2 p-3 items-center ${isCurrentUser ? 'bg-primary/10 border-l-2 border-primary' : 'border-b border-border/50 last:border-b-0'}`}>
+              <div>{getRankIcon(entry.rank || i + 1)}</div>
+              <div className={`font-display text-sm ${isCurrentUser ? 'text-primary' : 'text-foreground'} truncate`}>{entry.display_name || 'ANONYMOUS'}</div>
+              <div className="text-right font-display text-secondary">{(entry.total_score || 0).toLocaleString()}</div>
+              <div className="text-right font-display text-accent">{entryLevel}</div>
+            </div>
+          );
+        })}
+      </div>
+    </div>
+  );
+};
+
+// My Stats Tab
+const MyStatsTab = ({ isGuest }: { isGuest: boolean }) => {
+  const navigate = useNavigate();
+  const { data: profile } = useProfile();
+  const { data: muscleStats } = useMuscleGroupStats();
+  const { data: userMilestones } = useUserMilestones();
+  const { data: achievements } = useAchievements();
+  const { data: userAchievements } = useUserAchievements();
+
+  // Synthetic stats for guests
+  const syntheticProfile = useMemo(() => isGuest ? {
+    total_score: 12500,
+    total_xp: 2800,
+    total_sets: 156,
+    max_combo: 8,
+    total_weight: 45000,
+    total_reps: 1240,
+  } : null, [isGuest]);
+
+  const syntheticMuscleStats = useMemo(() => isGuest ? [
+    { muscle_group: 'Chest', sets_count: 45, total_weight: 12000, total_sets: 45, total_reps: 450, total_volume: 12000 },
+    { muscle_group: 'Back', sets_count: 38, total_weight: 15000, total_sets: 38, total_reps: 380, total_volume: 15000 },
+    { muscle_group: 'Legs', sets_count: 32, total_weight: 18000, total_sets: 32, total_reps: 320, total_volume: 18000 },
+    { muscle_group: 'Shoulders', sets_count: 24, total_weight: 6000, total_sets: 24, total_reps: 240, total_volume: 6000 },
+    { muscle_group: 'Arms', sets_count: 20, total_weight: 4000, total_sets: 20, total_reps: 200, total_volume: 4000 },
+    { muscle_group: 'Core', sets_count: 15, total_weight: 0, total_sets: 15, total_reps: 150, total_volume: 0 },
+  ] : null, [isGuest]);
+
+  const displayProfile = isGuest ? syntheticProfile : profile;
+  const displayMuscleStats = isGuest ? syntheticMuscleStats : muscleStats;
+
+  const xp = displayProfile?.total_xp || 0;
+  const level = Math.max(1, Math.floor(Math.sqrt(xp / 100)) + 1);
+
+  if (isGuest) {
+    return (
+      <div className="space-y-6">
+        <SampleDataBanner />
+        
+        {/* Quick Stats */}
+        <div className="grid grid-cols-4 gap-2">
+          {[
+            { label: 'SCORE', value: (displayProfile?.total_score || 0).toLocaleString(), color: 'text-primary' },
+            { label: 'LEVEL', value: level, color: 'text-secondary' },
+            { label: 'SETS', value: displayProfile?.total_sets || 0, color: 'text-accent' },
+            { label: 'COMBO', value: `${displayProfile?.max_combo || 0}x`, color: 'text-warning' },
+          ].map((stat) => (
+            <div key={stat.label} className="bg-card border border-border rounded p-2 text-center">
+              <div className={`font-display text-lg ${stat.color}`}>{stat.value}</div>
+              <div className="text-[10px] text-muted-foreground">{stat.label}</div>
+            </div>
+          ))}
+        </div>
+
+        {/* Body Diagram */}
+        {displayMuscleStats && displayMuscleStats.length > 0 && (
+          <div className="bg-card border border-border rounded-lg p-4">
+            <h3 className="font-display text-sm text-muted-foreground mb-3">// COMBAT ANALYSIS</h3>
+            <BodyDiagram muscleStats={displayMuscleStats} />
+          </div>
+        )}
+
+        {/* Sign In CTA */}
+        <div className="bg-card border border-warning/30 rounded-lg p-6 text-center">
+          <Trophy className="w-8 h-8 mx-auto mb-3 text-warning" />
+          <p className="text-warning font-display mb-2">WANT YOUR OWN STATS?</p>
+          <p className="text-sm text-muted-foreground mb-4">Sign in to track achievements, milestones, and personal records.</p>
+          <button onClick={() => navigate("/auth")} className="px-4 py-2 bg-primary text-primary-foreground font-display rounded hover:box-glow-primary">SIGN IN</button>
+        </div>
+      </div>
+    );
+  }
+
+  return (
+    <div className="space-y-6">
+      {/* Quick Stats */}
+      <div className="grid grid-cols-4 gap-2">
+        {[
+          { label: 'SCORE', value: (profile?.total_score || 0).toLocaleString(), color: 'text-primary' },
+          { label: 'LEVEL', value: level, color: 'text-secondary' },
+          { label: 'SETS', value: profile?.total_sets || 0, color: 'text-accent' },
+          { label: 'COMBO', value: `${profile?.max_combo || 0}x`, color: 'text-warning' },
+        ].map((stat) => (
+          <div key={stat.label} className="bg-card border border-border rounded p-2 text-center">
+            <div className={`font-display text-lg ${stat.color}`}>{stat.value}</div>
+            <div className="text-[10px] text-muted-foreground">{stat.label}</div>
+          </div>
+        ))}
+      </div>
+
+      {/* Body Diagram */}
+      {muscleStats && muscleStats.length > 0 && (
+        <div className="bg-card border border-border rounded-lg p-4">
+          <h3 className="font-display text-sm text-muted-foreground mb-3">// COMBAT ANALYSIS</h3>
+          <BodyDiagram muscleStats={muscleStats} />
+        </div>
+      )}
+
+      {/* Achievements */}
+      {achievements && achievements.length > 0 && (
+        <div>
+          <h3 className="font-display text-sm text-muted-foreground mb-3">// ACHIEVEMENTS</h3>
+          <AchievementList achievements={achievements as any} userAchievements={userAchievements as any} />
+        </div>
+      )}
+
+      {/* Milestones */}
+      {userMilestones && userMilestones.length > 0 && (
+        <div>
+          <h3 className="font-display text-sm text-muted-foreground mb-3">// MILESTONES</h3>
+          <MilestoneList userMilestones={userMilestones} />
+        </div>
+      )}
+    </div>
+  );
+};
+
 // ==================== MAIN COMPONENT ====================
 
 const Intel = () => {
   const navigate = useNavigate();
+  const { isAnonymous, user } = useAuth();
   const [activeTab, setActiveTab] = useState('feed');
+  
+  const isGuest = !user || isAnonymous;
 
   return (
     <div className="min-h-screen bg-background relative overflow-hidden">
@@ -728,19 +1099,19 @@ const Intel = () => {
           </TabsList>
 
           <TabsContent value="feed">
-            <LiveFeedTab />
+            <LiveFeedTab isGuest={isGuest} />
           </TabsContent>
 
           <TabsContent value="campaigns">
-            <CampaignIntelTab />
+            <CampaignIntelTab isGuest={isGuest} />
           </TabsContent>
 
           <TabsContent value="rankings">
-            <RankingsTab />
+            <RankingsTab isGuest={isGuest} />
           </TabsContent>
 
           <TabsContent value="stats">
-            <MyStatsTab />
+            <MyStatsTab isGuest={isGuest} />
           </TabsContent>
         </Tabs>
 
@@ -751,124 +1122,6 @@ const Intel = () => {
           </p>
         </div>
       </div>
-    </div>
-  );
-};
-
-// Rankings Tab (from Stats page)
-const RankingsTab = () => {
-  const { data: profile } = useProfile();
-  const { data: leaderboard, isLoading } = useLeaderboard();
-
-  const getRankIcon = (rank: number) => {
-    switch (rank) {
-      case 1: return <Crown className="w-5 h-5 text-warning" />;
-      case 2: return <Medal className="w-5 h-5 text-muted-foreground" />;
-      case 3: return <Medal className="w-5 h-5 text-accent" />;
-      default: return <span className="w-5 h-5 flex items-center justify-center text-muted-foreground font-display">{rank}</span>;
-    }
-  };
-
-  if (isLoading) {
-    return <div className="text-center py-12"><div className="font-display text-lg text-primary animate-neon-pulse">LOADING...</div></div>;
-  }
-
-  if (!leaderboard || leaderboard.length === 0) {
-    return (
-      <div className="bg-card border border-border rounded-lg p-6 text-center">
-        <Trophy className="w-8 h-8 mx-auto mb-3 text-muted-foreground" />
-        <p className="text-muted-foreground text-sm">No rankings yet. Be the first!</p>
-      </div>
-    );
-  }
-
-  return (
-    <div className="bg-card border border-border rounded-lg overflow-hidden">
-      <div className="grid grid-cols-4 gap-2 p-3 border-b border-border text-xs text-muted-foreground font-display">
-        <span>RANK</span><span>OPERATOR</span><span className="text-right">SCORE</span><span className="text-right">LVL</span>
-      </div>
-      {leaderboard.map((entry, i) => {
-        const entryLevel = Math.max(1, Math.floor(Math.sqrt((entry.total_xp || 0) / 100)) + 1);
-        const isCurrentUser = profile && entry.display_name === profile.display_name;
-        return (
-          <div key={entry.rank || i} className={`grid grid-cols-4 gap-2 p-3 items-center ${isCurrentUser ? 'bg-primary/10 border-l-2 border-primary' : 'border-b border-border/50 last:border-b-0'}`}>
-            <div>{getRankIcon(entry.rank || i + 1)}</div>
-            <div className={`font-display text-sm ${isCurrentUser ? 'text-primary' : 'text-foreground'} truncate`}>{entry.display_name || 'ANONYMOUS'}</div>
-            <div className="text-right font-display text-secondary">{(entry.total_score || 0).toLocaleString()}</div>
-            <div className="text-right font-display text-accent">{entryLevel}</div>
-          </div>
-        );
-      })}
-    </div>
-  );
-};
-
-// My Stats Tab (from Stats page)
-const MyStatsTab = () => {
-  const navigate = useNavigate();
-  const { isAnonymous } = useAuth();
-  const { data: profile } = useProfile();
-  const { data: weightHistory } = useWeightHistory();
-  const { data: muscleStats } = useMuscleGroupStats();
-  const { data: userMilestones } = useUserMilestones();
-  const { data: achievements } = useAchievements();
-  const { data: userAchievements } = useUserAchievements();
-
-  const xp = profile?.total_xp || 0;
-  const level = Math.max(1, Math.floor(Math.sqrt(xp / 100)) + 1);
-  const weightEntries = Object.entries(weightHistory || {}).map(([exerciseId, data]) => ({ exerciseId, ...data }));
-
-  if (isAnonymous) {
-    return (
-      <div className="bg-card border border-warning/30 rounded-lg p-6 text-center">
-        <Trophy className="w-8 h-8 mx-auto mb-3 text-warning" />
-        <p className="text-warning font-display mb-2">SIGN IN FOR YOUR STATS</p>
-        <p className="text-sm text-muted-foreground mb-4">Track your progress, achievements, and personal records.</p>
-        <button onClick={() => navigate("/auth")} className="px-4 py-2 bg-primary text-primary-foreground font-display rounded hover:box-glow-primary">SIGN IN</button>
-      </div>
-    );
-  }
-
-  return (
-    <div className="space-y-6">
-      {/* Quick Stats */}
-      <div className="grid grid-cols-4 gap-2">
-        {[
-          { label: 'SCORE', value: (profile?.total_score || 0).toLocaleString(), color: 'text-primary' },
-          { label: 'LEVEL', value: level, color: 'text-secondary' },
-          { label: 'SETS', value: profile?.total_sets || 0, color: 'text-accent' },
-          { label: 'COMBO', value: `${profile?.max_combo || 0}x`, color: 'text-warning' },
-        ].map((stat) => (
-          <div key={stat.label} className="bg-card border border-border rounded p-2 text-center">
-            <div className={`font-display text-lg ${stat.color}`}>{stat.value}</div>
-            <div className="text-[10px] text-muted-foreground">{stat.label}</div>
-          </div>
-        ))}
-      </div>
-
-      {/* Body Diagram */}
-      {muscleStats && muscleStats.length > 0 && (
-        <div className="bg-card border border-border rounded-lg p-4">
-          <h3 className="font-display text-sm text-muted-foreground mb-3">// COMBAT ANALYSIS</h3>
-          <BodyDiagram muscleStats={muscleStats} />
-        </div>
-      )}
-
-      {/* Achievements */}
-      {achievements && achievements.length > 0 && (
-        <div>
-          <h3 className="font-display text-sm text-muted-foreground mb-3">// ACHIEVEMENTS</h3>
-          <AchievementList achievements={achievements as any} userAchievements={userAchievements as any} />
-        </div>
-      )}
-
-      {/* Milestones */}
-      {userMilestones && userMilestones.length > 0 && (
-        <div>
-          <h3 className="font-display text-sm text-muted-foreground mb-3">// MILESTONES</h3>
-          <MilestoneList userMilestones={userMilestones} />
-        </div>
-      )}
     </div>
   );
 };
