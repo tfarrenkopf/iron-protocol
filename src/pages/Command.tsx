@@ -210,7 +210,7 @@ const Command = () => {
   
   const handleEditMission = (e: React.MouseEvent, missionId: string) => {
     e.stopPropagation();
-    navigate(`/exercises?editMission=${missionId}`);
+    navigate(`/exercises?editMission=${missionId}&returnTo=command`);
   };
   
   const tabs: { id: TabType; label: string; icon: typeof Target }[] = [

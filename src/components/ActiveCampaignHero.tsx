@@ -236,6 +236,7 @@ export function StartCampaignButton({ campaignId, size = 'default' }: StartCampa
   const { user } = useAuth();
   const { activeCampaignId, setActiveCampaign, isSettingActive } = useActiveCampaign();
   const [showSwitchConfirm, setShowSwitchConfirm] = useState(false);
+  const [showAuthPrompt, setShowAuthPrompt] = useState(false);
   
   const isActive = activeCampaignId === campaignId;
   const hasOtherActive = activeCampaignId && activeCampaignId !== campaignId;
@@ -244,8 +245,8 @@ export function StartCampaignButton({ campaignId, size = 'default' }: StartCampa
     e.stopPropagation();
     
     if (!user) {
-      toast.error('Sign in to start a campaign');
-      navigate('/auth');
+      // Show auth prompt for guests
+      setShowAuthPrompt(true);
       return;
     }
     
@@ -305,6 +306,47 @@ export function StartCampaignButton({ campaignId, size = 'default' }: StartCampa
         <Play className={iconSizes[size]} />
         {isSettingActive ? 'STARTING...' : hasOtherActive ? 'ACTIVATE OP' : 'BEGIN CAMPAIGN'}
       </button>
+
+      {/* Auth Prompt Dialog for Guests */}
+      <AlertDialog open={showAuthPrompt} onOpenChange={setShowAuthPrompt}>
+        <AlertDialogContent className="bg-card border-primary/50">
+          <AlertDialogHeader>
+            <AlertDialogTitle className="font-display text-primary flex items-center gap-2">
+              <AlertTriangle className="w-5 h-5" />
+              AGENT REGISTRATION REQUIRED
+            </AlertDialogTitle>
+            <AlertDialogDescription className="space-y-3">
+              <p className="text-primary font-display text-sm">
+                ⚠️ UNAUTHORIZED ACCESS DETECTED
+              </p>
+              <p>
+                Campaigns require <span className="text-primary font-display">AGENT CREDENTIALS</span> to track your mission progress.
+              </p>
+              <div className="bg-primary/10 border border-primary/30 rounded-lg p-3 space-y-1">
+                <p className="text-primary text-sm font-display">BENEFITS OF REGISTRATION:</p>
+                <ul className="text-sm text-muted-foreground space-y-1 list-disc list-inside">
+                  <li>Track your campaign progress across missions</li>
+                  <li>Save personal records and achievements</li>
+                  <li>Compete on global leaderboards</li>
+                  <li>Create custom missions and campaigns</li>
+                </ul>
+              </div>
+              <p className="text-xs text-muted-foreground italic">
+                You can still run individual missions as a guest. Sign up to unlock the full arsenal.
+              </p>
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel className="border-border">STAY ANONYMOUS</AlertDialogCancel>
+            <AlertDialogAction
+              onClick={() => navigate(`/auth?redirect=/campaign/${campaignId}`)}
+              className="bg-primary text-primary-foreground hover:bg-primary/90"
+            >
+              REGISTER / LOGIN
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
 
       {/* Switch Confirmation Dialog */}
       <AlertDialog open={showSwitchConfirm} onOpenChange={setShowSwitchConfirm}>

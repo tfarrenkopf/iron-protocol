@@ -1,14 +1,18 @@
 import { motion } from 'framer-motion';
 import { useNavigate } from 'react-router-dom';
-import { Target, Flame, ChevronRight, Zap, Play, Clock, Dumbbell } from 'lucide-react';
+import { Target, Flame, ChevronRight, Zap, Play, Clock, Dumbbell, Eye, Crosshair } from 'lucide-react';
 import { useActiveCampaign, useActiveCampaignDetails } from '@/hooks/useActiveCampaign';
+import { useAuth } from '@/hooks/useAuth';
 import { useMemo } from 'react';
 import { formatEquipment } from '@/data/muscleGroups';
 
 export function FightNowActions() {
   const navigate = useNavigate();
+  const { user } = useAuth();
   const { activeCampaignId } = useActiveCampaign();
   const { campaign, completedMissionIds, isLoading } = useActiveCampaignDetails();
+
+  const isGuest = !user;
 
   // Find next mission if we have an active campaign
   const missions = campaign?.collection_missions
@@ -54,7 +58,7 @@ export function FightNowActions() {
       transition={{ delay: 0.1 }}
       className="mb-6 space-y-3"
     >
-      {/* Primary Action: Continue Campaign (if active) */}
+      {/* Primary Action: Continue Campaign (if active and logged in) */}
       {hasActiveCampaign ? (
         <button
           onClick={handleContinueCampaign}
@@ -106,52 +110,145 @@ export function FightNowActions() {
           </div>
         </button>
       ) : (
-        /* No active campaign - show instructional hero */
-        <div className="bg-gradient-to-r from-primary/10 via-accent/5 to-primary/10 border-2 border-primary/30 rounded-lg p-5">
-          <div className="text-center mb-4">
-            <h2 className="font-display text-xl text-primary mb-1">CHOOSE YOUR BATTLEFIELD</h2>
-            <p className="text-xs text-muted-foreground">
-              Campaigns are multi-mission wars. Missions are single strikes. Pick your poison.
-            </p>
-          </div>
-        </div>
+        /* No active campaign - action buttons instead of empty hero */
+        <>
+          {/* Primary: Mission for guests, Campaign for logged-in users */}
+          {isGuest ? (
+            <button
+              onClick={() => navigate('/command?tab=missions&source=public')}
+              className="w-full group relative bg-gradient-to-r from-primary/20 via-primary/10 to-primary/20 border-2 border-primary rounded-lg p-5 text-left transition-all hover:box-glow-primary hover:from-primary/30 hover:via-primary/20 hover:to-primary/30"
+            >
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-4">
+                  <div className="p-3 bg-primary/20 rounded-lg">
+                    <Crosshair className="w-8 h-8 text-primary" />
+                  </div>
+                  <div className="flex-1">
+                    <div className="text-xs text-primary/70 font-display tracking-wider mb-0.5">
+                      ONE-TIME STRIKE
+                    </div>
+                    <h2 className="font-display text-xl text-primary">FLASHPOINT STRIKE</h2>
+                    <p className="text-[10px] text-muted-foreground mt-1 max-w-xs">
+                      Drop in, obliterate the target, extract. No respawns, no mercy—just pure, glorious chaos.
+                    </p>
+                  </div>
+                </div>
+                <ChevronRight className="w-6 h-6 text-primary group-hover:translate-x-1 transition-transform flex-shrink-0" />
+              </div>
+            </button>
+          ) : (
+            <button
+              onClick={() => navigate('/command?tab=campaigns')}
+              className="w-full group relative bg-gradient-to-r from-accent/20 via-accent/10 to-accent/20 border-2 border-accent rounded-lg p-5 text-left transition-all hover:box-glow-accent hover:from-accent/30 hover:via-accent/20 hover:to-accent/30"
+            >
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-4">
+                  <div className="p-3 bg-accent/20 rounded-lg">
+                    <Flame className="w-8 h-8 text-accent" />
+                  </div>
+                  <div className="flex-1">
+                    <div className="text-xs text-accent/70 font-display tracking-wider mb-0.5">
+                      MULTI-MISSION WAR
+                    </div>
+                    <h2 className="font-display text-xl text-accent">SELECT CAMPAIGN</h2>
+                    <p className="text-[10px] text-muted-foreground mt-1 max-w-xs">
+                      Suit up, agent. A sequence of objectives—raids, extractions, strikes—all back-to-back.
+                    </p>
+                  </div>
+                </div>
+                <ChevronRight className="w-6 h-6 text-accent group-hover:translate-x-1 transition-transform flex-shrink-0" />
+              </div>
+            </button>
+          )}
+        </>
       )}
 
       {/* Secondary Actions Grid */}
       <div className="grid grid-cols-2 gap-3">
-        {/* Select Campaign */}
-        <button
-          onClick={() => navigate('/command?tab=campaigns')}
-          className="group relative bg-card border-2 border-accent/50 rounded-lg p-4 text-left transition-all hover:border-accent hover:box-glow-accent"
-        >
-          <div className="flex items-center gap-3">
-            <div className="p-2 bg-accent/10 rounded-lg group-hover:bg-accent/20 transition-colors">
-              <Flame className="w-6 h-6 text-accent" />
+        {/* For guests: View Campaigns as secondary */}
+        {isGuest ? (
+          <button
+            onClick={() => navigate('/command?tab=campaigns')}
+            className="group relative bg-card border-2 border-accent/50 rounded-lg p-4 text-left transition-all hover:border-accent hover:box-glow-accent"
+          >
+            <div className="flex items-center gap-3">
+              <div className="p-2 bg-accent/10 rounded-lg group-hover:bg-accent/20 transition-colors">
+                <Eye className="w-6 h-6 text-accent" />
+              </div>
+              <div className="flex-1 min-w-0">
+                <h3 className="font-display text-base text-accent">VIEW OPS</h3>
+                <p className="text-[10px] text-muted-foreground">Scout campaigns</p>
+              </div>
             </div>
-            <div className="flex-1 min-w-0">
-              <h3 className="font-display text-base text-accent">
-                {hasActiveCampaign ? 'SWITCH' : 'CAMPAIGN'}
-              </h3>
-              <p className="text-[10px] text-muted-foreground">Multi-mission war</p>
+          </button>
+        ) : (
+          /* For logged-in users: Mission as secondary when campaign is active */
+          <button
+            onClick={() => navigate('/command?tab=missions&source=public')}
+            className="group relative bg-card border-2 border-primary/50 rounded-lg p-4 text-left transition-all hover:border-primary hover:box-glow-primary"
+          >
+            <div className="flex items-center gap-3">
+              <div className="p-2 bg-primary/10 rounded-lg group-hover:bg-primary/20 transition-colors">
+                <Crosshair className="w-6 h-6 text-primary" />
+              </div>
+              <div className="flex-1 min-w-0">
+                <h3 className="font-display text-base text-primary">FLASHPOINT</h3>
+                <p className="text-[10px] text-muted-foreground">One-time strike</p>
+              </div>
             </div>
-          </div>
-        </button>
+          </button>
+        )}
 
-        {/* Select Mission */}
-        <button
-          onClick={() => navigate('/command?tab=missions&source=public')}
-          className="group relative bg-card border-2 border-primary/50 rounded-lg p-4 text-left transition-all hover:border-primary hover:box-glow-primary"
-        >
-          <div className="flex items-center gap-3">
-            <div className="p-2 bg-primary/10 rounded-lg group-hover:bg-primary/20 transition-colors">
-              <Target className="w-6 h-6 text-primary" />
+        {/* Secondary action based on state */}
+        {isGuest ? (
+          /* For guests: Direct mission strike */
+          <button
+            onClick={() => navigate('/intel')}
+            className="group relative bg-card border-2 border-secondary/50 rounded-lg p-4 text-left transition-all hover:border-secondary hover:box-glow-secondary"
+          >
+            <div className="flex items-center gap-3">
+              <div className="p-2 bg-secondary/10 rounded-lg group-hover:bg-secondary/20 transition-colors">
+                <Target className="w-6 h-6 text-secondary" />
+              </div>
+              <div className="flex-1 min-w-0">
+                <h3 className="font-display text-base text-secondary">INTEL</h3>
+                <p className="text-[10px] text-muted-foreground">Live combat feed</p>
+              </div>
             </div>
-            <div className="flex-1 min-w-0">
-              <h3 className="font-display text-base text-primary">MISSION</h3>
-              <p className="text-[10px] text-muted-foreground">Quick strike op</p>
+          </button>
+        ) : hasActiveCampaign ? (
+          /* For logged-in with active campaign: Switch campaigns */
+          <button
+            onClick={() => navigate('/command?tab=campaigns')}
+            className="group relative bg-card border-2 border-accent/50 rounded-lg p-4 text-left transition-all hover:border-accent hover:box-glow-accent"
+          >
+            <div className="flex items-center gap-3">
+              <div className="p-2 bg-accent/10 rounded-lg group-hover:bg-accent/20 transition-colors">
+                <Flame className="w-6 h-6 text-accent" />
+              </div>
+              <div className="flex-1 min-w-0">
+                <h3 className="font-display text-base text-accent">SWITCH</h3>
+                <p className="text-[10px] text-muted-foreground">Change campaign</p>
+              </div>
             </div>
-          </div>
-        </button>
+          </button>
+        ) : (
+          /* For logged-in without campaign: Mission as second option */
+          <button
+            onClick={() => navigate('/command?tab=missions&source=public')}
+            className="group relative bg-card border-2 border-primary/50 rounded-lg p-4 text-left transition-all hover:border-primary hover:box-glow-primary"
+          >
+            <div className="flex items-center gap-3">
+              <div className="p-2 bg-primary/10 rounded-lg group-hover:bg-primary/20 transition-colors">
+                <Crosshair className="w-6 h-6 text-primary" />
+              </div>
+              <div className="flex-1 min-w-0">
+                <h3 className="font-display text-base text-primary">FLASHPOINT</h3>
+                <p className="text-[10px] text-muted-foreground">One-time strike</p>
+              </div>
+            </div>
+          </button>
+        )}
       </div>
     </motion.div>
   );
