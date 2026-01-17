@@ -1,23 +1,36 @@
-import { useMemo } from 'react';
+import { useMemo, useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import { useNavigate } from 'react-router-dom';
-import { Sparkles, Clock, Zap } from 'lucide-react';
+import { Sparkles, Clock, Zap, RefreshCw } from 'lucide-react';
 import { Tables } from '@/integrations/supabase/types';
 
 interface TodayMissionsWidgetProps {
   missions: Tables<'missions'>[];
 }
 
-// Helper to get a random item from an array
-const getRandomItem = <T,>(arr: T[]): T | undefined => {
+// Seeded random for consistent daily selection
+const seededRandom = (seed: number) => {
+  const x = Math.sin(seed) * 10000;
+  return x - Math.floor(x);
+};
+
+const getSeededItem = <T,>(arr: T[], seed: number): T | undefined => {
   if (arr.length === 0) return undefined;
-  return arr[Math.floor(Math.random() * arr.length)];
+  const index = Math.floor(seededRandom(seed) * arr.length);
+  return arr[index];
 };
 
 export function TodayMissionsWidget({ missions }: TodayMissionsWidgetProps) {
   const navigate = useNavigate();
+  const [refreshKey, setRefreshKey] = useState(0);
   
-  // Select 3 random missions (1 short, 1 medium, 1 long)
+  // Use date + refreshKey as seed for consistent daily picks
+  const dailySeed = useMemo(() => {
+    const today = new Date();
+    return today.getFullYear() * 10000 + (today.getMonth() + 1) * 100 + today.getDate() + refreshKey;
+  }, [refreshKey]);
+  
+  // Select 3 missions (1 short, 1 medium, 1 long) - stable based on daily seed
   const featuredMissions = useMemo(() => {
     if (!missions || missions.length === 0) return [];
 
@@ -27,29 +40,38 @@ export function TodayMissionsWidget({ missions }: TodayMissionsWidgetProps) {
 
     const selected: typeof missions = [];
 
-    const short = getRandomItem(shortMissions);
-    const medium = getRandomItem(mediumMissions);
-    const long = getRandomItem(longMissions);
+    const short = getSeededItem(shortMissions, dailySeed);
+    const medium = getSeededItem(mediumMissions, dailySeed + 1);
+    const long = getSeededItem(longMissions, dailySeed + 2);
 
     if (short) selected.push(short);
     if (medium) selected.push(medium);
     if (long) selected.push(long);
 
     return selected.sort((a, b) => a.estimated_minutes - b.estimated_minutes);
-  }, [missions]);
+  }, [missions, dailySeed]);
 
   if (featuredMissions.length === 0) return null;
 
   return (
     <div className="mb-6">
-      <div className="flex items-center gap-2 mb-3">
-        <Sparkles className="w-4 h-4 text-accent" />
-        <span className="font-display text-sm text-accent tracking-wider">TODAY'S PICKS</span>
+      <div className="flex items-center justify-between mb-3">
+        <div className="flex items-center gap-2">
+          <Sparkles className="w-4 h-4 text-accent" />
+          <span className="font-display text-sm text-accent tracking-wider">TODAY'S PICKS</span>
+        </div>
+        <button
+          onClick={() => setRefreshKey(k => k + 1)}
+          className="p-1.5 text-muted-foreground hover:text-accent transition-colors rounded"
+          title="Shuffle picks"
+        >
+          <RefreshCw className="w-3.5 h-3.5" />
+        </button>
       </div>
       <div className="grid grid-cols-1 sm:grid-cols-3 gap-2">
         {featuredMissions.map((mission, i) => (
           <motion.button
-            key={mission.id}
+            key={`${mission.id}-${refreshKey}`}
             initial={{ opacity: 0, y: 10 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: i * 0.05 }}
