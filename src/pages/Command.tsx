@@ -429,7 +429,7 @@ const Command = () => {
                 onClick={() => setCampaignSource('standard')}
                 className={`flex-1 py-2.5 font-display text-xs transition-colors ${
                   campaignSource === 'standard' 
-                    ? 'bg-secondary text-secondary-foreground' 
+                    ? 'bg-section-campaigns text-white' 
                     : 'bg-card text-muted-foreground hover:text-foreground'
                 }`}
               >
@@ -440,7 +440,7 @@ const Command = () => {
                   onClick={() => setCampaignSource('personal')}
                   className={`flex-1 py-2.5 font-display text-xs transition-colors border-x border-border ${
                     campaignSource === 'personal' 
-                      ? 'bg-primary text-primary-foreground' 
+                      ? 'bg-section-campaigns text-white' 
                       : 'bg-card text-muted-foreground hover:text-foreground'
                   }`}
                 >
@@ -451,7 +451,7 @@ const Command = () => {
                 onClick={() => setCampaignSource('community')}
                 className={`flex-1 py-2.5 font-display text-xs transition-colors ${
                   campaignSource === 'community' 
-                    ? 'bg-accent text-accent-foreground' 
+                    ? 'bg-section-campaigns text-white' 
                     : 'bg-card text-muted-foreground hover:text-foreground'
                 }`}
               >
@@ -478,17 +478,19 @@ const Command = () => {
               initial={{ opacity: 0, y: 100 }}
               animate={{ opacity: 1, y: 0 }}
               exit={{ opacity: 0, y: 100 }}
-              className="fixed bottom-0 left-0 right-0 z-50 bg-card border-t-2 border-primary rounded-t-2xl max-h-[85vh] overflow-hidden flex flex-col"
+              className={`fixed bottom-0 left-0 right-0 z-50 bg-card border-t-2 rounded-t-2xl max-h-[85vh] overflow-hidden flex flex-col ${
+                activeTab === 'campaigns' ? 'border-section-campaigns' : activeTab === 'missions' ? 'border-section-missions' : 'border-section-command'
+              }`}
             >
               {/* Header */}
               <div className="flex items-center justify-between p-4 border-b border-border">
                 <div className="flex items-center gap-2">
-                  <Filter className="w-4 h-4 text-primary" />
-                  <span className="font-display text-lg text-primary">
+                  <Filter className={`w-4 h-4 ${activeTab === 'campaigns' ? 'text-section-campaigns' : activeTab === 'missions' ? 'text-section-missions' : 'text-section-command'}`} />
+                  <span className={`font-display text-lg ${activeTab === 'campaigns' ? 'text-section-campaigns' : activeTab === 'missions' ? 'text-section-missions' : 'text-section-command'}`}>
                     {activeTab === 'campaigns' ? 'CAMPAIGN FILTERS' : activeTab === 'exercises' ? 'EXERCISE FILTERS' : 'MISSION FILTERS'}
                   </span>
                   {hasFilters && (
-                    <span className="text-xs px-2 py-0.5 bg-secondary/20 text-secondary rounded-full">
+                    <span className={`text-xs px-2 py-0.5 rounded-full ${activeTab === 'campaigns' ? 'bg-section-campaigns/20 text-section-campaigns' : activeTab === 'missions' ? 'bg-section-missions/20 text-section-missions' : 'bg-section-command/20 text-section-command'}`}>
                       {[focusFilter, muscleFilter, equipmentFilter, durationFilter, collectionFilter].filter(Boolean).length} active
                     </span>
                   )}
@@ -517,8 +519,8 @@ const Command = () => {
                             onClick={() => setDurationFilter(durationFilter === duration.value ? '' : duration.value)}
                             className={`text-xs px-3 py-1.5 rounded-lg border transition-colors ${
                               durationFilter === duration.value
-                                ? 'bg-accent text-accent-foreground border-accent'
-                                : 'bg-background border-border hover:border-accent/50'
+                                ? 'bg-section-campaigns text-white border-section-campaigns'
+                                : 'bg-background border-border hover:border-section-campaigns/50'
                             }`}
                           >
                             {duration.label}
@@ -536,8 +538,8 @@ const Command = () => {
                             onClick={() => setFocusFilter(focusFilter === area ? '' : area)}
                             className={`text-xs px-3 py-1.5 rounded-lg border transition-colors ${
                               focusFilter === area
-                                ? 'bg-primary text-primary-foreground border-primary'
-                                : 'bg-background border-border hover:border-primary/50'
+                                ? 'bg-section-campaigns text-white border-section-campaigns'
+                                : 'bg-background border-border hover:border-section-campaigns/50'
                             }`}
                           >
                             {area}
@@ -562,8 +564,8 @@ const Command = () => {
                             onClick={() => setDurationFilter(durationFilter === duration.value ? '' : duration.value)}
                             className={`text-xs px-3 py-1.5 rounded-lg border transition-colors ${
                               durationFilter === duration.value
-                                ? 'bg-accent text-accent-foreground border-accent'
-                                : 'bg-background border-border hover:border-accent/50'
+                                ? 'bg-section-missions text-white border-section-missions'
+                                : 'bg-background border-border hover:border-section-missions/50'
                             }`}
                           >
                             {duration.label}
@@ -581,8 +583,8 @@ const Command = () => {
                             onClick={() => setEquipmentFilter(equipmentFilter === equip ? '' : equip)}
                             className={`text-xs px-3 py-1.5 rounded-lg border transition-colors ${
                               equipmentFilter === equip
-                                ? 'bg-secondary text-secondary-foreground border-secondary'
-                                : 'bg-background border-border hover:border-secondary/50'
+                                ? 'bg-section-missions text-white border-section-missions'
+                                : 'bg-background border-border hover:border-section-missions/50'
                             }`}
                           >
                             {formatEquipment(equip)}
@@ -600,8 +602,8 @@ const Command = () => {
                             onClick={() => setFocusFilter(focusFilter === area ? '' : area)}
                             className={`text-xs px-3 py-1.5 rounded-lg border transition-colors ${
                               focusFilter === area
-                                ? 'bg-primary text-primary-foreground border-primary'
-                                : 'bg-background border-border hover:border-primary/50'
+                                ? 'bg-section-missions text-white border-section-missions'
+                                : 'bg-background border-border hover:border-section-missions/50'
                             }`}
                           >
                             {area}
@@ -622,8 +624,8 @@ const Command = () => {
                               onClick={() => setMuscleFilter(muscleFilter === muscle ? '' : muscle)}
                               className={`text-xs px-3 py-1.5 rounded-lg border transition-colors ${
                                 muscleFilter === muscle
-                                  ? 'bg-secondary text-secondary-foreground border-secondary'
-                                  : 'bg-background border-border hover:border-secondary/50'
+                                  ? 'bg-section-missions text-white border-section-missions'
+                                  : 'bg-background border-border hover:border-section-missions/50'
                               }`}
                             >
                               {muscle}
@@ -647,8 +649,8 @@ const Command = () => {
                             onClick={() => setEquipmentFilter(equipmentFilter === equip ? '' : equip)}
                             className={`text-xs px-3 py-1.5 rounded-lg border transition-colors ${
                               equipmentFilter === equip
-                                ? 'bg-secondary text-secondary-foreground border-secondary'
-                                : 'bg-background border-border hover:border-secondary/50'
+                                ? 'bg-section-command text-background border-section-command'
+                                : 'bg-background border-border hover:border-section-command/50'
                             }`}
                           >
                             {formatEquipment(equip)}
@@ -667,8 +669,8 @@ const Command = () => {
                               onClick={() => setMuscleFilter(muscleFilter === muscle ? '' : muscle)}
                               className={`text-xs px-3 py-1.5 rounded-lg border transition-colors ${
                                 muscleFilter === muscle
-                                  ? 'bg-secondary text-secondary-foreground border-secondary'
-                                  : 'bg-background border-border hover:border-secondary/50'
+                                  ? 'bg-section-command text-background border-section-command'
+                                  : 'bg-background border-border hover:border-section-command/50'
                               }`}
                             >
                               {muscle}
@@ -687,8 +689,8 @@ const Command = () => {
                             onClick={() => setFocusFilter(focusFilter === area ? '' : area)}
                             className={`text-xs px-3 py-1.5 rounded-lg border transition-colors ${
                               focusFilter === area
-                                ? 'bg-primary text-primary-foreground border-primary'
-                                : 'bg-background border-border hover:border-primary/50'
+                                ? 'bg-section-command text-background border-section-command'
+                                : 'bg-background border-border hover:border-section-command/50'
                             }`}
                           >
                             {area}
@@ -712,7 +714,9 @@ const Command = () => {
                 )}
                 <button 
                   onClick={() => setShowFilters(false)}
-                  className="flex-1 py-3 px-4 bg-primary text-primary-foreground rounded-lg font-display text-sm hover:box-glow-primary transition-all"
+                  className={`flex-1 py-3 px-4 rounded-lg font-display text-sm transition-all ${
+                    activeTab === 'campaigns' ? 'bg-section-campaigns text-white hover:box-glow-campaigns' : activeTab === 'missions' ? 'bg-section-missions text-white hover:box-glow-missions' : 'bg-section-command text-background hover:box-glow-command'
+                  }`}
                 >
                   APPLY FILTERS
                 </button>

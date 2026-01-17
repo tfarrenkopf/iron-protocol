@@ -695,32 +695,33 @@ const ExerciseManager = () => {
           )}
         </motion.section>
 
-        {/* Exercise Form Modal */}
+        {/* Exercise Form Modal - uses COMMAND/CYAN color */}
         <AnimatePresence>
           {showForm && (
             <motion.div
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              exit={{ opacity: 0 }}
-              className="fixed inset-0 bg-background/90 z-50 overflow-y-auto"
+              initial={{ opacity: 0, y: '100%' }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: '100%' }}
+              transition={{ type: 'spring', damping: 25, stiffness: 300 }}
+              className="fixed inset-0 bg-background z-50 overflow-y-auto"
             >
-              <div className="container mx-auto px-4 py-6 max-w-2xl">
-                <div className="bg-card border border-border rounded-lg">
-                  <div className="flex items-center justify-between p-4 border-b border-border">
-                    <h2 className="font-display text-xl text-primary">
-                      {editingExercise ? "EDIT EXERCISE" : "NEW EXERCISE"}
-                    </h2>
-                    <button
-                      onClick={() => {
-                        setShowForm(false);
-                        resetForm();
-                        navigateBackFromEditor("exercise");
-                      }}
-                      className="p-2 hover:text-destructive transition-colors"
-                    >
-                      <X className="w-5 h-5" />
-                    </button>
-                  </div>
+              <div className="min-h-full pb-safe">
+                <div className="sticky top-0 z-10 bg-card border-b border-section-command flex items-center justify-between p-4">
+                  <h2 className="font-display text-xl text-section-command">
+                    {editingExercise ? "EDIT EXERCISE" : "NEW EXERCISE"}
+                  </h2>
+                  <button
+                    onClick={() => {
+                      setShowForm(false);
+                      resetForm();
+                      navigateBackFromEditor("exercise");
+                    }}
+                    className="p-2 hover:text-destructive transition-colors"
+                  >
+                    <X className="w-5 h-5" />
+                  </button>
+                </div>
+                <div className="container mx-auto px-4 py-4 max-w-2xl">
 
                   <form onSubmit={handleSubmit} className="p-4 space-y-4">
                     {error && (
@@ -737,7 +738,7 @@ const ExerciseManager = () => {
                         value={formData.name}
                         onChange={(e) => setFormData({ ...formData, name: e.target.value })}
                         maxLength={50}
-                        className="w-full bg-background border border-border rounded px-3 py-2 mt-1 focus:border-primary focus:outline-none"
+                        className="w-full bg-background border border-border rounded px-3 py-2 mt-1 focus:border-section-command focus:outline-none"
                         placeholder="e.g., Cable Chest Fly"
                       />
                       <div className="text-xs text-muted-foreground text-right mt-1">{formData.name.length}/50</div>
@@ -749,7 +750,7 @@ const ExerciseManager = () => {
                       <select
                         value={formData.primary_muscle_group}
                         onChange={(e) => setFormData({ ...formData, primary_muscle_group: e.target.value })}
-                        className="w-full bg-background border border-border rounded px-3 py-2 mt-1 focus:border-primary focus:outline-none"
+                        className="w-full bg-background border border-border rounded px-3 py-2 mt-1 focus:border-section-command focus:outline-none"
                       >
                         <option value="">Select...</option>
                         {MUSCLE_GROUPS.map((mg) => (
@@ -773,8 +774,8 @@ const ExerciseManager = () => {
                             }
                             className={`text-xs px-2 py-1 rounded border transition-colors ${
                               formData.equipment.includes(eq)
-                                ? "bg-primary text-primary-foreground border-primary"
-                                : "bg-background border-border hover:border-primary/50"
+                                ? "bg-section-command text-background border-section-command"
+                                : "bg-background border-border hover:border-section-command/50"
                             }`}
                           >
                             {eq.replace(/_/g, " ")}
@@ -796,8 +797,8 @@ const ExerciseManager = () => {
                             }
                             className={`text-xs px-2 py-1 rounded border transition-colors ${
                               formData.focus_areas.includes(fa)
-                                ? "bg-secondary text-secondary-foreground border-secondary"
-                                : "bg-background border-border hover:border-secondary/50"
+                                ? "bg-section-command text-background border-section-command"
+                                : "bg-background border-border hover:border-section-command/50"
                             }`}
                           >
                             {fa}
@@ -813,7 +814,7 @@ const ExerciseManager = () => {
                         value={formData.description}
                         onChange={(e) => setFormData({ ...formData, description: e.target.value })}
                         rows={2}
-                        className="w-full bg-background border border-border rounded px-3 py-2 mt-1 focus:border-primary focus:outline-none resize-none"
+                        className="w-full bg-background border border-border rounded px-3 py-2 mt-1 focus:border-section-command focus:outline-none resize-none"
                         placeholder="Brief description..."
                       />
                     </div>
@@ -826,7 +827,7 @@ const ExerciseManager = () => {
                           type="text"
                           value={formData.instructions_setup}
                           onChange={(e) => setFormData({ ...formData, instructions_setup: e.target.value })}
-                          className="w-full bg-background border border-border rounded px-3 py-2 mt-1 focus:border-primary focus:outline-none"
+                          className="w-full bg-background border border-border rounded px-3 py-2 mt-1 focus:border-section-command focus:outline-none"
                           placeholder="How to set up..."
                         />
                       </div>
@@ -836,7 +837,7 @@ const ExerciseManager = () => {
                           type="text"
                           value={formData.instructions_execution}
                           onChange={(e) => setFormData({ ...formData, instructions_execution: e.target.value })}
-                          className="w-full bg-background border border-border rounded px-3 py-2 mt-1 focus:border-primary focus:outline-none"
+                          className="w-full bg-background border border-border rounded px-3 py-2 mt-1 focus:border-section-command focus:outline-none"
                           placeholder="How to perform..."
                         />
                       </div>
@@ -846,7 +847,7 @@ const ExerciseManager = () => {
                           type="text"
                           value={formData.instructions_tips}
                           onChange={(e) => setFormData({ ...formData, instructions_tips: e.target.value })}
-                          className="w-full bg-background border border-border rounded px-3 py-2 mt-1 focus:border-primary focus:outline-none"
+                          className="w-full bg-background border border-border rounded px-3 py-2 mt-1 focus:border-section-command focus:outline-none"
                           placeholder="Pro tips..."
                         />
                       </div>
@@ -868,7 +869,7 @@ const ExerciseManager = () => {
                       <button
                         type="submit"
                         disabled={createExercise.isPending || updateExercise.isPending}
-                        className="flex-1 py-3 bg-primary text-primary-foreground font-display rounded hover:box-glow-primary transition-all disabled:opacity-50 flex items-center justify-center gap-2"
+                        className="flex-1 py-3 bg-section-command text-background font-display rounded hover:box-glow-command transition-all disabled:opacity-50 flex items-center justify-center gap-2"
                       >
                         <Check className="w-4 h-4" />
                         {editingExercise ? "UPDATE" : "CREATE"}
@@ -881,32 +882,33 @@ const ExerciseManager = () => {
           )}
         </AnimatePresence>
 
-        {/* Mission Form Modal */}
+        {/* Mission Form Modal - uses MISSIONS/PINK color */}
         <AnimatePresence>
           {showMissionForm && (
             <motion.div
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              exit={{ opacity: 0 }}
-              className="fixed inset-0 bg-background/90 z-50 overflow-y-auto"
+              initial={{ opacity: 0, y: '100%' }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: '100%' }}
+              transition={{ type: 'spring', damping: 25, stiffness: 300 }}
+              className="fixed inset-0 bg-background z-50 overflow-y-auto"
             >
-              <div className="container mx-auto px-4 py-6 max-w-2xl">
-                <div className="bg-card border border-border rounded-lg">
-                  <div className="flex items-center justify-between p-4 border-b border-border">
-                    <h2 className="font-display text-xl text-secondary">
-                      {editingMission ? "EDIT MISSION" : "NEW MISSION"}
-                    </h2>
-                    <button
-                      onClick={() => {
-                        setShowMissionForm(false);
-                        resetMissionForm();
-                        navigateBackFromEditor("mission");
-                      }}
-                      className="p-2 hover:text-destructive transition-colors"
-                    >
-                      <X className="w-5 h-5" />
-                    </button>
-                  </div>
+              <div className="min-h-full pb-safe">
+                <div className="sticky top-0 z-10 bg-card border-b border-section-missions flex items-center justify-between p-4">
+                  <h2 className="font-display text-xl text-section-missions">
+                    {editingMission ? "EDIT MISSION" : "NEW MISSION"}
+                  </h2>
+                  <button
+                    onClick={() => {
+                      setShowMissionForm(false);
+                      resetMissionForm();
+                      navigateBackFromEditor("mission");
+                    }}
+                    className="p-2 hover:text-destructive transition-colors"
+                  >
+                    <X className="w-5 h-5" />
+                  </button>
+                </div>
+                <div className="container mx-auto px-4 py-4 max-w-2xl">
 
                   <form onSubmit={handleMissionSubmit} className="p-4 space-y-4">
                     {missionError && (
@@ -923,7 +925,7 @@ const ExerciseManager = () => {
                           type="text"
                           value={missionFormData.name}
                           onChange={(e) => setMissionFormData({ ...missionFormData, name: e.target.value })}
-                          className="w-full bg-background border border-border rounded px-3 py-2 mt-1 focus:border-secondary focus:outline-none"
+                          className="w-full bg-background border border-border rounded px-3 py-2 mt-1 focus:border-section-missions focus:outline-none"
                           placeholder="e.g., Upper Body Day"
                         />
                       </div>
@@ -935,7 +937,7 @@ const ExerciseManager = () => {
                           onChange={(e) =>
                             setMissionFormData({ ...missionFormData, codeName: e.target.value.toUpperCase() })
                           }
-                          className="w-full bg-background border border-border rounded px-3 py-2 mt-1 focus:border-secondary focus:outline-none uppercase"
+                          className="w-full bg-background border border-border rounded px-3 py-2 mt-1 focus:border-section-missions focus:outline-none uppercase"
                           placeholder="e.g., UPPER ASSAULT"
                         />
                       </div>
@@ -947,7 +949,7 @@ const ExerciseManager = () => {
                         type="text"
                         value={missionFormData.description}
                         onChange={(e) => setMissionFormData({ ...missionFormData, description: e.target.value })}
-                        className="w-full bg-background border border-border rounded px-3 py-2 mt-1 focus:border-secondary focus:outline-none"
+                        className="w-full bg-background border border-border rounded px-3 py-2 mt-1 focus:border-section-missions focus:outline-none"
                         placeholder="Brief mission briefing..."
                       />
                     </div>
@@ -963,8 +965,8 @@ const ExerciseManager = () => {
                             onClick={() => toggleMissionFocusArea(area)}
                             className={`text-xs px-2 py-1 rounded border transition-colors ${
                               missionFormData.focusAreas.includes(area)
-                                ? "bg-secondary text-secondary-foreground border-secondary"
-                                : "bg-background border-border hover:border-secondary/50"
+                                ? "bg-section-missions text-white border-section-missions"
+                                : "bg-background border-border hover:border-section-missions/50"
                             }`}
                           >
                             {area}
@@ -984,7 +986,7 @@ const ExerciseManager = () => {
                         <select
                           value={selectedExerciseId}
                           onChange={(e) => setSelectedExerciseId(e.target.value)}
-                          className="flex-1 bg-background border border-border rounded px-3 py-2 focus:border-secondary focus:outline-none text-sm"
+                          className="flex-1 bg-background border border-border rounded px-3 py-2 focus:border-section-missions focus:outline-none text-sm"
                         >
                           <option value="">Select exercise to add...</option>
                           {exercises?.map((e) => (
@@ -997,7 +999,7 @@ const ExerciseManager = () => {
                           type="button"
                           onClick={addMissionExercise}
                           disabled={!selectedExerciseId}
-                          className="px-4 py-2 bg-secondary text-secondary-foreground rounded hover:box-glow-secondary transition-all disabled:opacity-50"
+                          className="px-4 py-2 bg-section-missions text-white rounded hover:box-glow-missions transition-all disabled:opacity-50"
                         >
                           <Plus className="w-5 h-5" />
                         </button>
@@ -1012,7 +1014,7 @@ const ExerciseManager = () => {
                               <div className="flex items-center gap-3 mb-2">
                                 <GripVertical className="w-4 h-4 text-muted-foreground" />
                                 <span className="text-sm text-muted-foreground">{index + 1}.</span>
-                                <span className="flex-1 font-display text-secondary text-sm">
+                                <span className="flex-1 font-display text-section-missions text-sm">
                                   {exercise.exercise_name}
                                 </span>
                                 <button
@@ -1034,7 +1036,7 @@ const ExerciseManager = () => {
                                     onChange={(e) =>
                                       updateMissionExercise(exercise.id, "target_sets", parseInt(e.target.value) || 1)
                                     }
-                                    className="w-full bg-card border border-border rounded px-2 py-1 text-center text-sm focus:border-secondary focus:outline-none"
+                                    className="w-full bg-card border border-border rounded px-2 py-1 text-center text-sm focus:border-section-missions focus:outline-none"
                                   />
                                 </div>
                                 <div>
@@ -1047,7 +1049,7 @@ const ExerciseManager = () => {
                                     onChange={(e) =>
                                       updateMissionExercise(exercise.id, "target_reps", parseInt(e.target.value) || 1)
                                     }
-                                    className="w-full bg-card border border-border rounded px-2 py-1 text-center text-sm focus:border-secondary focus:outline-none"
+                                    className="w-full bg-card border border-border rounded px-2 py-1 text-center text-sm focus:border-section-missions focus:outline-none"
                                   />
                                 </div>
                                 <div>
@@ -1065,7 +1067,7 @@ const ExerciseManager = () => {
                                         parseInt(e.target.value) || 0,
                                       )
                                     }
-                                    className="w-full bg-card border border-border rounded px-2 py-1 text-center text-sm focus:border-secondary focus:outline-none"
+                                    className="w-full bg-card border border-border rounded px-2 py-1 text-center text-sm focus:border-section-missions focus:outline-none"
                                   />
                                 </div>
                               </div>
@@ -1091,7 +1093,7 @@ const ExerciseManager = () => {
                       <button
                         type="submit"
                         disabled={createMission.isPending || updateMission.isPending}
-                        className="flex-1 py-3 bg-secondary text-secondary-foreground font-display rounded hover:box-glow-secondary transition-all disabled:opacity-50 flex items-center justify-center gap-2"
+                        className="flex-1 py-3 bg-section-missions text-white font-display rounded hover:box-glow-missions transition-all disabled:opacity-50 flex items-center justify-center gap-2"
                       >
                         <Check className="w-4 h-4" />
                         {editingMission ? "UPDATE" : "CREATE"}
