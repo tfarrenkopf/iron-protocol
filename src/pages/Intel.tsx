@@ -574,50 +574,55 @@ const LiveFeedTab = ({ isGuest }: { isGuest: boolean }) => {
             <p className="text-xs text-muted-foreground mt-2">Be the first to complete a mission</p>
           </div>
         ) : (
-          feed.slice(0, 20).map((session, i) => {
-            const missionName = session.mission_snapshot?.code_name || 'CLASSIFIED MISSION';
-            const displayName = session.profiles?.display_name || 'Unknown Agent';
-            
-            return (
-              <motion.div
-                key={session.id}
-                initial={{ opacity: 0, x: -20 }}
-                animate={{ opacity: 1, x: 0 }}
-                transition={{ delay: i * 0.03 }}
-                className="bg-card border border-border rounded-lg p-4 hover:border-primary/30 transition-colors"
-              >
-                <div className="flex items-start justify-between gap-4">
-                  <div className="flex-1">
-                    <div className="flex items-center gap-2 mb-1">
-                      <span className="font-display text-primary">{displayName}</span>
-                      <span className="text-xs text-muted-foreground">completed</span>
+          <>
+            {feed.slice(0, 5).map((session, i) => {
+              const missionName = session.mission_snapshot?.code_name || 'CLASSIFIED MISSION';
+              const displayName = session.profiles?.display_name || 'Unknown Agent';
+              
+              return (
+                <motion.div
+                  key={session.id}
+                  initial={{ opacity: 0, x: -20 }}
+                  animate={{ opacity: 1, x: 0 }}
+                  transition={{ delay: i * 0.03 }}
+                  className="bg-card border border-border rounded-lg p-4 hover:border-primary/30 transition-colors"
+                >
+                  <div className="flex items-start justify-between gap-4">
+                    <div className="flex-1">
+                      <div className="flex items-center gap-2 mb-1">
+                        <span className="font-display text-primary">{displayName}</span>
+                        <span className="text-xs text-muted-foreground">completed</span>
+                      </div>
+                      <div className="font-display text-lg text-secondary">{missionName}</div>
+                      <div className="flex items-center gap-4 mt-2 text-xs text-muted-foreground">
+                        <span>{session.sets_completed} sets</span>
+                        <span>{Number(session.total_weight || 0).toLocaleString()} lbs</span>
+                        <span className="text-destructive">{session.damage_dealt || 0} dmg</span>
+                      </div>
                     </div>
-                    <div className="font-display text-lg text-secondary">{missionName}</div>
-                    <div className="flex items-center gap-4 mt-2 text-xs text-muted-foreground">
-                      <span>{session.sets_completed} sets</span>
-                      <span>{Number(session.total_weight || 0).toLocaleString()} lbs</span>
-                      <span className="text-destructive">{session.damage_dealt || 0} dmg</span>
+                    <div className="text-right flex-shrink-0">
+                      <div className="text-xs text-muted-foreground font-display">
+                        {formatRelativeTime(session.completed_at)}
+                      </div>
                     </div>
                   </div>
-                  <div className="text-right flex-shrink-0">
-                    <div className="text-xs text-muted-foreground font-display">
-                      {formatRelativeTime(session.completed_at)}
-                    </div>
-                  </div>
-                </div>
-                
-                {session.mission_id && (
-                  <button
-                    onClick={() => navigate(`/mission/${session.mission_id}`)}
-                    className="mt-3 w-full py-2 border border-primary/50 rounded text-sm font-display text-primary hover:bg-primary/10 transition-colors flex items-center justify-center gap-2"
-                  >
-                    <Target className="w-4 h-4" />
-                    JOIN THE MISSION
-                  </button>
-                )}
-              </motion.div>
-            );
-          })
+                  
+                  {session.mission_id && (
+                    <button
+                      onClick={() => navigate(`/mission/${session.mission_id}`)}
+                      className="mt-3 w-full py-2 border border-primary/50 rounded text-sm font-display text-primary hover:bg-primary/10 transition-colors flex items-center justify-center gap-2"
+                    >
+                      <Target className="w-4 h-4" />
+                      JOIN THE MISSION
+                    </button>
+                  )}
+                </motion.div>
+              );
+            })}
+            <div className="text-center py-3 text-xs text-muted-foreground border-t border-border mt-4">
+              Showing last 5 combat entries
+            </div>
+          </>
         )}
       </div>
     </div>
@@ -745,9 +750,9 @@ interface StatCardProps {
 }
 
 const StatCard = ({ icon, label, value, suffix }: StatCardProps) => (
-  <Card className="bg-card/50 border-border">
+  <Card className="bg-card/50 border-section-campaigns/30 hover:border-section-campaigns/60 transition-colors">
     <CardContent className="p-3">
-      <div className="flex items-center gap-2 text-muted-foreground mb-1">
+      <div className="flex items-center gap-2 text-section-campaigns mb-1">
         {icon}
         <span className="text-xs font-mono uppercase">{label}</span>
       </div>
@@ -790,14 +795,42 @@ const CampaignSection = ({ title, icon, campaigns, isLoading, metric, navigate, 
     }
   };
 
+  const getMetricColor = () => {
+    switch (metric) {
+      case 'completions':
+        return 'text-secondary';
+      case 'speed':
+        return 'text-accent';
+      case 'replay':
+        return 'text-primary';
+      case 'score':
+        return 'text-section-campaigns';
+      default:
+        return 'text-primary';
+    }
+  };
+
+  const getBorderColor = () => {
+    switch (metric) {
+      case 'completions':
+        return 'border-secondary/30 hover:border-secondary/60';
+      case 'speed':
+        return 'border-accent/30 hover:border-accent/60';
+      case 'replay':
+        return 'border-primary/30 hover:border-primary/60';
+      default:
+        return 'border-section-campaigns/30 hover:border-section-campaigns/60';
+    }
+  };
+
   return (
     <motion.div
       initial={{ opacity: 0, y: 10 }}
       animate={{ opacity: 1, y: 0 }}
     >
-      <Card className="bg-card/30 border-border">
+      <Card className={`bg-card/30 ${getBorderColor()} transition-colors`}>
         <CardHeader className="pb-2">
-          <CardTitle className="font-display text-sm flex items-center gap-2 text-muted-foreground">
+          <CardTitle className={`font-display text-sm flex items-center gap-2 ${getMetricColor()}`}>
             {icon}
             {title}
           </CardTitle>
@@ -821,22 +854,22 @@ const CampaignSection = ({ title, icon, campaigns, isLoading, metric, navigate, 
                 }`}
               >
                 <div className="flex items-center gap-3">
-                  <span className="font-display text-lg text-primary w-6">
+                  <span className={`font-display text-lg w-6 ${getMetricColor()}`}>
                     {(index + 1).toString().padStart(2, '0')}
                   </span>
                   <div>
-                    <p className="font-medium text-sm">
+                    <p className="font-medium text-sm text-foreground">
                       {campaign.campaign_name}
                     </p>
                     <div className="flex items-center gap-2 mt-0.5">
-                      <Badge variant="outline" className="text-xs font-mono">
+                      <Badge variant="outline" className="text-xs font-mono border-section-campaigns/50 text-section-campaigns">
                         {getFocusAreaLabel(campaign)}
                       </Badge>
                     </div>
                   </div>
                 </div>
                 <div className="text-right">
-                  <p className="font-display text-sm text-primary">
+                  <p className={`font-display text-sm ${getMetricColor()}`}>
                     {getMetricValue(campaign)}
                   </p>
                 </div>
@@ -1080,8 +1113,8 @@ const Intel = () => {
               value="campaigns" 
               className="font-display text-xs data-[state=active]:bg-section-campaigns data-[state=active]:text-white"
             >
-              <BarChart3 className="w-3.5 h-3.5 mr-1" />
-              OPS
+              <Flame className="w-3.5 h-3.5 mr-1" />
+              CAMPAIGNS
             </TabsTrigger>
             <TabsTrigger 
               value="rankings" 
