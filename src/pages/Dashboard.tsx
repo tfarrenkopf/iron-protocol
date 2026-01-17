@@ -1,7 +1,7 @@
 import { useMemo } from "react";
 import { motion } from "framer-motion";
 import { useNavigate } from "react-router-dom";
-import { Dumbbell, Timer, Trophy, User, LogOut, Plus, Swords, ChevronRight, Users, Crosshair } from "lucide-react";
+import { Dumbbell, Timer, Trophy, User, LogOut, Plus, Swords, ChevronRight, Users, Crosshair, Folder } from "lucide-react";
 import { useMissions } from "@/hooks/useMissions";
 import { useAuth } from "@/hooks/useAuth";
 import { useProfile } from "@/hooks/useProfile";
@@ -9,6 +9,7 @@ import { useIsHandler } from "@/hooks/useHandlerMode";
 import { IncomingOrders } from "@/components/IncomingOrders";
 import { FirstVisitPopup } from "@/components/FirstVisitPopup";
 import { WeeklySummary } from "@/components/WeeklySummary";
+import { RivalWidget } from "@/components/RivalWidget";
 
 // Helper to get a random item from an array
 const getRandomItem = <T,>(arr: T[]): T | undefined => {
@@ -213,23 +214,56 @@ const Dashboard = () => {
         {/* Incoming Orders - Only show when logged in */}
         {!isAnonymous && <IncomingOrders />}
 
-        {/* Front Lines CTA */}
-        <motion.button
+        {/* Rival Mode Widget */}
+        {!isAnonymous && (
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.3 }}
+            className="mb-8"
+          >
+            <RivalWidget />
+          </motion.div>
+        )}
+
+        {/* Quick Links Row */}
+        <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.35 }}
-          onClick={() => navigate("/front-lines")}
-          className="w-full mb-8 p-4 bg-card border border-secondary/50 rounded flex items-center justify-between hover:border-secondary hover:box-glow-secondary transition-all"
+          className="grid grid-cols-2 gap-3 mb-8"
         >
-          <div className="flex items-center gap-3">
-            <Swords className="w-6 h-6 text-secondary" />
-            <div className="text-left">
-              <div className="font-display text-lg text-secondary">THE FRONT LINES</div>
-              <div className="text-xs text-muted-foreground">Live combat feed from all warriors</div>
+          <button
+            onClick={() => navigate("/front-lines")}
+            className="p-4 bg-card border border-secondary/50 rounded flex items-center justify-between hover:border-secondary hover:box-glow-secondary transition-all"
+          >
+            <div className="flex items-center gap-3">
+              <Swords className="w-5 h-5 text-secondary" />
+              <div className="text-left">
+                <div className="font-display text-sm text-secondary">FRONT LINES</div>
+                <div className="text-[10px] text-muted-foreground">Live feed</div>
+              </div>
             </div>
-          </div>
-          <ChevronRight className="w-5 h-5 text-secondary" />
-        </motion.button>
+            <ChevronRight className="w-4 h-4 text-secondary" />
+          </button>
+
+          <button
+            onClick={() => navigate("/collections")}
+            className="p-4 bg-card border border-accent/50 rounded flex items-center justify-between hover:border-accent transition-all"
+            style={{ boxShadow: "none" }}
+            onMouseEnter={(e) => (e.currentTarget.style.boxShadow = "0 0 15px hsl(20 100% 60% / 0.4)")}
+            onMouseLeave={(e) => (e.currentTarget.style.boxShadow = "none")}
+          >
+            <div className="flex items-center gap-3">
+              <Folder className="w-5 h-5 text-accent" />
+              <div className="text-left">
+                <div className="font-display text-sm text-accent">COLLECTIONS</div>
+                <div className="text-[10px] text-muted-foreground">Organize</div>
+              </div>
+            </div>
+            <ChevronRight className="w-4 h-4 text-accent" />
+          </button>
+        </motion.div>
 
         {/* Featured Missions - Story 13.1: Random selection by duration */}
         <motion.section initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.4 }}>
