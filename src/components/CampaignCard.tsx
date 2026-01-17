@@ -266,7 +266,7 @@ export function CampaignCard({
           {stats.focusAreas.length > 0 && (
             <div className="flex gap-1.5 flex-wrap mb-2">
               {stats.focusAreas.map(area => (
-                <span key={area} className="text-xs px-2 py-0.5 bg-muted rounded text-muted-foreground">
+                <span key={area} className="text-xs px-2 py-0.5 bg-muted rounded text-muted-foreground uppercase">
                   {area}
                 </span>
               ))}

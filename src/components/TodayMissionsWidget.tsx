@@ -131,7 +131,7 @@ export function TodayMissionsWidget({ missions }: TodayMissionsWidgetProps) {
                     {mission.focus_areas.slice(0, 2).map((area) => (
                       <span 
                         key={area}
-                        className="text-xs px-1.5 py-0.5 bg-section-missions/15 text-section-missions rounded"
+                        className="text-xs px-1.5 py-0.5 bg-section-missions/15 text-section-missions rounded uppercase"
                       >
                         {area}
                       </span>

@@ -252,7 +252,7 @@ const Dashboard = () => {
                           {mission.estimated_minutes < 20 ? "QUICK" : mission.estimated_minutes < 40 ? "STD" : "LONG"}
                         </span>
                       </div>
-                      <div className="text-xs text-muted-foreground mt-1">
+                      <div className="text-xs text-muted-foreground mt-1 uppercase">
                         {mission.focus_areas?.join(" • ")} • {mission.estimated_minutes}min
                       </div>
                     </div>
