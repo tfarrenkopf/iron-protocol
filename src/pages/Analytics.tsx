@@ -15,11 +15,13 @@ interface TimeData {
 
 export default function Analytics() {
   const navigate = useNavigate();
-  const { user } = useAuth();
+  const { user, isLoading: authLoading } = useAuth();
   const [data, setData] = useState<TimeData[]>([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
+    if (authLoading) return;
+    
     if (!user) {
       navigate('/');
       return;
@@ -72,7 +74,7 @@ export default function Analytics() {
     };
 
     fetchData();
-  }, [user, navigate]);
+  }, [user, authLoading, navigate]);
 
   const formatDuration = (seconds: number) => {
     const hours = Math.floor(seconds / 3600);
