@@ -1,4 +1,4 @@
-import { useMemo } from "react";
+import { useMemo, useState } from "react";
 import { motion } from "framer-motion";
 import { useNavigate } from "react-router-dom";
 import { Timer, Radio, User, LogOut, ChevronRight, Users, Crosshair } from "lucide-react";
@@ -11,6 +11,16 @@ import { FirstVisitPopup } from "@/components/FirstVisitPopup";
 import { WeeklySummary } from "@/components/WeeklySummary";
 import { RivalWidget } from "@/components/RivalWidget";
 import { FightNowActions } from "@/components/FightNowActions";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
 
 // Helper to get a random item from an array
 const getRandomItem = <T,>(arr: T[]): T | undefined => {
@@ -54,9 +64,11 @@ const Dashboard = () => {
   }, [missions]);
   
   const { data: isHandler } = useIsHandler();
+  const [showSignOutDialog, setShowSignOutDialog] = useState(false);
 
-  const handleSignOut = async () => {
+  const confirmSignOut = async () => {
     await signOut();
+    setShowSignOutDialog(false);
     navigate("/");
   };
 
@@ -120,7 +132,7 @@ const Dashboard = () => {
                 </span>
               </button>
               <button
-                onClick={handleSignOut}
+                onClick={() => setShowSignOutDialog(true)}
                 className="p-2 bg-card/50 backdrop-blur-sm border border-border rounded hover:border-destructive hover:text-destructive transition-colors"
                 title="Sign out"
               >
@@ -316,6 +328,30 @@ const Dashboard = () => {
         {/* First Visit Popup */}
         <FirstVisitPopup />
       </div>
+
+      {/* Sign Out Confirmation Dialog */}
+      <AlertDialog open={showSignOutDialog} onOpenChange={setShowSignOutDialog}>
+        <AlertDialogContent className="bg-card border-border">
+          <AlertDialogHeader>
+            <AlertDialogTitle className="font-display flex items-center gap-2">
+              <LogOut className="w-5 h-5" />
+              SIGN OUT
+            </AlertDialogTitle>
+            <AlertDialogDescription>
+              Are you sure you want to sign out of Iron Protocol?
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel className="border-border">Cancel</AlertDialogCancel>
+            <AlertDialogAction
+              onClick={confirmSignOut}
+              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+            >
+              Sign Out
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 };
