@@ -238,7 +238,10 @@ export function MomentOfLossPrompt({
                   </button>
                   
                   <button
-                    onClick={onClose}
+                    onClick={() => {
+                      onClose();
+                      navigate('/');
+                    }}
                     className="w-full py-2 text-muted-foreground text-sm hover:text-destructive transition-colors font-display"
                   >
                     🔥 LET IT BURN
