@@ -14,7 +14,7 @@ import Stats from "./pages/Stats";
 import AuthPage from "./pages/Auth";
 import ProfilePage from "./pages/Profile";
 import ExerciseManager from "./pages/ExerciseManager";
-import FrontLines from "./pages/FrontLines";
+import Intel from "./pages/Intel";
 import Legal from "./pages/Legal";
 import Donate from "./pages/Donate";
 import Guide from "./pages/Guide";
@@ -24,7 +24,6 @@ import AssignMission from "./pages/AssignMission";
 import AssignmentWorkout from "./pages/AssignmentWorkout";
 import Collections from "./pages/Collections";
 import CampaignDetail from "./pages/CampaignDetail";
-import WarReport from "./pages/WarReport";
 import RivalInvite from "./pages/RivalInvite";
 import NotFound from "./pages/NotFound";
 import { useGoogleAnalytics } from "@/hooks/useGoogleAnalytics";
@@ -50,10 +49,11 @@ function AppContent() {
         <Route path="/hiit" element={<HIITTimer />} />
         <Route path="/stats" element={<Stats />} />
         <Route path="/exercises" element={<ExerciseManager />} />
-        <Route path="/front-lines" element={<FrontLines />} />
+        <Route path="/intel" element={<Intel />} />
+        <Route path="/front-lines" element={<Intel />} />
+        <Route path="/war-report" element={<Intel />} />
         <Route path="/legal" element={<Legal />} />
         <Route path="/donate" element={<Donate />} />
-        <Route path="/war-report" element={<WarReport />} />
         <Route path="/guide" element={<Guide />} />
         <Route path="/handler" element={<HandlerDashboard />} />
         <Route path="/handler/assign/:squadId" element={<AssignMission />} />
