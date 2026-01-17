@@ -131,12 +131,20 @@ const AuthPage = () => {
             setError(error.message);
           }
         } else {
-          // Set display name if provided
+          // Set display name if provided - wait for profile to be created by trigger
           if (displayName.trim()) {
+            // Wait a moment for the database trigger to create the profile
+            await new Promise(resolve => setTimeout(resolve, 500));
             try {
               await updateProfile.mutateAsync({ display_name: displayName.trim() });
             } catch {
-              // Non-blocking - profile update can happen later
+              // Retry once more after a delay
+              await new Promise(resolve => setTimeout(resolve, 500));
+              try {
+                await updateProfile.mutateAsync({ display_name: displayName.trim() });
+              } catch {
+                // Non-blocking - profile update can happen later on profile page
+              }
             }
           }
           navigate(redirectTo);
@@ -168,21 +176,25 @@ const AuthPage = () => {
         <motion.header 
           initial={{ opacity: 0, y: -20 }}
           animate={{ opacity: 1, y: 0 }}
-          className="flex items-center gap-4 mb-12"
+          className="mb-10"
         >
           <button 
             onClick={() => navigate('/')}
-            className="p-2 border border-border rounded hover:border-primary transition-colors"
+            className="p-2 border border-border rounded hover:border-primary transition-colors mb-6"
           >
             <ArrowLeft className="w-5 h-5" />
           </button>
-          <div>
-            <h1 className="font-display text-3xl text-primary">
-              {isSignUp ? 'ENLIST' : 'AUTHENTICATE'}
+          <div className="flex items-baseline gap-2">
+            <h1 className="font-display text-3xl text-foreground">
+              {isSignUp ? 'Create Account' : 'Sign In'}
             </h1>
-            <p className="text-xs text-muted-foreground tracking-wider">
-              {isSignUp ? 'CREATE YOUR PROFILE' : 'ENTER CREDENTIALS'}
-            </p>
+            <span className="text-muted-foreground">
+              {isSignUp ? (
+                <>Already have an account? <button type="button" onClick={() => { setIsSignUp(false); setError(null); }} className="text-secondary hover:underline">Sign In</button></>
+              ) : (
+                <>Don't have an account? <button type="button" onClick={() => { setIsSignUp(true); setError(null); }} className="text-secondary hover:underline">Sign Up</button></>
+              )}
+            </span>
           </div>
         </motion.header>
 
@@ -196,15 +208,15 @@ const AuthPage = () => {
         >
           {/* Email */}
           <div className="space-y-2">
-            <label className="text-xs text-muted-foreground tracking-wider">EMAIL</label>
+            <label className="text-sm text-foreground">Email Address</label>
             <div className="relative">
               <Mail className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-muted-foreground" />
               <input
                 type="email"
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
-                className="w-full bg-card border border-border rounded pl-11 pr-4 py-3 text-foreground placeholder:text-muted-foreground focus:border-primary focus:outline-none transition-colors"
-                placeholder="agent@ironprotocol.com"
+                className="w-full bg-card border border-border rounded-lg pl-11 pr-4 py-3 text-foreground placeholder:text-muted-foreground focus:border-primary focus:outline-none transition-colors"
+                placeholder="you@example.com"
                 autoComplete="email"
               />
             </div>
@@ -212,15 +224,15 @@ const AuthPage = () => {
 
           {/* Password */}
           <div className="space-y-2">
-            <label className="text-xs text-muted-foreground tracking-wider">PASSWORD</label>
+            <label className="text-sm text-foreground">Password</label>
             <div className="relative">
               <Lock className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-muted-foreground" />
               <input
                 type={showPassword ? 'text' : 'password'}
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
-                className="w-full bg-card border border-border rounded pl-11 pr-11 py-3 text-foreground placeholder:text-muted-foreground focus:border-primary focus:outline-none transition-colors"
-                placeholder="••••••••"
+                className="w-full bg-card border border-border rounded-lg pl-11 pr-11 py-3 text-foreground placeholder:text-muted-foreground focus:border-primary focus:outline-none transition-colors"
+                placeholder="Enter 6 characters or more"
                 autoComplete={isSignUp ? 'new-password' : 'current-password'}
               />
               <button
@@ -236,14 +248,14 @@ const AuthPage = () => {
           {/* Display Name (Sign Up Only) */}
           {isSignUp && (
             <div className="space-y-2">
-              <label className="text-xs text-muted-foreground tracking-wider">CALL SIGN (Optional)</label>
+              <label className="text-sm text-foreground">Call Sign <span className="text-muted-foreground">(Optional)</span></label>
               <div className="relative">
                 <User className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-muted-foreground" />
                 <input
                   type="text"
                   value={displayName}
                   onChange={(e) => setDisplayName(e.target.value)}
-                  className="w-full bg-card border border-border rounded pl-11 pr-4 py-3 text-foreground placeholder:text-muted-foreground focus:border-primary focus:outline-none transition-colors"
+                  className="w-full bg-card border border-border rounded-lg pl-11 pr-4 py-3 text-foreground placeholder:text-muted-foreground focus:border-primary focus:outline-none transition-colors"
                   placeholder="GHOST_REAPER"
                   maxLength={15}
                 />
@@ -268,24 +280,10 @@ const AuthPage = () => {
           <button
             type="submit"
             disabled={isLoading}
-            className="w-full py-4 bg-primary text-primary-foreground font-display text-xl rounded hover:box-glow-primary transition-all disabled:opacity-50 disabled:cursor-not-allowed"
+            className="w-full py-4 bg-primary text-primary-foreground font-display text-lg rounded-lg hover:box-glow-primary transition-all disabled:opacity-50 disabled:cursor-not-allowed"
           >
             {isLoading ? 'PROCESSING...' : isSignUp ? 'CREATE ACCOUNT' : 'SIGN IN'}
           </button>
-
-          {/* Toggle Sign Up / Sign In */}
-          <div className="text-center">
-            <button
-              type="button"
-              onClick={() => {
-                setIsSignUp(!isSignUp);
-                setError(null);
-              }}
-              className="text-sm text-muted-foreground hover:text-secondary transition-colors"
-            >
-              {isSignUp ? 'Already have an account? Sign in' : "Don't have an account? Create one"}
-            </button>
-          </div>
         </motion.form>
 
         {/* Anonymous Warning - hide on quick flow */}
