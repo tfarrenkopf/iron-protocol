@@ -30,7 +30,12 @@ interface PendingWorkout {
 const AuthPage = () => {
   const navigate = useNavigate();
   const location = useLocation();
-  const redirectTo = (location.state as { redirect?: string })?.redirect || '/';
+  
+  // Support redirectTo from both URL query params and location state
+  const searchParams = new URLSearchParams(location.search);
+  const queryRedirect = searchParams.get('redirectTo');
+  const stateRedirect = (location.state as { redirect?: string })?.redirect;
+  const redirectTo = queryRedirect || stateRedirect || '/';
   const intent = (location.state as { intent?: string })?.intent;
   const { signIn, signUp, user } = useAuth();
   const updateProfile = useUpdateProfile();
