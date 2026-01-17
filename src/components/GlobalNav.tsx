@@ -83,6 +83,8 @@ interface GlobalNavProps {
   className?: string;
   /** Override section color (auto-detected from route if not provided) */
   section?: SectionType;
+  /** Optional action buttons to display next to nav icons */
+  actions?: React.ReactNode;
 }
 
 export function GlobalNav({ 
@@ -92,6 +94,7 @@ export function GlobalNav({
   backTo = "/",
   className,
   section: sectionOverride,
+  actions,
 }: GlobalNavProps) {
   const navigate = useNavigate();
   const location = useLocation();
@@ -123,7 +126,7 @@ export function GlobalNav({
           <button
             onClick={() => navigate(backTo)}
             className={cn(
-              "p-2 border rounded transition-colors",
+              "p-2 border rounded transition-colors flex-shrink-0",
               sectionColors.border,
               "hover:bg-muted"
             )}
@@ -132,41 +135,50 @@ export function GlobalNav({
             <ArrowLeft className={cn("w-5 h-5", sectionColors.text)} />
           </button>
         ) : (
-          <div className="w-9" /> // Spacer for alignment
+          <div className="w-9 flex-shrink-0" /> // Spacer for alignment
         )}
 
-        {/* Quick nav icons */}
-        <nav className="flex items-center gap-1">
-          {navItems.map((item) => {
-            const Icon = item.icon;
-            const itemColors = SECTION_COLORS[item.section];
-            const isActive = location.pathname === item.path || 
-              (item.path === "/command" && location.pathname.startsWith("/command")) ||
-              (item.path === "/command" && location.pathname.startsWith("/campaign")) ||
-              (item.path === "/command" && location.pathname.startsWith("/mission")) ||
-              (item.path === "/intel" && location.pathname.startsWith("/intel")) ||
-              (item.path === "/intel" && location.pathname.startsWith("/rival")) ||
-              (item.path === "/handler" && location.pathname.startsWith("/handler")) ||
-              (item.path === "/hiit" && location.pathname.startsWith("/hiit"));
-            
-            return (
-              <button
-                key={item.path}
-                onClick={() => navigate(item.path)}
-                className={cn(
-                  "p-2 rounded transition-colors",
-                  isActive 
-                    ? `${itemColors.text} ${itemColors.bg}` 
-                    : "text-muted-foreground hover:text-foreground hover:bg-muted/50"
-                )}
-                aria-label={item.label}
-                title={item.label}
-              >
-                <Icon className="w-4 h-4" />
-              </button>
-            );
-          })}
-        </nav>
+        {/* Quick nav icons + action buttons */}
+        <div className="flex items-center gap-1">
+          <nav className="flex items-center gap-1">
+            {navItems.map((item) => {
+              const Icon = item.icon;
+              const itemColors = SECTION_COLORS[item.section];
+              const isActive = location.pathname === item.path || 
+                (item.path === "/command" && location.pathname.startsWith("/command")) ||
+                (item.path === "/command" && location.pathname.startsWith("/campaign")) ||
+                (item.path === "/command" && location.pathname.startsWith("/mission")) ||
+                (item.path === "/intel" && location.pathname.startsWith("/intel")) ||
+                (item.path === "/intel" && location.pathname.startsWith("/rival")) ||
+                (item.path === "/handler" && location.pathname.startsWith("/handler")) ||
+                (item.path === "/hiit" && location.pathname.startsWith("/hiit"));
+              
+              return (
+                <button
+                  key={item.path}
+                  onClick={() => navigate(item.path)}
+                  className={cn(
+                    "p-2 rounded transition-colors",
+                    isActive 
+                      ? `${itemColors.text} ${itemColors.bg}` 
+                      : "text-muted-foreground hover:text-foreground hover:bg-muted/50"
+                  )}
+                  aria-label={item.label}
+                  title={item.label}
+                >
+                  <Icon className="w-4 h-4" />
+                </button>
+              );
+            })}
+          </nav>
+          
+          {/* Action buttons slot - renders inline with nav */}
+          {actions && (
+            <div className="flex items-center gap-1 ml-1 pl-1 border-l border-border">
+              {actions}
+            </div>
+          )}
+        </div>
       </div>
 
       {/* Title section */}

@@ -302,36 +302,38 @@ const Command = () => {
       
       <div className="relative z-10 container mx-auto px-4 py-6 max-w-2xl">
         {/* Header */}
-        <div className="flex items-center justify-between mb-6">
-          <GlobalNav 
-            title="COMMAND"
-            subtitle="MISSION CONTROL & ARSENAL"
-            showBack={true}
-            className="mb-0 flex-1"
-            section="command"
-          />
-          
-          <div className="flex gap-2 ml-3">
-            {/* Filter button - show for all tabs */}
-            <button
-              onClick={() => setShowFilters(!showFilters)}
-              className={`p-2 border rounded transition-colors ${
-                hasFilters ? 'border-secondary text-secondary' : 'border-border hover:border-primary'
-              }`}
-            >
-              <Filter className="w-5 h-5" />
-            </button>
-            {user && createConfig && (
+        <GlobalNav 
+          title="COMMAND"
+          subtitle="MISSION CONTROL & ARSENAL"
+          showBack={true}
+          section="command"
+          actions={
+            <>
+              {/* Filter button - show for all tabs */}
               <button
-                onClick={createConfig.onClick}
-                className="p-2 border border-primary text-primary rounded hover:bg-primary/10 transition-colors"
-                title={createConfig.label}
+                onClick={() => setShowFilters(!showFilters)}
+                className={`p-2 border rounded transition-colors ${
+                  hasFilters 
+                    ? 'border-secondary text-secondary bg-secondary/10' 
+                    : 'border-section-command/30 text-muted-foreground hover:border-section-command hover:text-section-command'
+                }`}
+                aria-label="Toggle filters"
               >
-                <Plus className="w-5 h-5" />
+                <Filter className="w-4 h-4" />
               </button>
-            )}
-          </div>
-        </div>
+              {user && createConfig && (
+                <button
+                  onClick={createConfig.onClick}
+                  className="p-2 border border-section-command/30 text-muted-foreground rounded hover:border-section-command hover:text-section-command hover:bg-section-command/10 transition-colors"
+                  title={createConfig.label}
+                  aria-label={createConfig.label}
+                >
+                  <Plus className="w-4 h-4" />
+                </button>
+              )}
+            </>
+          }
+        />
 
         {/* Tab Navigation - each tab has its own section color */}
         <div className="flex gap-1 mb-4 overflow-x-auto scrollbar-hide">
