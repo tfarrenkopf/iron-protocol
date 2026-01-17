@@ -19,6 +19,7 @@ import {
   AlertTriangle,
 } from 'lucide-react';
 import { GlobalNav } from '@/components/GlobalNav';
+import { RivalWidget } from '@/components/RivalWidget';
 import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { format, startOfWeek, endOfWeek, subHours, subDays, subMinutes } from 'date-fns';
@@ -1059,7 +1060,7 @@ const Intel = () => {
 
         {/* Tabs */}
         <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-          <TabsList className="grid w-full grid-cols-4 mb-6 bg-card border border-border">
+          <TabsList className="grid w-full grid-cols-5 mb-6 bg-card border border-border">
             <TabsTrigger 
               value="feed" 
               className="font-display text-xs data-[state=active]:bg-primary data-[state=active]:text-primary-foreground"
@@ -1068,30 +1069,55 @@ const Intel = () => {
               FEED
             </TabsTrigger>
             <TabsTrigger 
+              value="rivals" 
+              className="font-display text-xs data-[state=active]:bg-primary data-[state=active]:text-primary-foreground"
+            >
+              <Users className="w-3.5 h-3.5 mr-1" />
+              RIVALS
+            </TabsTrigger>
+            <TabsTrigger 
               value="campaigns" 
               className="font-display text-xs data-[state=active]:bg-primary data-[state=active]:text-primary-foreground"
             >
               <BarChart3 className="w-3.5 h-3.5 mr-1" />
-              CAMPAIGNS
+              OPS
             </TabsTrigger>
             <TabsTrigger 
               value="rankings" 
               className="font-display text-xs data-[state=active]:bg-primary data-[state=active]:text-primary-foreground"
             >
               <Trophy className="w-3.5 h-3.5 mr-1" />
-              RANKINGS
+              RANKS
             </TabsTrigger>
             <TabsTrigger 
               value="stats" 
               className="font-display text-xs data-[state=active]:bg-primary data-[state=active]:text-primary-foreground"
             >
               <Target className="w-3.5 h-3.5 mr-1" />
-              MY STATS
+              STATS
             </TabsTrigger>
           </TabsList>
 
           <TabsContent value="feed">
             <LiveFeedTab isGuest={isGuest} />
+          </TabsContent>
+
+          <TabsContent value="rivals">
+            {isGuest ? (
+              <div className="text-center py-12 border border-dashed border-border rounded-lg">
+                <Swords className="w-12 h-12 mx-auto mb-4 text-muted-foreground/50" />
+                <p className="font-display text-lg text-muted-foreground mb-2">RIVALRY INTEL LOCKED</p>
+                <p className="text-sm text-muted-foreground/70 mb-4">Sign in to track your rivals and compete head-to-head.</p>
+                <button
+                  onClick={() => navigate('/auth')}
+                  className="px-4 py-2 bg-primary text-primary-foreground font-display text-sm rounded hover:box-glow-primary transition-all"
+                >
+                  SIGN IN
+                </button>
+              </div>
+            ) : (
+              <RivalWidget variant="full" />
+            )}
           </TabsContent>
 
           <TabsContent value="campaigns">

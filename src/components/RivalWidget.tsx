@@ -1,9 +1,15 @@
 import { useState } from 'react';
-import { motion } from 'framer-motion';
-import { Swords, Share2, Trophy, TrendingUp, Trash2, Crown, Loader2 } from 'lucide-react';
-import { useRivals, useRivalWeeklyStats, useRemoveRival } from '@/hooks/useRivals';
+import { motion, AnimatePresence } from 'framer-motion';
+import { useNavigate } from 'react-router-dom';
+import { 
+  Swords, Share2, Trophy, TrendingUp, Trash2, Crown, Loader2, 
+  ChevronDown, ChevronUp, Flame, Dumbbell, Target, Zap, Play,
+  AlertTriangle, Skull
+} from 'lucide-react';
+import { useRivals, useRivalWeeklyStats, useRemoveRival, useRivalActivity, RivalWeeklyStats } from '@/hooks/useRivals';
 import { useAuth } from '@/hooks/useAuth';
 import { useProfile } from '@/hooks/useProfile';
+import { useActiveCampaign } from '@/hooks/useActiveCampaign';
 import { Button } from '@/components/ui/button';
 import {
   AlertDialog,
@@ -16,16 +22,27 @@ import {
   AlertDialogTitle,
 } from '@/components/ui/alert-dialog';
 import { toast } from '@/hooks/use-toast';
+import { formatDistanceToNow } from 'date-fns';
 
-export function RivalWidget() {
+interface RivalWidgetProps {
+  variant?: 'compact' | 'full';
+}
+
+export function RivalWidget({ variant = 'compact' }: RivalWidgetProps) {
+  const navigate = useNavigate();
   const { user } = useAuth();
   const { data: profile } = useProfile();
   const { data: rivals, isLoading: rivalsLoading } = useRivals();
   const { data: weeklyStats, isLoading: statsLoading } = useRivalWeeklyStats();
+  const { data: rivalActivity, isLoading: activityLoading } = useRivalActivity();
+  const { activeCampaignId, setActiveCampaign, isSettingActive } = useActiveCampaign();
   const removeRival = useRemoveRival();
   
+  const [expandedRival, setExpandedRival] = useState<string | null>(null);
   const [removeDialogOpen, setRemoveDialogOpen] = useState(false);
   const [rivalToRemove, setRivalToRemove] = useState<{ id: string; name: string } | null>(null);
+  const [showCampaignWarning, setShowCampaignWarning] = useState(false);
+  const [pendingCampaignId, setPendingCampaignId] = useState<string | null>(null);
 
   if (!user) return null;
 
@@ -37,13 +54,11 @@ export function RivalWidget() {
       return;
     }
 
-    // Use the custom domain URL
     const baseUrl = 'https://iron-protocol.fitness';
     const shareUrl = `${baseUrl}/rival/${profile.rival_code}`;
     const shareText = `⚔️ YOU'VE BEEN MARKED. Accept the challenge or stay weak.`;
     const fullMessage = `${shareText} ${shareUrl}`;
 
-    // Always copy to clipboard first
     try {
       await navigator.clipboard.writeText(fullMessage);
       toast({ 
@@ -51,7 +66,6 @@ export function RivalWidget() {
         description: 'Paste it anywhere to send to your target.' 
       });
     } catch {
-      // Fallback: show the link in toast if clipboard fails
       toast({ 
         title: 'Copy this challenge:', 
         description: fullMessage,
@@ -76,8 +90,78 @@ export function RivalWidget() {
     setRivalToRemove(null);
   };
 
+  const handleJoinMission = (missionId: string) => {
+    navigate(`/mission/${missionId}`);
+  };
+
+  const handleSelectCampaign = (campaignId: string) => {
+    if (activeCampaignId && activeCampaignId !== campaignId) {
+      setPendingCampaignId(campaignId);
+      setShowCampaignWarning(true);
+    } else {
+      navigate(`/campaign/${campaignId}`);
+    }
+  };
+
+  const confirmCampaignSwitch = () => {
+    if (pendingCampaignId) {
+      setActiveCampaign(pendingCampaignId);
+      setShowCampaignWarning(false);
+      navigate(`/campaign/${pendingCampaignId}`);
+    }
+  };
+
   // Get user's rank among rivals
   const userRank = weeklyStats?.findIndex(s => s.user_id === user.id) ?? -1;
+  const userStats = weeklyStats?.find(s => s.user_id === user.id);
+
+  const formatRelativeTime = (dateStr: string) => {
+    try {
+      return formatDistanceToNow(new Date(dateStr), { addSuffix: true });
+    } catch {
+      return 'recently';
+    }
+  };
+
+  const getRankIcon = (index: number) => {
+    if (index === 0) return <Crown className="w-3 h-3" />;
+    return <span>{index + 1}</span>;
+  };
+
+  const getRankColor = (index: number) => {
+    if (index === 0) return 'bg-yellow-500/20 text-yellow-500';
+    if (index === 1) return 'bg-gray-400/20 text-gray-400';
+    if (index === 2) return 'bg-amber-600/20 text-amber-600';
+    return 'bg-muted/20 text-muted-foreground';
+  };
+
+  const renderExpandedStats = (stat: RivalWeeklyStats) => (
+    <motion.div
+      initial={{ opacity: 0, height: 0 }}
+      animate={{ opacity: 1, height: 'auto' }}
+      exit={{ opacity: 0, height: 0 }}
+      className="mt-2 pt-2 border-t border-border/50"
+    >
+      <div className="grid grid-cols-4 gap-2 text-center">
+        <div>
+          <div className="font-display text-sm text-accent">{stat.weekly_weight.toLocaleString()}</div>
+          <div className="text-[9px] text-muted-foreground uppercase">LBS</div>
+        </div>
+        <div>
+          <div className="font-display text-sm text-secondary">{stat.weekly_sets}</div>
+          <div className="text-[9px] text-muted-foreground uppercase">SETS</div>
+        </div>
+        <div>
+          <div className="font-display text-sm text-primary">{stat.weekly_max_combo}x</div>
+          <div className="text-[9px] text-muted-foreground uppercase">COMBO</div>
+        </div>
+        <div>
+          <div className="font-display text-sm text-destructive">{stat.weekly_sessions}</div>
+          <div className="text-[9px] text-muted-foreground uppercase">OPS</div>
+        </div>
+      </div>
+    </motion.div>
+  );
 
   return (
     <>
@@ -123,82 +207,191 @@ export function RivalWidget() {
             </Button>
           </div>
         ) : (
-          <div className="space-y-3">
+          <div className="space-y-4">
             {/* Weekly Leaderboard */}
-            <div className="text-xs text-muted-foreground mb-2 flex items-center gap-1">
-              <TrendingUp className="w-3 h-3" />
-              WEEKLY KILLBOARD
-            </div>
-            
-            {statsLoading ? (
-              <div className="animate-pulse space-y-2">
-                {[1, 2, 3].map(i => (
-                  <div key={i} className="h-10 bg-muted/20 rounded" />
-                ))}
+            <div>
+              <div className="text-xs text-muted-foreground mb-2 flex items-center gap-1">
+                <TrendingUp className="w-3 h-3" />
+                WEEKLY KILLBOARD
               </div>
-            ) : (
-              <div className="space-y-2">
-                {weeklyStats?.map((stat, index) => {
-                  const isCurrentUser = stat.user_id === user.id;
-                  const rival = rivals?.find(r => r.rival_id === stat.user_id);
-                  
-                  return (
+              
+              {statsLoading ? (
+                <div className="animate-pulse space-y-2">
+                  {[1, 2, 3].map(i => (
+                    <div key={i} className="h-12 bg-muted/20 rounded" />
+                  ))}
+                </div>
+              ) : (
+                <div className="space-y-2">
+                  {weeklyStats?.map((stat, index) => {
+                    const isCurrentUser = stat.user_id === user.id;
+                    const rival = rivals?.find(r => r.rival_id === stat.user_id);
+                    const isExpanded = expandedRival === stat.user_id;
+                    
+                    return (
+                      <motion.div
+                        key={stat.user_id}
+                        initial={{ opacity: 0, x: -10 }}
+                        animate={{ opacity: 1, x: 0 }}
+                        transition={{ delay: index * 0.1 }}
+                        className={`p-2 rounded cursor-pointer transition-colors ${
+                          isCurrentUser 
+                            ? 'bg-primary/10 border border-primary/30' 
+                            : 'bg-background border border-border hover:border-primary/30'
+                        }`}
+                        onClick={() => setExpandedRival(isExpanded ? null : stat.user_id)}
+                      >
+                        <div className="flex items-center gap-3">
+                          {/* Rank */}
+                          <div className={`w-6 h-6 rounded-full flex items-center justify-center text-xs font-bold ${getRankColor(index)}`}>
+                            {getRankIcon(index)}
+                          </div>
+                          
+                          {/* Name & expand indicator */}
+                          <div className="flex-1 min-w-0 flex items-center gap-1">
+                            <p className={`text-sm font-medium truncate ${isCurrentUser ? 'text-primary' : ''}`}>
+                              {isCurrentUser ? 'You' : stat.display_name || 'Anonymous'}
+                            </p>
+                            {isExpanded ? (
+                              <ChevronUp className="w-3 h-3 text-muted-foreground flex-shrink-0" />
+                            ) : (
+                              <ChevronDown className="w-3 h-3 text-muted-foreground flex-shrink-0" />
+                            )}
+                          </div>
+                          
+                          {/* Score */}
+                          <div className="text-right flex-shrink-0">
+                            <p className={`text-sm font-display ${isCurrentUser ? 'text-primary' : 'text-secondary'}`}>
+                              {stat.weekly_score.toLocaleString()}
+                            </p>
+                            <p className="text-[10px] text-muted-foreground">
+                              SCORE
+                            </p>
+                          </div>
+
+                          {/* Remove button for rivals */}
+                          {!isCurrentUser && rival && (
+                            <button
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                handleRemoveRival(stat.user_id, stat.display_name || 'Rival');
+                              }}
+                              className="p-1 hover:bg-destructive/10 rounded transition-colors opacity-50 hover:opacity-100"
+                              title="End rivalry"
+                            >
+                              <Trash2 className="w-3 h-3 text-destructive" />
+                            </button>
+                          )}
+                        </div>
+
+                        {/* Expanded stats */}
+                        <AnimatePresence>
+                          {isExpanded && renderExpandedStats(stat)}
+                        </AnimatePresence>
+                      </motion.div>
+                    );
+                  })}
+                </div>
+              )}
+            </div>
+
+            {/* Activity Feed - Full variant only */}
+            {variant === 'full' && rivalActivity && rivalActivity.length > 0 && (
+              <div>
+                <div className="text-xs text-muted-foreground mb-2 flex items-center gap-1">
+                  <Flame className="w-3 h-3" />
+                  RIVAL ACTIVITY
+                </div>
+                
+                <div className="space-y-2 max-h-64 overflow-y-auto">
+                  {rivalActivity.map((activity, index) => (
                     <motion.div
-                      key={stat.user_id}
-                      initial={{ opacity: 0, x: -10 }}
-                      animate={{ opacity: 1, x: 0 }}
-                      transition={{ delay: index * 0.1 }}
-                      className={`flex items-center gap-3 p-2 rounded ${
-                        isCurrentUser 
-                          ? 'bg-primary/10 border border-primary/30' 
-                          : 'bg-background border border-border'
-                      }`}
+                      key={activity.id}
+                      initial={{ opacity: 0, y: 10 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      transition={{ delay: index * 0.05 }}
+                      className="p-3 bg-background border border-border rounded-lg"
                     >
-                      {/* Rank */}
-                      <div className={`w-6 h-6 rounded-full flex items-center justify-center text-xs font-bold ${
-                        index === 0 ? 'bg-yellow-500/20 text-yellow-500' :
-                        index === 1 ? 'bg-gray-400/20 text-gray-400' :
-                        index === 2 ? 'bg-amber-600/20 text-amber-600' :
-                        'bg-muted/20 text-muted-foreground'
-                      }`}>
-                        {index === 0 ? <Crown className="w-3 h-3" /> : index + 1}
+                      <div className="flex items-start justify-between gap-2 mb-2">
+                        <div>
+                          <span className="font-display text-sm text-primary">{activity.display_name}</span>
+                          <span className="text-xs text-muted-foreground ml-1">completed</span>
+                        </div>
+                        <span className="text-[10px] text-muted-foreground">{formatRelativeTime(activity.completed_at)}</span>
                       </div>
                       
-                      {/* Name */}
-                      <div className="flex-1 min-w-0">
-                        <p className={`text-sm font-medium truncate ${isCurrentUser ? 'text-primary' : ''}`}>
-                          {isCurrentUser ? 'You' : stat.display_name || 'Anonymous'}
-                        </p>
+                      <div className="font-display text-secondary mb-2">
+                        {activity.mission_snapshot?.code_name || 'CLASSIFIED'}
                       </div>
                       
-                      {/* Score */}
-                      <div className="text-right">
-                        <p className={`text-sm font-display ${isCurrentUser ? 'text-primary' : 'text-secondary'}`}>
-                          {stat.weekly_score.toLocaleString()}
-                        </p>
-                        <p className="text-[10px] text-muted-foreground">
-                          {stat.weekly_sessions} session{stat.weekly_sessions !== 1 ? 's' : ''}
-                        </p>
+                      <div className="flex items-center gap-3 text-[10px] text-muted-foreground mb-3">
+                        <span className="flex items-center gap-1">
+                          <Target className="w-3 h-3" />
+                          {activity.score_earned.toLocaleString()}
+                        </span>
+                        <span className="flex items-center gap-1">
+                          <Dumbbell className="w-3 h-3" />
+                          {activity.total_weight.toLocaleString()} lbs
+                        </span>
+                        <span className="flex items-center gap-1">
+                          <Zap className="w-3 h-3" />
+                          {activity.max_combo}x
+                        </span>
                       </div>
 
-                      {/* Remove button for rivals */}
-                      {!isCurrentUser && rival && (
+                      {/* Action buttons */}
+                      {activity.mission_id && (
                         <button
-                          onClick={() => handleRemoveRival(stat.user_id, stat.display_name || 'Rival')}
-                          className="p-1 hover:bg-destructive/10 rounded transition-colors opacity-50 hover:opacity-100"
-                          title="End rivalry"
+                          onClick={() => handleJoinMission(activity.mission_id!)}
+                          className="w-full py-2 border border-primary/50 rounded text-xs font-display text-primary hover:bg-primary/10 transition-colors flex items-center justify-center gap-1"
                         >
-                          <Trash2 className="w-3 h-3 text-destructive" />
+                          <Play className="w-3 h-3" />
+                          ACCEPT CHALLENGE
                         </button>
                       )}
                     </motion.div>
-                  );
-                })}
+                  ))}
+                </div>
+              </div>
+            )}
+
+            {/* Compact Activity Feed - show only 2 items */}
+            {variant === 'compact' && rivalActivity && rivalActivity.length > 0 && (
+              <div>
+                <div className="text-xs text-muted-foreground mb-2 flex items-center gap-1">
+                  <Flame className="w-3 h-3" />
+                  RECENT ACTIVITY
+                </div>
+                
+                <div className="space-y-2">
+                  {rivalActivity.slice(0, 2).map((activity) => (
+                    <div
+                      key={activity.id}
+                      className="p-2 bg-background border border-border rounded flex items-center justify-between gap-2"
+                    >
+                      <div className="flex-1 min-w-0">
+                        <span className="text-xs text-primary font-display">{activity.display_name}</span>
+                        <span className="text-[10px] text-muted-foreground"> • </span>
+                        <span className="text-xs text-secondary font-display truncate">
+                          {activity.mission_snapshot?.code_name || 'MISSION'}
+                        </span>
+                      </div>
+                      {activity.mission_id && (
+                        <button
+                          onClick={() => handleJoinMission(activity.mission_id!)}
+                          className="p-1.5 border border-primary/50 rounded text-primary hover:bg-primary/10 transition-colors flex-shrink-0"
+                        >
+                          <Play className="w-3 h-3" />
+                        </button>
+                      )}
+                    </div>
+                  ))}
+                </div>
               </div>
             )}
 
             {/* Share button at bottom */}
-            <div className="mt-4 pt-3 border-t border-border">
+            <div className="pt-3 border-t border-border">
               <Button
                 size="sm"
                 variant="outline"
@@ -229,6 +422,47 @@ export function RivalWidget() {
               className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
             >
               End Rivalry
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+
+      {/* Campaign Switch Warning */}
+      <AlertDialog open={showCampaignWarning} onOpenChange={setShowCampaignWarning}>
+        <AlertDialogContent className="bg-card border-destructive/50">
+          <AlertDialogHeader>
+            <AlertDialogTitle className="font-display text-destructive flex items-center gap-2">
+              <Skull className="w-5 h-5" />
+              ABANDON CURRENT OP?
+            </AlertDialogTitle>
+            <AlertDialogDescription className="space-y-3">
+              <p className="text-destructive font-display text-sm">
+                ⚠️ WARNING: MISSION ABORT DETECTED
+              </p>
+              <p>
+                Switching campaigns will <span className="text-destructive font-display">FORFEIT</span> your current progress.
+              </p>
+              <div className="bg-destructive/10 border border-destructive/30 rounded-lg p-3 space-y-1">
+                <p className="text-destructive text-sm font-display">CONSEQUENCES:</p>
+                <ul className="text-sm text-muted-foreground space-y-1 list-disc list-inside">
+                  <li>Campaign progress resets to 0%</li>
+                  <li>All mission checkpoints lost</li>
+                  <li>You must restart from the beginning</li>
+                </ul>
+              </div>
+              <p className="text-xs text-muted-foreground italic">
+                Your past workout stats and XP remain intact. Only campaign progress is reset.
+              </p>
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel className="border-border">RETREAT</AlertDialogCancel>
+            <AlertDialogAction
+              onClick={confirmCampaignSwitch}
+              disabled={isSettingActive}
+              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+            >
+              {isSettingActive ? 'SWITCHING...' : 'ABANDON & SWITCH'}
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>
