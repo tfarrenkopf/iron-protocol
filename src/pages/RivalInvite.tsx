@@ -43,6 +43,8 @@ const RivalInvite = () => {
     try {
       await addRival.mutateAsync(rivalCode);
       setJoined(true);
+      // Mark as visited to skip first-visit popup on dashboard
+      localStorage.setItem('iron-protocol-visited', 'true');
       toast.success('RIVALRY ESTABLISHED! ⚔️', {
         description: `You and ${rivalProfile?.display_name || 'your rival'} are now competing!`,
       });
