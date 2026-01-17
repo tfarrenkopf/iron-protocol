@@ -1,9 +1,20 @@
+import { useState } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
 import { motion } from "framer-motion";
 import { Home, Crosshair, Timer, Radio, ArrowLeft, Users, User, LogOut } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useIsHandler } from "@/hooks/useHandlerMode";
 import { useAuth } from "@/hooks/useAuth";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
 
 // Section color mapping - ensures visual consistency throughout the app
 export const SECTION_COLORS = {
@@ -101,6 +112,7 @@ export function GlobalNav({
   const location = useLocation();
   const { data: isHandler } = useIsHandler();
   const { user, signOut, isLoading, isAnonymous } = useAuth();
+  const [showSignOutDialog, setShowSignOutDialog] = useState(false);
 
   // Auto-detect section from current path or use override
   const currentSection = sectionOverride || getSectionFromPath(location.pathname);
@@ -115,17 +127,19 @@ export function GlobalNav({
     ...(isHandler ? [{ path: "/handler", icon: Users, label: "HANDLER", section: "handler" as SectionType }] : []),
   ];
 
-  const handleSignOut = async () => {
+  const confirmSignOut = async () => {
     await signOut();
+    setShowSignOutDialog(false);
     navigate("/");
   };
 
   return (
-    <motion.header
-      initial={{ opacity: 0, y: -20 }}
-      animate={{ opacity: 1, y: 0 }}
-      className={cn("mb-6", className)}
-    >
+    <>
+      <motion.header
+        initial={{ opacity: 0, y: -20 }}
+        animate={{ opacity: 1, y: 0 }}
+        className={cn("mb-6", className)}
+      >
       {/* Guest Mode Banner - shown on all pages when not logged in */}
       {isAnonymous && (
         <div className="mb-4 px-3 py-2 bg-warning/10 border border-warning/30 rounded flex items-center justify-between gap-3">
@@ -227,7 +241,7 @@ export function GlobalNav({
                 <User className="w-4 h-4" />
               </button>
               <button
-                onClick={handleSignOut}
+                onClick={() => setShowSignOutDialog(true)}
                 className="p-2 rounded text-muted-foreground hover:text-destructive hover:bg-destructive/10 transition-colors"
                 aria-label="Sign out"
                 title="Sign out"
@@ -251,5 +265,30 @@ export function GlobalNav({
         </div>
       )}
     </motion.header>
+
+      {/* Sign Out Confirmation Dialog */}
+      <AlertDialog open={showSignOutDialog} onOpenChange={setShowSignOutDialog}>
+        <AlertDialogContent className="bg-card border-border">
+          <AlertDialogHeader>
+            <AlertDialogTitle className="font-display flex items-center gap-2">
+              <LogOut className="w-5 h-5" />
+              SIGN OUT
+            </AlertDialogTitle>
+            <AlertDialogDescription>
+              Are you sure you want to sign out of Iron Protocol?
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel className="border-border">Cancel</AlertDialogCancel>
+            <AlertDialogAction
+              onClick={confirmSignOut}
+              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+            >
+              Sign Out
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+    </>
   );
 }
