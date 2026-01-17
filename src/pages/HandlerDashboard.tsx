@@ -165,6 +165,7 @@ const HandlerDashboard = () => {
         <GlobalNav 
           title="HANDLER OPS"
           subtitle="SQUAD COMMAND CENTER"
+          section="handler"
         />
 
         {/* Quick Stats */}
