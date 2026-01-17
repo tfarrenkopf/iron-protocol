@@ -150,26 +150,26 @@ const Dashboard = () => {
         >
           <button
             onClick={() => navigate("/hiit")}
-            className="group relative bg-card border border-accent/50 rounded p-3 text-center transition-all hover:border-accent hover:bg-accent/5"
+            className="group relative bg-card border border-section-hiit/50 rounded p-3 text-center transition-all hover:border-section-hiit hover:bg-section-hiit/5"
           >
-            <Timer className="w-5 h-5 text-accent mx-auto mb-1" />
-            <h2 className="font-display text-xs text-accent">HIIT</h2>
+            <Timer className="w-5 h-5 text-section-hiit mx-auto mb-1" />
+            <h2 className="font-display text-xs text-section-hiit">HIIT</h2>
           </button>
 
           <button
             onClick={() => navigate("/intel")}
-            className="group relative bg-card border border-primary/50 rounded p-3 text-center transition-all hover:border-primary hover:bg-primary/5"
+            className="group relative bg-card border border-section-intel/50 rounded p-3 text-center transition-all hover:border-section-intel hover:bg-section-intel/5"
           >
-            <Radio className="w-5 h-5 text-primary mx-auto mb-1" />
-            <h2 className="font-display text-xs text-primary">INTEL</h2>
+            <Radio className="w-5 h-5 text-section-intel mx-auto mb-1" />
+            <h2 className="font-display text-xs text-section-intel">INTEL</h2>
           </button>
 
           <button
             onClick={() => navigate("/command")}
-            className="group relative bg-card border border-secondary/50 rounded p-3 text-center transition-all hover:border-secondary hover:bg-secondary/5"
+            className="group relative bg-card border border-section-command/50 rounded p-3 text-center transition-all hover:border-section-command hover:bg-section-command/5"
           >
-            <Crosshair className="w-5 h-5 text-secondary mx-auto mb-1" />
-            <h2 className="font-display text-xs text-secondary">COMMAND</h2>
+            <Crosshair className="w-5 h-5 text-section-command mx-auto mb-1" />
+            <h2 className="font-display text-xs text-section-command">COMMAND</h2>
           </button>
 
           {isHandler && (
@@ -258,12 +258,12 @@ const Dashboard = () => {
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.7 }}
             onClick={() => navigate("/command")}
-            className="w-full group bg-card border-2 border-secondary/50 rounded-lg p-4 flex items-center justify-between hover:border-secondary hover:box-glow-secondary transition-all"
+            className="w-full group bg-card border-2 border-section-command/50 rounded-lg p-4 flex items-center justify-between hover:border-section-command hover:box-glow-command transition-all"
           >
             <div className="flex items-center gap-3">
-              <Crosshair className="w-6 h-6 text-secondary" />
+              <Crosshair className="w-6 h-6 text-section-command" />
               <div className="text-left">
-                <div className="font-display text-lg text-secondary group-hover:text-glow-secondary transition-all">
+                <div className="font-display text-lg text-section-command group-hover:text-glow-command transition-all">
                   ACCESS COMMAND
                 </div>
                 <div className="text-xs text-muted-foreground">
@@ -271,7 +271,7 @@ const Dashboard = () => {
                 </div>
               </div>
             </div>
-            <ChevronRight className="w-5 h-5 text-secondary group-hover:translate-x-1 transition-transform" />
+            <ChevronRight className="w-5 h-5 text-section-command group-hover:translate-x-1 transition-transform" />
           </motion.button>
         </motion.section>
 
