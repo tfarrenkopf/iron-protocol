@@ -37,8 +37,8 @@ export function RivalWidget() {
       return;
     }
 
-    // Use the published custom domain URL
-    const baseUrl = 'https://iron-protocol.lovable.app';
+    // Use the custom domain URL
+    const baseUrl = 'https://iron-protocol.fitness';
     const shareUrl = `${baseUrl}/rival/${profile.rival_code}`;
     const shareText = `⚔️ YOU'VE BEEN MARKED. Accept the challenge or stay weak.`;
     const fullMessage = `${shareText} ${shareUrl}`;
