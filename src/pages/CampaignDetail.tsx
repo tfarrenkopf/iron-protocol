@@ -2,7 +2,8 @@ import { useState, useMemo } from 'react';
 import { motion } from 'framer-motion';
 import { useNavigate, useParams } from 'react-router-dom';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
-import { Clock, Pencil, Trash2, Lock, Globe, Users, Flame, Plus, Trophy, Timer, Rocket, Zap, RefreshCw, X, Crosshair } from 'lucide-react';
+import { Clock, Pencil, Trash2, Lock, Globe, Users, Flame, Plus, Trophy, Timer, Rocket, Zap, RefreshCw, X, Crosshair, Calendar } from 'lucide-react';
+import { format } from 'date-fns';
 import { GlobalNav } from '@/components/GlobalNav';
 import { useCollection, useDeleteCollection, useRemoveMissionFromCollection, useAddMissionToCollection } from '@/hooks/useCollections';
 import { useCampaignProgress, useCampaignCompletions, useCampaignLeaderboard, CampaignProgress } from '@/hooks/useCampaignProgress';
@@ -312,35 +313,53 @@ const CampaignDetail = () => {
   const missions = collection?.collection_missions?.map(cm => cm.missions) || [];
   const missionIds = collection?.collection_missions?.map(cm => cm.mission_id) || [];
 
-  // Fetch which missions the user has completed (ACTIVE run only)
-  const { data: completedMissionsData } = useQuery({
-    queryKey: ['campaign-completed-missions', collectionId, user?.id, missions.length, isActiveCampaign, (progress as any)?.current_run_started_at],
+  // Fetch completed sessions for this run with full details
+  const { data: runSessionsData } = useQuery({
+    queryKey: ['campaign-run-sessions', collectionId, user?.id, missions.length, isActiveCampaign, (progress as any)?.current_run_started_at],
     queryFn: async () => {
-      if (!user || missions.length === 0) return new Set<string>();
-      if (!isActiveCampaign) return new Set<string>();
+      if (!user || missions.length === 0) return [];
+      if (!isActiveCampaign) return [];
 
       const runStartedAt = (progress as any)?.current_run_started_at;
-      if (!runStartedAt) return new Set<string>();
+      if (!runStartedAt) return [];
 
       const missionIdList = missions.filter(m => m).map(m => m!.id);
 
       const { data, error } = await supabase
         .from('workout_sessions')
-        .select('mission_id')
+        .select(`
+          id,
+          mission_id,
+          completed_at,
+          score_earned,
+          total_weight,
+          missions (
+            code_name,
+            name
+          )
+        `)
         .eq('user_id', user.id)
         .eq('status', 'COMPLETED')
         .gte('started_at', runStartedAt)
-        .in('mission_id', missionIdList);
+        .in('mission_id', missionIdList)
+        .order('completed_at', { ascending: false });
 
       if (error) throw error;
-      return new Set(data?.map(s => s.mission_id) || []);
+      return data || [];
     },
     enabled: !!user && missions.length > 0 && isActiveCampaign,
     refetchOnWindowFocus: true,
     staleTime: 0,
   });
 
-  const completedMissionIds = completedMissionsData || new Set<string>();
+  // Derive completed mission IDs from the sessions
+  const completedMissionsData = useMemo(() => {
+    if (!runSessionsData) return new Set<string>();
+    return new Set(runSessionsData.map(s => s.mission_id).filter(Boolean) as string[]);
+  }, [runSessionsData]);
+
+  const completedMissionIds = completedMissionsData;
+  const runSessions = runSessionsData || [];
   
   // Find next uncompleted mission for quick launch
   const nextMission = useMemo(() => {
@@ -637,6 +656,46 @@ const CampaignDetail = () => {
             />
           )}
         </motion.section>
+
+        {/* Current Run History - Show completed sessions for active campaign */}
+        {isActiveCampaign && runSessions.length > 0 && (
+          <motion.section
+            initial={{ opacity: 0, y: 10 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.2 }}
+            className="mb-6"
+          >
+            <h2 className="font-display text-sm text-accent mb-3 tracking-wider flex items-center gap-2">
+              <Calendar className="w-4 h-4" /> RUN HISTORY
+            </h2>
+            <div className="bg-card border border-border rounded-lg overflow-hidden divide-y divide-border">
+              {runSessions.map((session: any) => {
+                const completedDate = new Date(session.completed_at);
+                const dayOfWeek = format(completedDate, 'EEE');
+                const dateStr = format(completedDate, 'MMM d');
+                const missionName = session.missions?.code_name || session.missions?.name || 'Unknown Mission';
+                
+                return (
+                  <div key={session.id} className="p-3 flex items-center justify-between">
+                    <div className="flex items-center gap-3">
+                      <div className="text-center min-w-[50px]">
+                        <div className="text-[10px] text-muted-foreground uppercase">{dayOfWeek}</div>
+                        <div className="text-sm font-display text-primary">{dateStr}</div>
+                      </div>
+                      <div>
+                        <div className="text-sm font-display text-foreground">{missionName}</div>
+                        <div className="text-[10px] text-muted-foreground">
+                          {session.score_earned} pts • {session.total_weight} lbs
+                        </div>
+                      </div>
+                    </div>
+                    <div className="text-xs text-secondary">✓</div>
+                  </div>
+                );
+              })}
+            </div>
+          </motion.section>
+        )}
 
         {/* Consolidated Stats Section - Only show if there's data */}
         {user && (leaderboard?.length > 0 || (completions && completions.length > 0)) && (
