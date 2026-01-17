@@ -164,7 +164,7 @@ export function GlobalNav({
           )}
 
           {/* IRON PROTOCOL branding */}
-          <span className="font-display text-sm text-primary/80 tracking-wider truncate">
+          <span className="font-display text-sm text-muted-foreground tracking-wider truncate">
             IRON PROTOCOL
           </span>
         </div>
