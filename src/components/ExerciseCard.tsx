@@ -1,11 +1,12 @@
 import { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useNavigate } from 'react-router-dom';
-import { ChevronDown, ChevronUp, Pencil, Trash2, Dumbbell, Target, Plus, Check } from 'lucide-react';
+import { ChevronDown, ChevronUp, Pencil, Trash2, Dumbbell, Target, Plus, Check, Loader2 } from 'lucide-react';
 import { Exercise } from '@/hooks/useExercises';
-import { useMissions } from '@/hooks/useMissions';
+import { useMissions, useAddExerciseToMission } from '@/hooks/useMissions';
 import { useAuth } from '@/hooks/useAuth';
 import { formatEquipment } from '@/data/muscleGroups';
+import { toast } from 'sonner';
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -23,6 +24,18 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from '@/components/ui/alert-dialog';
+
+// Lore phrases for adding exercises
+const ADD_LORE_PHRASES = [
+  "WEAPON LOADED. MISSION UPGRADED.",
+  "NEW TOOL IN THE ARSENAL. ENEMIES BEWARE.",
+  "EXERCISE DEPLOYED. TARGET ACQUIRED.",
+  "PAYLOAD DELIVERED. MUSCLE INCOMING.",
+  "COMBAT PROTOCOL UPDATED.",
+  "ASSET INTEGRATED. READY FOR ACTION.",
+  "INFILTRATION SUCCESSFUL.",
+  "UPGRADE COMPLETE. POWER RISING.",
+];
 
 interface ExerciseCardProps {
   exercise: Exercise;
@@ -43,9 +56,11 @@ export function ExerciseCard({
   const { user } = useAuth();
   const [isExpanded, setIsExpanded] = useState(false);
   const [showDeleteWarning, setShowDeleteWarning] = useState(false);
+  const [addingToMission, setAddingToMission] = useState<string | null>(null);
   
   // Fetch user's missions for "add to mission" functionality
   const { data: missions } = useMissions({});
+  const addExerciseToMission = useAddExerciseToMission();
   const myMissions = missions?.filter(m => m.created_by === user?.id) || [];
 
   // Check which missions already have this exercise
@@ -64,10 +79,31 @@ export function ExerciseCard({
     setShowDeleteWarning(false);
   };
 
-  const handleAddToMission = (e: React.MouseEvent, missionId: string) => {
+  const handleAddToMission = async (e: React.MouseEvent, mission: { id: string; code_name: string }) => {
     e.stopPropagation();
-    // Navigate to edit mission with this exercise pre-selected
-    navigate(`/exercises?editMission=${missionId}&addExercise=${exercise.id}`);
+    
+    if (missionHasExercise(mission.id)) return;
+    
+    setAddingToMission(mission.id);
+    
+    try {
+      await addExerciseToMission.mutateAsync({
+        missionId: mission.id,
+        exerciseId: exercise.id,
+      });
+      
+      // Show success toast with lore
+      const lorePhrase = ADD_LORE_PHRASES[Math.floor(Math.random() * ADD_LORE_PHRASES.length)];
+      toast.success(lorePhrase, {
+        description: `${exercise.name} added to ${mission.code_name}`,
+      });
+    } catch (error: any) {
+      toast.error('DEPLOYMENT FAILED', {
+        description: error.message || 'Could not add exercise to mission',
+      });
+    } finally {
+      setAddingToMission(null);
+    }
   };
 
   return (
@@ -122,19 +158,24 @@ export function ExerciseCard({
                   <DropdownMenuSeparator />
                   {myMissions.map(mission => {
                     const hasExercise = missionHasExercise(mission.id);
+                    const isAdding = addingToMission === mission.id;
                     return (
                       <DropdownMenuItem
                         key={mission.id}
-                        onClick={(e) => !hasExercise && handleAddToMission(e, mission.id)}
-                        className={`flex items-center gap-2 cursor-pointer ${hasExercise ? 'opacity-50' : ''}`}
-                        disabled={hasExercise}
+                        onClick={(e) => !hasExercise && !isAdding && handleAddToMission(e, mission)}
+                        className={`flex items-center gap-2 cursor-pointer ${hasExercise || isAdding ? 'opacity-50' : ''}`}
+                        disabled={hasExercise || isAdding}
                       >
                         <div className={`w-4 h-4 rounded border flex items-center justify-center ${
                           hasExercise 
                             ? 'bg-secondary border-secondary text-secondary-foreground' 
                             : 'border-border'
                         }`}>
-                          {hasExercise && <Check className="w-3 h-3" />}
+                          {isAdding ? (
+                            <Loader2 className="w-3 h-3 animate-spin" />
+                          ) : hasExercise ? (
+                            <Check className="w-3 h-3" />
+                          ) : null}
                         </div>
                         <span className="text-sm truncate">{mission.code_name}</span>
                       </DropdownMenuItem>

@@ -88,10 +88,14 @@ const Command = () => {
   // Filtered data
   const publicMissions = missions?.filter(m => m.is_public) || [];
   const myMissions = missions?.filter(m => m.created_by === user?.id) || [];
+  const publicExercises = exercises?.filter(e => e.is_public) || [];
   const myExercises = exercises?.filter(e => e.created_by === user?.id) || [];
   const myCollections = collections?.filter(c => !c.is_system && c.created_by === user?.id) || [];
   const systemCollections = collections?.filter(c => c.is_system) || [];
   const publicCollections = collections?.filter(c => !c.is_system && c.visibility === 'public' && c.created_by !== user?.id) || [];
+  
+  // Display exercises based on source
+  const displayExercises = source === 'public' ? publicExercises : myExercises;
   
   // Active campaign at top
   const activeCampaign = collections?.find(c => c.id === activeCampaignId);
@@ -587,7 +591,7 @@ const Command = () => {
           )}
 
           {/* Exercises Tab */}
-          {activeTab === 'exercises' && user && (
+          {activeTab === 'exercises' && (
             exercisesLoading ? (
               <div className="text-center py-12">
                 <div className="font-display text-lg text-primary animate-neon-pulse">LOADING...</div>
@@ -597,24 +601,40 @@ const Command = () => {
                 {/* Exercise instruction */}
                 <div className="mb-4 p-3 bg-primary/5 border border-primary/20 rounded-lg">
                   <p className="text-xs text-muted-foreground">
-                    <span className="text-primary font-display">EXERCISES</span> are your building blocks. Create custom moves, then add them to missions.
+                    <span className="text-primary font-display">EXERCISES</span> are your building blocks. Browse global or create custom moves for your missions.
                   </p>
                 </div>
                 
-                {myExercises.length === 0 ? (
+                {/* Source Toggle for exercises */}
+                {user && (
+                  <div className="mb-4">
+                    <SourceToggle 
+                      value={source} 
+                      onChange={setSource}
+                      publicLabel="GLOBAL"
+                      personalLabel="MY EXERCISES"
+                    />
+                  </div>
+                )}
+                
+                {displayExercises.length === 0 ? (
                   <div className="text-center py-12 border border-dashed border-border rounded-lg">
                     <Dumbbell className="w-10 h-10 mx-auto mb-3 text-muted-foreground/50" />
-                    <p className="text-muted-foreground mb-3">No custom exercises yet</p>
-                    <button
-                      onClick={() => navigate('/exercises?newExercise=true')}
-                      className="text-sm text-primary hover:text-glow-primary font-display"
-                    >
-                      + CREATE YOUR FIRST EXERCISE
-                    </button>
+                    <p className="text-muted-foreground mb-3">
+                      {source === 'personal' ? 'No custom exercises yet' : 'No public exercises available'}
+                    </p>
+                    {source === 'personal' && user && (
+                      <button
+                        onClick={() => navigate('/exercises?newExercise=true')}
+                        className="text-sm text-primary hover:text-glow-primary font-display"
+                      >
+                        + CREATE YOUR FIRST EXERCISE
+                      </button>
+                    )}
                   </div>
                 ) : (
                   <div className="space-y-2">
-                    {myExercises.map((exercise, i) => (
+                    {displayExercises.map((exercise, i) => (
                       <ExerciseCard
                         key={exercise.id}
                         exercise={exercise}
