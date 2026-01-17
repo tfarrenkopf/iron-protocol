@@ -1,10 +1,11 @@
 import { useState, useMemo, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import { useNavigate, useParams } from 'react-router-dom';
-import { ArrowLeft, Clock, Pencil, Trash2, Lock, Globe, Users, Flame, Plus, Trophy, Timer } from 'lucide-react';
+import { ArrowLeft, Clock, Pencil, Trash2, Lock, Globe, Users, Flame, Plus, Trophy, Timer, Rocket, Play, Zap } from 'lucide-react';
 import { useCollection, useDeleteCollection, useRemoveMissionFromCollection, useAddMissionToCollection } from '@/hooks/useCollections';
 import { useCampaignProgress, useCampaignCompletions, useCampaignLeaderboard } from '@/hooks/useCampaignProgress';
 import { useAuth } from '@/hooks/useAuth';
+import { useActiveCampaign } from '@/hooks/useActiveCampaign';
 import { StartCampaignButton } from '@/components/ActiveCampaignHero';
 import { GuestIndicator } from '@/components/AnonymousConversion';
 import { CollectionFormDialog } from '@/components/CollectionFormDialog';
@@ -32,9 +33,12 @@ const CampaignDetail = () => {
   const { data: progress } = useCampaignProgress(collectionId);
   const { data: completions } = useCampaignCompletions(collectionId);
   const { data: leaderboard } = useCampaignLeaderboard(collectionId);
+  const { activeCampaignId } = useActiveCampaign();
   const deleteCollection = useDeleteCollection();
   const removeMission = useRemoveMissionFromCollection();
   const addMission = useAddMissionToCollection();
+  
+  const isActiveCampaign = activeCampaignId === collectionId;
 
   const [editDialogOpen, setEditDialogOpen] = useState(false);
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
@@ -43,8 +47,15 @@ const CampaignDetail = () => {
   const [completedMissionIds, setCompletedMissionIds] = useState<Set<string>>(new Set());
 
   const isOwner = user && collection?.created_by === user.id;
+  // Can only edit if owner AND not currently active
+  const canEdit = isOwner && !collection?.is_system && !isActiveCampaign;
   const missions = collection?.collection_missions?.map(cm => cm.missions) || [];
   const missionIds = collection?.collection_missions?.map(cm => cm.mission_id) || [];
+  
+  // Find next uncompleted mission for quick launch
+  const nextMission = useMemo(() => {
+    return missions.find((m: any) => m && !completedMissionIds.has(m.id));
+  }, [missions, completedMissionIds]);
 
   // Fetch which missions the user has completed
   useEffect(() => {
@@ -162,24 +173,35 @@ const CampaignDetail = () => {
         >
           <div className="flex items-center gap-4">
             <button 
-              onClick={() => navigate('/command?tab=campaigns')}
+              onClick={() => navigate('/')}
               className="p-2 border border-border rounded hover:border-primary transition-colors"
             >
               <ArrowLeft className="w-5 h-5" />
             </button>
             <div>
               <div className="flex items-center gap-2">
-                <Flame className="w-6 h-6 text-accent" />
+                {isActiveCampaign ? (
+                  <Rocket className="w-6 h-6 text-accent animate-pulse" />
+                ) : (
+                  <Flame className="w-6 h-6 text-accent" />
+                )}
                 <h1 className="font-display text-2xl text-primary">{collection.code_name}</h1>
                 {collection.is_system && (
                   <span className="text-[10px] px-1.5 py-0.5 bg-secondary/20 text-secondary rounded">
                     OFFICIAL
                   </span>
                 )}
+                {isActiveCampaign && (
+                  <span className="text-[10px] px-1.5 py-0.5 bg-accent/20 text-accent rounded animate-pulse">
+                    ACTIVE
+                  </span>
+                )}
               </div>
               <p className="text-xs text-muted-foreground tracking-wider mt-1">
                 {isAnonymous ? (
                   <GuestIndicator variant="minimal" />
+                ) : isActiveCampaign ? (
+                  <span className="text-accent">🚀 ENGINES HOT • READY FOR LAUNCH</span>
                 ) : (
                   <span className="flex items-center gap-2">
                     {getVisibilityIcon(collection.visibility)}
@@ -191,12 +213,8 @@ const CampaignDetail = () => {
           </div>
 
           <div className="flex items-center gap-2">
-            {/* Start/Active Campaign button */}
-            {user && (
-              <StartCampaignButton campaignId={collectionId!} />
-            )}
-            
-            {isOwner && !collection.is_system && (
+            {/* Edit buttons - only show if can edit (not active) */}
+            {canEdit && (
               <>
                 <button
                   onClick={() => setEditDialogOpen(true)}
@@ -216,6 +234,80 @@ const CampaignDetail = () => {
             )}
           </div>
         </motion.header>
+
+        {/* LAUNCH CONTROL - Primary action for active campaigns */}
+        {isActiveCampaign && user && missions.length > 0 && (
+          <motion.div
+            initial={{ opacity: 0, scale: 0.95 }}
+            animate={{ opacity: 1, scale: 1 }}
+            className="mb-6 p-5 bg-gradient-to-br from-accent/20 via-accent/10 to-background border-2 border-accent rounded-xl"
+          >
+            <div className="flex items-center gap-2 mb-3">
+              <Zap className="w-5 h-5 text-accent" />
+              <span className="font-display text-sm text-accent tracking-wider">LAUNCH CONTROL</span>
+            </div>
+            
+            <div className="flex items-center justify-between mb-4">
+              <div>
+                <p className="text-xs text-muted-foreground mb-1">
+                  {completedMissionIds.size >= missions.length 
+                    ? 'CAMPAIGN COMPLETE • READY FOR VICTORY LAP'
+                    : `MISSION ${completedMissionIds.size + 1} OF ${missions.length}`
+                  }
+                </p>
+                <p className="font-display text-xl text-accent">
+                  {nextMission ? nextMission.code_name : 'ALL MISSIONS CLEARED'}
+                </p>
+              </div>
+              <div className="text-right">
+                <div className="text-2xl font-display text-accent">{progressPercent}%</div>
+                <div className="text-xs text-muted-foreground">PROGRESS</div>
+              </div>
+            </div>
+
+            {/* Progress bar */}
+            <div className="h-3 bg-accent/20 rounded-full overflow-hidden mb-4">
+              <motion.div 
+                initial={{ width: 0 }}
+                animate={{ width: `${progressPercent}%` }}
+                transition={{ duration: 0.5, ease: 'easeOut' }}
+                className="h-full bg-gradient-to-r from-accent to-primary rounded-full"
+              />
+            </div>
+
+            <button
+              onClick={() => {
+                if (nextMission) {
+                  navigate(`/workout/${nextMission.id}?campaign=${collection.id}`);
+                } else if (missions[0]) {
+                  navigate(`/workout/${missions[0].id}?campaign=${collection.id}`);
+                }
+              }}
+              className="w-full py-4 bg-accent text-accent-foreground font-display text-xl rounded-lg hover:box-glow-accent transition-all flex items-center justify-center gap-3"
+            >
+              <Rocket className="w-6 h-6" />
+              {completedMissionIds.size >= missions.length ? 'REPLAY FROM START' : 'LAUNCH MISSION'}
+            </button>
+
+            {isActiveCampaign && isOwner && !collection.is_system && (
+              <p className="text-xs text-center text-muted-foreground mt-3">
+                <Lock className="w-3 h-3 inline mr-1" />
+                Campaign locked while active. Forfeit to edit.
+              </p>
+            )}
+          </motion.div>
+        )}
+
+        {/* Start Campaign button for non-active */}
+        {!isActiveCampaign && user && (
+          <motion.div
+            initial={{ opacity: 0, y: 10 }}
+            animate={{ opacity: 1, y: 0 }}
+            className="mb-6"
+          >
+            <StartCampaignButton campaignId={collectionId!} size="large" />
+          </motion.div>
+        )}
 
         {/* Description */}
         {collection.description && (
@@ -299,8 +391,10 @@ const CampaignDetail = () => {
           transition={{ delay: 0.25 }}
         >
           <div className="flex items-center justify-between mb-3">
-            <h2 className="font-display text-sm text-secondary tracking-wider">MISSIONS IN THIS CAMPAIGN</h2>
-            {isOwner && !collection.is_system && (
+            <h2 className="font-display text-sm text-secondary tracking-wider">
+              {isActiveCampaign ? '🏁 RACE STAGES' : 'MISSIONS IN THIS CAMPAIGN'}
+            </h2>
+            {canEdit && (
               <button
                 onClick={() => setMissionPickerOpen(true)}
                 className="flex items-center gap-1 text-xs text-primary hover:text-glow-primary font-display"
@@ -315,8 +409,8 @@ const CampaignDetail = () => {
             missions={missions}
             missionIds={missionIds}
             completedMissionIds={completedMissionIds}
-            isOwner={!!isOwner}
-            isSystem={collection.is_system}
+            isOwner={!!canEdit}
+            isSystem={collection.is_system || isActiveCampaign}
             onRemoveMission={setMissionToRemove}
             onAddMission={() => setMissionPickerOpen(true)}
           />
