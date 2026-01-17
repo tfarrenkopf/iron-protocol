@@ -23,10 +23,13 @@ import JoinSquad from "./pages/JoinSquad";
 import AssignMission from "./pages/AssignMission";
 import AssignmentWorkout from "./pages/AssignmentWorkout";
 import NotFound from "./pages/NotFound";
+import { useGoogleAnalytics } from "@/hooks/useGoogleAnalytics";
 
 const queryClient = new QueryClient();
 
 function AppContent() {
+  useGoogleAnalytics();
+  
   return (
     <>
       <ScrollToTop />
