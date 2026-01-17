@@ -1,7 +1,8 @@
 import { useState } from 'react';
 import { motion } from 'framer-motion';
 import { useNavigate } from 'react-router-dom';
-import { ArrowLeft, Plus, Folder, FolderOpen, Pencil, Trash2, Lock, Globe, Users, Zap } from 'lucide-react';
+import { Plus, Folder, FolderOpen, Pencil, Trash2, Lock, Globe, Users, Zap } from 'lucide-react';
+import { GlobalNav } from '@/components/GlobalNav';
 import { useCollections, useDeleteCollection, CollectionWithMissions } from '@/hooks/useCollections';
 import { useAuth } from '@/hooks/useAuth';
 import { GuestIndicator } from '@/components/AnonymousConversion';
@@ -137,43 +138,22 @@ const Collections = () => {
       
       <div className="relative z-10 container mx-auto px-4 py-6 max-w-2xl">
         {/* Header */}
-        <motion.header 
-          initial={{ opacity: 0, y: -20 }}
-          animate={{ opacity: 1, y: 0 }}
-          className="flex items-center justify-between mb-6"
-        >
-          <div className="flex items-center gap-4">
-            <button 
-              onClick={() => navigate('/')}
-              className="p-2 border border-border rounded hover:border-primary transition-colors"
-            >
-              <ArrowLeft className="w-5 h-5" />
-            </button>
-            <div>
-              <h1 className="font-display text-3xl text-primary flex items-center gap-2">
-                <Folder className="w-7 h-7" />
-                CAMPAIGNS
-              </h1>
-              <p className="text-xs text-muted-foreground tracking-wider">
-                {isAnonymous ? (
-                  <GuestIndicator variant="minimal" />
-                ) : (
-                  'Organize missions into themed campaigns'
-                )}
-              </p>
-            </div>
-          </div>
-
+        <div className="flex items-center justify-between mb-6">
+          <GlobalNav 
+            title="CAMPAIGNS"
+            subtitle={isAnonymous ? 'GUEST MODE' : 'Organize missions into themed campaigns'}
+            className="mb-0 flex-1"
+          />
           {user && (
             <button
               onClick={() => setCreateDialogOpen(true)}
-              className="p-2 border border-primary text-primary rounded hover:bg-primary/10 transition-colors"
+              className="p-2 border border-primary text-primary rounded hover:bg-primary/10 transition-colors ml-3"
               title="Create new campaign"
             >
               <Plus className="w-5 h-5" />
             </button>
           )}
-        </motion.header>
+        </div>
 
         {isLoading ? (
           <div className="text-center py-12">
