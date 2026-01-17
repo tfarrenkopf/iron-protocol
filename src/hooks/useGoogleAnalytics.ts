@@ -11,8 +11,8 @@ export function useGoogleAnalytics() {
   const { user } = useAuth();
 
   useEffect(() => {
-    if (window.gtag && user?.id) {
-      window.gtag('set', { user_id: user.id });
+    if (window.gtag) {
+      window.gtag('set', { user_id: user?.id ?? null });
     }
   }, [user?.id]);
 }
