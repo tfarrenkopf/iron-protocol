@@ -52,7 +52,7 @@ export function FightNowActions() {
       initial={{ opacity: 0, scale: 0.95 }}
       animate={{ opacity: 1, scale: 1 }}
       transition={{ delay: 0.1 }}
-      className="mb-8 space-y-4"
+      className="space-y-4"
     >
       {/* Primary Action: Continue Campaign (if active and logged in) */}
       {hasActiveCampaign ? (
