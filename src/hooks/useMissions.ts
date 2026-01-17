@@ -66,6 +66,8 @@ export function useMissions(filters?: {
 
       return filtered;
     },
+    staleTime: 5 * 60 * 1000, // Cache for 5 minutes
+    gcTime: 10 * 60 * 1000, // Keep in garbage collection for 10 minutes
   });
 }
 
@@ -98,6 +100,8 @@ export function useMission(missionId: string | undefined) {
       return sortedData as MissionWithExercises;
     },
     enabled: !!missionId,
+    staleTime: 5 * 60 * 1000,
+    gcTime: 10 * 60 * 1000,
   });
 }
 
