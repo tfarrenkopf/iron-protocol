@@ -1,7 +1,7 @@
 import { ReactNode, useMemo } from 'react';
 import { motion } from 'framer-motion';
 import { useNavigate } from 'react-router-dom';
-import { Zap, Clock, Play, CheckCircle2, Plus, ChevronUp, ChevronDown, Trash2, Dumbbell, Trophy, Target } from 'lucide-react';
+import { Zap, Clock, Play, CheckCircle2, Plus, ChevronUp, ChevronDown, Trash2, Dumbbell, Trophy, Crosshair } from 'lucide-react';
 import { Tables } from '@/integrations/supabase/types';
 import { PopularityBadge } from '@/components/SocialProof';
 import { getPopularityTier } from '@/hooks/useMissionStats';
@@ -145,7 +145,7 @@ export function MissionCard({
             ? variant === 'campaign' 
               ? 'bg-yellow-400/20' 
               : 'bg-secondary/20'
-            : 'bg-primary/10 group-hover:bg-primary/20'
+            : 'bg-section-missions/10 group-hover:bg-section-missions/20'
         }`}>
           {isCompleted ? (
             variant === 'campaign' ? (
@@ -154,7 +154,7 @@ export function MissionCard({
               <CheckCircle2 className="w-5 h-5 text-secondary" />
             )
           ) : (
-            <Target className="w-5 h-5 text-primary" />
+            <Crosshair className="w-5 h-5 text-section-missions" />
           )}
         </div>
 
@@ -238,7 +238,7 @@ export function MissionCard({
           {/* Exercise names (for picker variant) */}
           {variant === 'picker' && exerciseNames && exerciseNames.length > 0 && (
             <div className="flex items-center gap-2 mt-2">
-              <Target className="w-3 h-3 text-muted-foreground flex-shrink-0" />
+              <Crosshair className="w-3 h-3 text-muted-foreground flex-shrink-0" />
               <p className="text-[10px] text-muted-foreground truncate">
                 {exerciseNames.join(', ')}
                 {(mission.mission_exercises?.length || 0) > 4 && ` +${(mission.mission_exercises?.length || 0) - 4} more`}
