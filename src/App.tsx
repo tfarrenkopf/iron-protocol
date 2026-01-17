@@ -22,6 +22,7 @@ import HandlerDashboard from "./pages/HandlerDashboard";
 import JoinSquad from "./pages/JoinSquad";
 import AssignMission from "./pages/AssignMission";
 import AssignmentWorkout from "./pages/AssignmentWorkout";
+import Collections from "./pages/Collections";
 import NotFound from "./pages/NotFound";
 import { useGoogleAnalytics } from "@/hooks/useGoogleAnalytics";
 
@@ -38,6 +39,7 @@ function AppContent() {
         <Route path="/auth" element={<AuthPage />} />
         <Route path="/profile" element={<ProfilePage />} />
         <Route path="/missions" element={<MissionSelect />} />
+        <Route path="/collections" element={<Collections />} />
         <Route path="/mission/:missionId" element={<MissionDetail />} />
         <Route path="/workout/:missionId" element={<WorkoutSession />} />
         <Route path="/workout/assignment/:assignmentId" element={<AssignmentWorkout />} />

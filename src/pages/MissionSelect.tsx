@@ -10,6 +10,7 @@ import { getPopularityTier } from '@/hooks/useMissionStats';
 import { GuestIndicator } from '@/components/AnonymousConversion';
 import { FOCUS_AREAS, getMusclesForFocusArea, EQUIPMENT_OPTIONS, formatEquipment } from '@/data/muscleGroups';
 import { CollectionFilter } from '@/components/CollectionFilter';
+import { AddToCollectionButton } from '@/components/AddToCollectionButton';
 import {
   AlertDialog,
   AlertDialogAction,
@@ -388,6 +389,9 @@ const MissionSelect = () => {
                 
                 {/* Top-right badges - single row with all elements */}
                 <div className="absolute top-3 right-3 flex items-center gap-1.5 z-20">
+                  {/* Add to collection button */}
+                  {user && <AddToCollectionButton missionId={mission.id} />}
+                  
                   {/* Custom mission controls */}
                   {!mission.is_public && user && mission.created_by === user.id && (
                     <>
