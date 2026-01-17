@@ -111,26 +111,19 @@ export function CollectionFormDialog({ open, onOpenChange, collectionId }: Colle
 
         <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
           <div>
-            <Label htmlFor="name" className="text-xs text-muted-foreground tracking-wider">NAME</Label>
+            <Label htmlFor="name" className="text-xs text-muted-foreground tracking-wider">CAMPAIGN NAME</Label>
             <Input
               id="name"
               {...register('name', { required: 'Name is required' })}
-              placeholder="e.g., My Morning Routine"
-              className="bg-background border-border mt-1"
-            />
-            {errors.name && <p className="text-xs text-destructive mt-1">{errors.name.message}</p>}
-          </div>
-
-          <div>
-            <Label htmlFor="code_name" className="text-xs text-muted-foreground tracking-wider">CODE NAME</Label>
-            <Input
-              id="code_name"
-              {...register('code_name', { required: 'Code name is required' })}
-              placeholder="e.g., MORNING ROUTINE"
+              placeholder="e.g., MORNING ASSAULT"
               className="bg-background border-border mt-1 font-display"
             />
-            {errors.code_name && <p className="text-xs text-destructive mt-1">{errors.code_name.message}</p>}
+            {errors.name && <p className="text-xs text-destructive mt-1">{errors.name.message}</p>}
+            <p className="text-[10px] text-muted-foreground mt-1">This will be your campaign's display name</p>
           </div>
+
+          {/* Hidden code_name field - auto-generated from name */}
+          <input type="hidden" {...register('code_name')} />
 
           <div>
             <Label htmlFor="description" className="text-xs text-muted-foreground tracking-wider">DESCRIPTION</Label>

@@ -125,7 +125,12 @@ export function ActiveCampaignHero({ className = '' }: ActiveCampaignHeroProps) 
           {campaign.code_name}
         </h2>
         
-        {/* Progress */}
+        {/* Campaign Description */}
+        {campaign.description && (
+          <p className="text-xs text-muted-foreground mb-3 line-clamp-2">{campaign.description}</p>
+        )}
+        
+        {/* Progress with mission count */}
         <div className="flex items-center gap-4 mb-3">
           <div className="flex items-center gap-1.5">
             {isComplete ? (
@@ -135,7 +140,7 @@ export function ActiveCampaignHero({ className = '' }: ActiveCampaignHeroProps) 
             )}
             <span className="text-sm">
               <span className={`font-display ${isComplete ? 'text-secondary' : 'text-accent'}`}>{completedCount}</span>
-              <span className="text-muted-foreground">/{totalMissions}</span>
+              <span className="text-muted-foreground">/{totalMissions} missions</span>
             </span>
           </div>
           {!isComplete && remainingTime > 0 && (
@@ -176,7 +181,7 @@ export function ActiveCampaignHero({ className = '' }: ActiveCampaignHeroProps) 
           )}
         </div>
 
-        {/* Action buttons */}
+        {/* Action buttons - ONLY show replay/discard when complete */}
         {isComplete ? (
           <div className="flex gap-2">
             <button
@@ -218,15 +223,20 @@ export function ActiveCampaignHero({ className = '' }: ActiveCampaignHeroProps) 
           <AlertDialogHeader>
             <AlertDialogTitle className="font-display text-destructive flex items-center gap-2">
               <AlertTriangle className="w-5 h-5" />
-              FORFEIT CAMPAIGN
+              {isComplete ? 'DISCARD CAMPAIGN' : 'FORFEIT CAMPAIGN'}
             </AlertDialogTitle>
             <AlertDialogDescription className="space-y-2">
               <p>
-                Are you sure you want to abandon <span className="text-primary font-display">{campaign.code_name}</span>?
+                {isComplete 
+                  ? `Remove "${campaign.code_name}" from your active slot?`
+                  : `Are you sure you want to abandon "${campaign.code_name}"?`
+                }
               </p>
-              <p className="text-destructive/80">
-                Your campaign progress will be reset to 0/{totalMissions} missions. 
-                You'll need to complete all missions again to finish the campaign.
+              <p className="text-muted-foreground text-xs">
+                {isComplete 
+                  ? 'Your completion stats will be preserved. You can start this campaign again anytime.'
+                  : 'Your campaign progress will be reset to 0/' + totalMissions + ' missions. You\'ll need to complete all missions again to finish the campaign.'
+                }
               </p>
               <p className="text-muted-foreground text-xs">
                 Note: Your individual workout sessions and stats from completed missions will remain.
@@ -240,7 +250,7 @@ export function ActiveCampaignHero({ className = '' }: ActiveCampaignHeroProps) 
               disabled={isForfeiting}
               className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
             >
-              {isForfeiting ? 'FORFEITING...' : 'FORFEIT CAMPAIGN'}
+              {isForfeiting ? 'PROCESSING...' : isComplete ? 'DISCARD' : 'FORFEIT CAMPAIGN'}
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>

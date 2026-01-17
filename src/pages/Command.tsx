@@ -697,8 +697,8 @@ const Command = () => {
           </>
         )}
 
-        {/* Active Campaign Widget - Show on all tabs */}
-        {activeCampaignId && user && (
+        {/* Active Campaign Widget - Only show on campaigns tab */}
+        {activeTab === 'campaigns' && activeCampaignId && user && (
           <div className="mb-6">
             <ActiveCampaignHero />
           </div>
