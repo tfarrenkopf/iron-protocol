@@ -1,7 +1,7 @@
 import { useState, useEffect, useCallback, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useNavigate } from 'react-router-dom';
-import { ArrowLeft, Play, Pause, RotateCcw, Volume2, VolumeX, Plus, Minus, Zap } from 'lucide-react';
+import { Play, Pause, RotateCcw, Volume2, VolumeX, Plus, Minus, Zap, ArrowLeft } from 'lucide-react';
 import { useGameStore } from '@/stores/gameStore';
 import { defaultHIITConfigs } from '@/data/missions';
 import { HIITConfig } from '@/types/game';
@@ -9,6 +9,7 @@ import { ExplosionEffect } from '@/components/ExplosionEffect';
 import { KillFeed } from '@/components/KillFeed';
 import { useHIITSounds } from '@/hooks/useHIITSounds';
 import { Progress } from '@/components/ui/progress';
+import { GlobalNav } from '@/components/GlobalNav';
 import {
   AlertDialog,
   AlertDialogAction,
@@ -276,18 +277,10 @@ const HIITTimer = () => {
         <div className="fixed inset-0 pointer-events-none scanlines opacity-20" />
         
         <div className="relative z-10 container mx-auto px-4 py-6 max-w-2xl">
-          <header className="flex items-center gap-4 mb-8">
-            <button 
-              onClick={() => navigate('/')}
-              className="p-2 border border-border rounded hover:border-primary transition-colors"
-            >
-              <ArrowLeft className="w-5 h-5" />
-            </button>
-            <div>
-              <h1 className="font-display text-3xl text-secondary">COMBAT MODE</h1>
-              <p className="text-xs text-muted-foreground tracking-wider">SELECT PROTOCOL</p>
-            </div>
-          </header>
+          <GlobalNav 
+            title="COMBAT MODE"
+            subtitle="SELECT PROTOCOL"
+          />
 
           <div className="bg-card/50 border border-border rounded-lg p-3 mb-6">
             <p className="text-xs text-muted-foreground text-center">

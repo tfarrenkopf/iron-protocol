@@ -1,7 +1,8 @@
 import { useState, useEffect, useMemo } from 'react';
 import { motion } from 'framer-motion';
 import { useNavigate, useSearchParams } from 'react-router-dom';
-import { ArrowLeft, Target, Dumbbell, Flame, Filter, X, Clock, Plus, Pencil, Trash2, RefreshCw, AlertCircle, Crown } from 'lucide-react';
+import { Target, Dumbbell, Flame, Filter, X, Clock, Plus, Pencil, Trash2, RefreshCw, AlertCircle, Crown } from 'lucide-react';
+import { GlobalNav } from '@/components/GlobalNav';
 import { useMissions, useDeleteMission } from '@/hooks/useMissions';
 import { useCollections, useDeleteCollection, CollectionWithMissions } from '@/hooks/useCollections';
 import { useExercises, useDeleteExercise } from '@/hooks/useExercises';
@@ -301,21 +302,14 @@ const Command = () => {
       
       <div className="relative z-10 container mx-auto px-4 py-6 max-w-2xl">
         {/* Header */}
-        <motion.header 
-          initial={{ opacity: 0, y: -20 }}
-          animate={{ opacity: 1, y: 0 }}
-          className="flex items-center justify-between mb-6"
-        >
-          <button 
-            onClick={() => navigate('/')}
-            className="p-2 border border-border rounded hover:border-primary transition-colors"
-          >
-            <ArrowLeft className="w-5 h-5" />
-          </button>
+        <div className="flex items-center justify-between mb-6">
+          <GlobalNav 
+            title="COMMAND"
+            showBack={true}
+            className="mb-0 flex-1"
+          />
           
-          <h1 className="font-display text-2xl text-primary">COMMAND</h1>
-          
-          <div className="flex gap-2">
+          <div className="flex gap-2 ml-3">
             {/* Filter button - show for all tabs */}
             <button
               onClick={() => setShowFilters(!showFilters)}
@@ -335,7 +329,7 @@ const Command = () => {
               </button>
             )}
           </div>
-        </motion.header>
+        </div>
 
         {/* Tab Navigation */}
         <div className="flex gap-1 mb-4 overflow-x-auto scrollbar-hide">
