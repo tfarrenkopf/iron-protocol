@@ -100,7 +100,7 @@ const Command = () => {
   // Active campaign at top
   const activeCampaign = collections?.find(c => c.id === activeCampaignId);
   
-  // Filter campaigns by source
+  // Filter campaigns by source and apply duration/focus filters
   const filteredCampaigns = useMemo(() => {
     let campaigns: CollectionWithMissions[] = [];
     
@@ -112,13 +112,43 @@ const Command = () => {
       campaigns = publicCollections;
     }
     
+    // Apply duration filter to campaigns
+    if (durationFilter) {
+      const durationConfig = DURATION_FILTERS.find(d => d.value === durationFilter);
+      if (durationConfig) {
+        campaigns = campaigns.filter(c => {
+          const totalTime = c.collection_missions?.reduce((sum, cm) => {
+            const mission = (cm as any).missions;
+            return sum + (mission?.estimated_minutes || 0);
+          }, 0) || 0;
+          
+          if (durationConfig.max && !durationConfig.min) return totalTime < durationConfig.max;
+          if (durationConfig.min && !durationConfig.max) return totalTime >= durationConfig.min;
+          if (durationConfig.min && durationConfig.max) return totalTime >= durationConfig.min && totalTime < durationConfig.max;
+          return true;
+        });
+      }
+    }
+    
+    // Apply focus area filter
+    if (focusFilter) {
+      campaigns = campaigns.filter(c => {
+        const focusAreas = new Set<string>();
+        c.collection_missions?.forEach(cm => {
+          const mission = (cm as any).missions;
+          mission?.focus_areas?.forEach((f: string) => focusAreas.add(f));
+        });
+        return focusAreas.has(focusFilter);
+      });
+    }
+    
     // Always put active campaign at top if it's in current view
     if (activeCampaign && campaigns.find(c => c.id === activeCampaignId)) {
       campaigns = [activeCampaign, ...campaigns.filter(c => c.id !== activeCampaignId)];
     }
     
     return campaigns;
-  }, [campaignSource, systemCollections, myCollections, publicCollections, activeCampaign, activeCampaignId]);
+  }, [campaignSource, systemCollections, myCollections, publicCollections, activeCampaign, activeCampaignId, durationFilter, focusFilter]);
   
   const availableMuscles = getMusclesForFocusArea(focusFilter || null);
   
@@ -255,16 +285,15 @@ const Command = () => {
           <h1 className="font-display text-2xl text-primary">COMMAND</h1>
           
           <div className="flex gap-2">
-            {(activeTab === 'missions' || activeTab === 'campaigns') && (
-              <button
-                onClick={() => setShowFilters(!showFilters)}
-                className={`p-2 border rounded transition-colors ${
-                  hasFilters ? 'border-secondary text-secondary' : 'border-border hover:border-primary'
-                }`}
-              >
-                <Filter className="w-5 h-5" />
-              </button>
-            )}
+            {/* Filter button - show for all tabs */}
+            <button
+              onClick={() => setShowFilters(!showFilters)}
+              className={`p-2 border rounded transition-colors ${
+                hasFilters ? 'border-secondary text-secondary' : 'border-border hover:border-primary'
+              }`}
+            >
+              <Filter className="w-5 h-5" />
+            </button>
             {user && createConfig && (
               <button
                 onClick={createConfig.onClick}
@@ -378,7 +407,7 @@ const Command = () => {
         )}
 
         {/* Filter Sheet (Mobile-friendly) */}
-        {activeTab === 'missions' && showFilters && (
+        {showFilters && (activeTab === 'missions' || activeTab === 'campaigns' || activeTab === 'exercises') && (
           <>
             {/* Backdrop */}
             <motion.div
@@ -400,7 +429,9 @@ const Command = () => {
               <div className="flex items-center justify-between p-4 border-b border-border">
                 <div className="flex items-center gap-2">
                   <Filter className="w-4 h-4 text-primary" />
-                  <span className="font-display text-lg text-primary">FILTERS</span>
+                  <span className="font-display text-lg text-primary">
+                    {activeTab === 'campaigns' ? 'CAMPAIGN FILTERS' : activeTab === 'exercises' ? 'EXERCISE FILTERS' : 'MISSION FILTERS'}
+                  </span>
                   {hasFilters && (
                     <span className="text-xs px-2 py-0.5 bg-secondary/20 text-secondary rounded-full">
                       {[focusFilter, muscleFilter, equipmentFilter, durationFilter, collectionFilter].filter(Boolean).length} active
