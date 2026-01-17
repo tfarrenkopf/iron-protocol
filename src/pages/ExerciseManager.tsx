@@ -252,12 +252,8 @@ const ExerciseManager = () => {
           id: editingMission.id,
           ...missionData,
         });
-        // Return to missions page with preserved filters
-        if (returnFilters) {
-          navigate(`/missions?${decodeURIComponent(returnFilters)}`);
-        } else {
-          navigate("/missions");
-        }
+        // Return to Command with missions tab
+        navigate("/command?tab=missions");
       } else {
         await createMission.mutateAsync(missionData);
         setShowMissionForm(false);
@@ -387,13 +383,13 @@ const ExerciseManager = () => {
         >
           <div className="flex items-center gap-4">
             <button
-              onClick={() => navigate("/")}
+              onClick={() => navigate("/command?tab=missions")}
               className="p-2 border border-border rounded hover:border-primary transition-colors"
             >
               <ArrowLeft className="w-5 h-5" />
             </button>
             <div>
-              <h1 className="font-display text-3xl text-primary">MY ARSENAL</h1>
+              <h1 className="font-display text-3xl text-primary">ARSENAL</h1>
               <p className="text-xs text-muted-foreground tracking-wider">EXERCISES & MISSIONS</p>
             </div>
           </div>
@@ -556,7 +552,7 @@ const ExerciseManager = () => {
               ))}
               {myMissions.length > 5 && (
                 <button
-                  onClick={() => navigate("/missions")}
+                  onClick={() => navigate("/command?tab=missions")}
                   className="w-full text-center text-xs text-muted-foreground hover:text-primary py-2"
                 >
                   View all {myMissions.length} missions →
