@@ -27,7 +27,7 @@ export function ActiveCampaignHero({ className = '' }: ActiveCampaignHeroProps) 
   const { campaign, progress, completedMissionIds, isLoading } = useActiveCampaignDetails();
   const [showForfeitDialog, setShowForfeitDialog] = useState(false);
 
-  // Calculate equipment from campaign missions
+  // Calculate equipment from campaign missions - MUST be before any conditional returns
   const equipment = useMemo(() => {
     if (!campaign?.collection_missions) return [];
     const equipmentSet = new Set<string>();
@@ -39,32 +39,45 @@ export function ActiveCampaignHero({ className = '' }: ActiveCampaignHeroProps) 
     return Array.from(equipmentSet);
   }, [campaign]);
 
-  if (isLoading || !campaign) {
-    return null;
-  }
-
-  const missions = campaign.collection_missions
-    ?.sort((a: any, b: any) => a.order_index - b.order_index)
-    .map((cm: any) => cm.missions)
-    .filter(Boolean) || [];
+  // Get sorted missions - MUST be before any conditional returns
+  const missions = useMemo(() => {
+    if (!campaign?.collection_missions) return [];
+    return campaign.collection_missions
+      .sort((a: any, b: any) => a.order_index - b.order_index)
+      .map((cm: any) => cm.missions)
+      .filter(Boolean);
+  }, [campaign]);
   
   const totalMissions = missions.length;
 
-  // Find next uncompleted mission
-  const nextMission = missions.find((m: any) => !completedMissionIds.has(m.id));
+  // Find next uncompleted mission - MUST be before any conditional returns
+  const nextMission = useMemo(() => {
+    return missions.find((m: any) => !completedMissionIds.has(m.id));
+  }, [missions, completedMissionIds]);
+
+  // Calculate total time for remaining missions - MUST be before any conditional returns
+  const remainingTime = useMemo(() => {
+    return missions
+      .filter((m: any) => !completedMissionIds.has(m.id))
+      .reduce((sum: number, m: any) => sum + (m.estimated_minutes || 0), 0);
+  }, [missions, completedMissionIds]);
+
+  // Computed values - can be after hooks since they don't use hooks
+  const completedCount = completedMissionIds.size;
+  const isComplete = completedCount >= totalMissions;
 
   const handleForfeit = () => {
-    forfeitCampaign(campaign.id);
+    forfeitCampaign(campaign?.id || '');
     setShowForfeitDialog(false);
   };
 
   const handleStartNext = (e: React.MouseEvent) => {
     e.stopPropagation();
     if (nextMission) {
-      navigate(`/workout/${nextMission.id}?campaign=${campaign.id}`);
+      navigate(`/workout/${nextMission.id}?campaign=${campaign?.id}`);
     } else if (missions[0]) {
       // Campaign complete, replay from start
-      navigate(`/workout/${missions[0].id}?campaign=${campaign.id}`);
+      navigate(`/workout/${missions[0].id}?campaign=${campaign?.id}`);
     }
   };
 
@@ -74,15 +87,10 @@ export function ActiveCampaignHero({ className = '' }: ActiveCampaignHeroProps) 
     return `${mins}:${secs.toString().padStart(2, '0')}`;
   };
 
-  const completedCount = completedMissionIds.size;
-  const isComplete = completedCount >= totalMissions;
-
-  // Calculate total time for remaining missions
-  const remainingTime = useMemo(() => {
-    return missions
-      .filter((m: any) => !completedMissionIds.has(m.id))
-      .reduce((sum: number, m: any) => sum + (m.estimated_minutes || 0), 0);
-  }, [missions, completedMissionIds]);
+  // Early return AFTER all hooks and computed values
+  if (isLoading || !campaign) {
+    return null;
+  }
 
   return (
     <>
