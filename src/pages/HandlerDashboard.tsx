@@ -1,12 +1,14 @@
 import { useState, useMemo } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useNavigate } from 'react-router-dom';
-import { Users, Target, Plus, Copy, Check, Trash2, ChevronRight, Send, Calendar, Edit3, X, Save, Percent } from 'lucide-react';
+import { Users, Target, Plus, Copy, Check, Trash2, ChevronRight, Send, Calendar, Edit3, X, Save, Percent, Info } from 'lucide-react';
 import { useAuth } from '@/hooks/useAuth';
 import { useIsHandler, useSquads, useCreateSquad, useDeleteSquad, useUpdateSquad } from '@/hooks/useHandlerMode';
 import { useHandlerAssignments } from '@/hooks/useAssignments';
 import { format } from 'date-fns';
 import { GlobalNav } from '@/components/GlobalNav';
+import { AppFooter } from '@/components/AppFooter';
+import { toast } from '@/hooks/use-toast';
 
 const HandlerDashboard = () => {
   const navigate = useNavigate();
@@ -22,7 +24,6 @@ const HandlerDashboard = () => {
   const [squadName, setSquadName] = useState('');
   const [squadCodeName, setSquadCodeName] = useState('');
   const [squadDescription, setSquadDescription] = useState('');
-  const [copiedCode, setCopiedCode] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
   
   // Edit squad state
@@ -87,11 +88,25 @@ const HandlerDashboard = () => {
     }
   };
 
-  const handleCopyInvite = async (inviteCode: string) => {
-    const inviteUrl = `${window.location.origin}/join/${inviteCode}`;
-    await navigator.clipboard.writeText(inviteUrl);
-    setCopiedCode(inviteCode);
-    setTimeout(() => setCopiedCode(null), 2000);
+  const handleCopyInvite = async (inviteCode: string, squadName: string) => {
+    const baseUrl = 'https://iron-protocol.fitness';
+    const inviteUrl = `${baseUrl}/join/${inviteCode}`;
+    const shareText = `🏋️ You've been recruited to ${squadName}. Join the squad and let's get to work.`;
+    const fullMessage = `${shareText}\n\n${inviteUrl}`;
+    
+    try {
+      await navigator.clipboard.writeText(fullMessage);
+      toast({ 
+        title: 'INVITE COPIED 🏋️', 
+        description: 'Paste it anywhere to recruit your athletes.' 
+      });
+    } catch {
+      toast({ 
+        title: 'Copy this invite:', 
+        description: fullMessage,
+        duration: 10000,
+      });
+    }
   };
 
   const handleDeleteSquad = async (squadId: string) => {
@@ -168,6 +183,24 @@ const HandlerDashboard = () => {
           section="handler"
         />
 
+        {/* Instructions */}
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          className="bg-warning/10 border border-warning/30 rounded-lg p-4 mb-6"
+        >
+          <div className="flex items-start gap-3">
+            <Info className="w-5 h-5 text-warning flex-shrink-0 mt-0.5" />
+            <div>
+              <h3 className="font-display text-sm text-warning mb-1">TRAINER COMMAND CENTER</h3>
+              <p className="text-xs text-muted-foreground leading-relaxed">
+                Create squads to group your athletes. Share the recruit link to add them. 
+                Then assign missions or campaigns as orders. Track their completion rates and keep everyone accountable.
+              </p>
+            </div>
+          </div>
+        </motion.div>
+
         {/* Quick Stats */}
         <motion.div
           initial={{ opacity: 0, y: 20 }}
@@ -175,23 +208,23 @@ const HandlerDashboard = () => {
           transition={{ delay: 0.1 }}
           className="grid grid-cols-3 gap-4 mb-8"
         >
-          <div className="bg-card border border-border rounded-lg p-4 text-center">
-            <Users className="w-6 h-6 mx-auto mb-2 text-secondary" />
-            <div className="font-display text-3xl text-secondary">
+          <div className="bg-card border border-warning/30 rounded-lg p-4 text-center">
+            <Users className="w-6 h-6 mx-auto mb-2 text-warning" />
+            <div className="font-display text-3xl text-warning">
               {squads?.reduce((acc, s) => acc + (s.squad_members?.length || 0), 0) || 0}
             </div>
             <div className="text-xs text-muted-foreground">TOTAL AGENTS</div>
           </div>
-          <div className="bg-card border border-border rounded-lg p-4 text-center">
-            <Target className="w-6 h-6 mx-auto mb-2 text-accent" />
-            <div className="font-display text-3xl text-accent">
+          <div className="bg-card border border-warning/30 rounded-lg p-4 text-center">
+            <Target className="w-6 h-6 mx-auto mb-2 text-warning" />
+            <div className="font-display text-3xl text-warning">
               {assignments?.filter((a: any) => a.status !== 'COMPLETED').length || 0}
             </div>
             <div className="text-xs text-muted-foreground">ACTIVE ORDERS</div>
           </div>
-          <div className="bg-card border border-border rounded-lg p-4 text-center">
-            <Percent className="w-6 h-6 mx-auto mb-2 text-success" />
-            <div className="font-display text-3xl text-success">
+          <div className="bg-card border border-warning/30 rounded-lg p-4 text-center">
+            <Percent className="w-6 h-6 mx-auto mb-2 text-warning" />
+            <div className="font-display text-3xl text-warning">
               {overallStats.rate}%
             </div>
             <div className="text-xs text-muted-foreground">COMPLETION</div>
@@ -211,7 +244,7 @@ const HandlerDashboard = () => {
             </h2>
             <button
               onClick={() => setShowCreateSquad(true)}
-              className="flex items-center gap-2 px-3 py-2 bg-secondary text-secondary-foreground font-display text-sm rounded hover:box-glow-secondary transition-all"
+              className="flex items-center gap-2 px-3 py-2 bg-warning text-warning-foreground font-display text-sm rounded hover:opacity-90 transition-all"
             >
               <Plus className="w-4 h-4" />
               NEW SQUAD
@@ -299,7 +332,7 @@ const HandlerDashboard = () => {
                       <>
                         <div className="flex items-start justify-between mb-3">
                           <div>
-                            <div className="font-display text-lg text-secondary">{squad.code_name}</div>
+                            <div className="font-display text-lg text-warning">{squad.code_name}</div>
                             <div className="text-sm text-muted-foreground">{squad.name}</div>
                           </div>
                           <div className="flex items-center gap-1">
@@ -322,16 +355,16 @@ const HandlerDashboard = () => {
 
                         {/* Squad Stats */}
                         <div className="grid grid-cols-3 gap-2 mb-3 text-center">
-                          <div className="bg-muted/30 rounded p-2">
-                            <div className="font-display text-lg text-secondary">{squad.squad_members?.length || 0}</div>
+                          <div className="bg-warning/10 rounded p-2">
+                            <div className="font-display text-lg text-warning">{squad.squad_members?.length || 0}</div>
                             <div className="text-xs text-muted-foreground">Members</div>
                           </div>
-                          <div className="bg-muted/30 rounded p-2">
-                            <div className="font-display text-lg text-accent">{squadStats.total}</div>
+                          <div className="bg-warning/10 rounded p-2">
+                            <div className="font-display text-lg text-warning">{squadStats.total}</div>
                             <div className="text-xs text-muted-foreground">Orders</div>
                           </div>
-                          <div className="bg-muted/30 rounded p-2">
-                            <div className="font-display text-lg text-success">{completionRate}%</div>
+                          <div className="bg-warning/10 rounded p-2">
+                            <div className="font-display text-lg text-warning">{completionRate}%</div>
                             <div className="text-xs text-muted-foreground">Complete</div>
                           </div>
                         </div>
@@ -344,7 +377,7 @@ const HandlerDashboard = () => {
                               {squadStats.missions.slice(0, 5).map((mission, idx) => (
                                 <span
                                   key={idx}
-                                  className="text-xs px-2 py-0.5 bg-accent/10 border border-accent/20 rounded text-accent"
+                                  className="text-xs px-2 py-0.5 bg-warning/10 border border-warning/20 rounded text-warning"
                                 >
                                   {mission}
                                 </span>
@@ -359,31 +392,22 @@ const HandlerDashboard = () => {
                         )}
 
                         {/* Invite Link Section */}
-                        <div className="bg-muted/50 border border-border rounded-lg p-3 mb-3">
-                          <div className="text-xs text-muted-foreground mb-2">INVITE LINK</div>
+                        <div className="bg-warning/5 border border-warning/30 rounded-lg p-3 mb-3">
+                          <div className="text-xs text-warning mb-2 font-display">RECRUIT LINK</div>
                           <div className="flex items-center gap-2">
-                            <code className="flex-1 text-xs bg-background px-2 py-1.5 rounded border border-border text-primary font-mono overflow-hidden text-ellipsis">
-                              {`${window.location.origin}/join/${squad.invite_code}`}
+                            <code className="flex-1 text-xs bg-background px-2 py-1.5 rounded border border-border text-warning font-mono overflow-hidden text-ellipsis">
+                              iron-protocol.fitness/join/{squad.invite_code}
                             </code>
                             <button
-                              onClick={() => handleCopyInvite(squad.invite_code)}
-                              className="flex items-center gap-1 px-3 py-1.5 bg-primary text-primary-foreground text-xs font-display rounded hover:box-glow-primary transition-all"
+                              onClick={() => handleCopyInvite(squad.invite_code, squad.name)}
+                              className="flex items-center gap-1 px-3 py-1.5 bg-warning text-warning-foreground text-xs font-display rounded hover:opacity-90 transition-all"
                             >
-                              {copiedCode === squad.invite_code ? (
-                                <>
-                                  <Check className="w-3 h-3" />
-                                  COPIED!
-                                </>
-                              ) : (
-                                <>
-                                  <Copy className="w-3 h-3" />
-                                  COPY
-                                </>
-                              )}
+                              <Copy className="w-3 h-3" />
+                              COPY
                             </button>
                           </div>
-                          <p className="text-xs text-muted-foreground/60 mt-2">
-                            Share this link with athletes to join your squad
+                          <p className="text-xs text-muted-foreground mt-2">
+                            Share this link with your athletes to recruit them to the squad
                           </p>
                         </div>
                         
@@ -394,9 +418,9 @@ const HandlerDashboard = () => {
                           </div>
                           <button
                             onClick={() => navigate(`/handler/assign/${squad.id}`)}
-                            className="flex items-center gap-1 text-xs text-accent hover:text-glow-accent font-display"
+                            className="flex items-center gap-1 text-xs text-warning hover:text-warning/80 font-display"
                           >
-                            ASSIGN MISSIONS
+                            ASSIGN ORDERS
                             <ChevronRight className="w-3 h-3" />
                           </button>
                         </div>
@@ -409,7 +433,7 @@ const HandlerDashboard = () => {
                               {squad.squad_members.slice(0, 5).map((member: { id: string; profiles?: { display_name?: string } }) => (
                                 <span
                                   key={member.id}
-                                  className="text-xs px-2 py-1 bg-secondary/10 border border-secondary/20 rounded text-secondary"
+                                  className="text-xs px-2 py-1 bg-warning/10 border border-warning/20 rounded text-warning"
                                 >
                                   {member.profiles?.display_name || 'Agent'}
                                 </span>
@@ -517,10 +541,10 @@ const HandlerDashboard = () => {
                 initial={{ scale: 0.9, opacity: 0 }}
                 animate={{ scale: 1, opacity: 1 }}
                 exit={{ scale: 0.9, opacity: 0 }}
-                className="bg-card border border-secondary rounded-lg p-6 max-w-md w-full"
+                className="bg-card border border-warning rounded-lg p-6 max-w-md w-full"
                 onClick={(e) => e.stopPropagation()}
               >
-                <h3 className="font-display text-xl text-secondary mb-4">CREATE SQUAD</h3>
+                <h3 className="font-display text-xl text-warning mb-4">CREATE SQUAD</h3>
                 
                 <form onSubmit={handleCreateSquad} className="space-y-4">
                   <div>
@@ -529,7 +553,7 @@ const HandlerDashboard = () => {
                       type="text"
                       value={squadCodeName}
                       onChange={(e) => setSquadCodeName(e.target.value.toUpperCase())}
-                      className="w-full bg-background border border-border rounded px-3 py-2 mt-1 font-display focus:border-secondary focus:outline-none"
+                      className="w-full bg-background border border-border rounded px-3 py-2 mt-1 font-display focus:border-warning focus:outline-none"
                       placeholder="ALPHA_SQUAD"
                       maxLength={20}
                     />
@@ -541,7 +565,7 @@ const HandlerDashboard = () => {
                       type="text"
                       value={squadName}
                       onChange={(e) => setSquadName(e.target.value)}
-                      className="w-full bg-background border border-border rounded px-3 py-2 mt-1 focus:border-secondary focus:outline-none"
+                      className="w-full bg-background border border-border rounded px-3 py-2 mt-1 focus:border-warning focus:outline-none"
                       placeholder="Monday Night Warriors"
                       maxLength={50}
                     />
@@ -552,7 +576,7 @@ const HandlerDashboard = () => {
                     <textarea
                       value={squadDescription}
                       onChange={(e) => setSquadDescription(e.target.value)}
-                      className="w-full bg-background border border-border rounded px-3 py-2 mt-1 focus:border-secondary focus:outline-none resize-none"
+                      className="w-full bg-background border border-border rounded px-3 py-2 mt-1 focus:border-warning focus:outline-none resize-none"
                       placeholder="Brief squad description..."
                       rows={2}
                       maxLength={200}
@@ -574,7 +598,7 @@ const HandlerDashboard = () => {
                     <button
                       type="submit"
                       disabled={createSquad.isPending}
-                      className="flex-1 py-3 bg-secondary text-secondary-foreground font-display rounded hover:box-glow-secondary transition-all disabled:opacity-50"
+                      className="flex-1 py-3 bg-warning text-warning-foreground font-display rounded hover:opacity-90 transition-all disabled:opacity-50"
                     >
                       {createSquad.isPending ? 'CREATING...' : 'CREATE'}
                     </button>
@@ -584,6 +608,9 @@ const HandlerDashboard = () => {
             </motion.div>
           )}
         </AnimatePresence>
+
+        {/* Footer */}
+        <AppFooter />
       </div>
     </div>
   );
