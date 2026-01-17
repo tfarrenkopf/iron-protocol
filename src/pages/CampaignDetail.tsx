@@ -1,7 +1,7 @@
 import { useState, useMemo, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import { useNavigate, useParams } from 'react-router-dom';
-import { ArrowLeft, Clock, Pencil, Trash2, Lock, Globe, Users, FolderOpen, Plus, Trophy, Timer } from 'lucide-react';
+import { ArrowLeft, Clock, Pencil, Trash2, Lock, Globe, Users, Flame, Plus, Trophy, Timer } from 'lucide-react';
 import { useCollection, useDeleteCollection, useRemoveMissionFromCollection, useAddMissionToCollection } from '@/hooks/useCollections';
 import { useCampaignProgress, useCampaignCompletions, useCampaignLeaderboard } from '@/hooks/useCampaignProgress';
 import { useAuth } from '@/hooks/useAuth';
@@ -169,7 +169,7 @@ const CampaignDetail = () => {
             </button>
             <div>
               <div className="flex items-center gap-2">
-                <FolderOpen className="w-6 h-6 text-secondary" />
+                <Flame className="w-6 h-6 text-accent" />
                 <h1 className="font-display text-2xl text-primary">{collection.code_name}</h1>
                 {collection.is_system && (
                   <span className="text-[10px] px-1.5 py-0.5 bg-secondary/20 text-secondary rounded">
