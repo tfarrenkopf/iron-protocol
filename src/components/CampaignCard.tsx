@@ -483,7 +483,7 @@ export function CampaignCard({
                     <p className="text-accent text-sm font-display">OPERATION DETAILS:</p>
                     <ul className="text-sm text-muted-foreground space-y-1">
                       <li className="flex items-center gap-2">
-                        <Target className="w-3 h-3" /> {missionCount} missions to complete
+                        <Crosshair className="w-3 h-3 text-section-missions" /> {missionCount} missions to complete
                       </li>
                       <li className="flex items-center gap-2">
                         <Clock className="w-3 h-3" /> ~{stats.totalTime} minutes total
