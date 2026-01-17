@@ -121,7 +121,7 @@ const Dashboard = () => {
               </button>
               <button
                 onClick={handleSignOut}
-                className="tap-target p-2 bg-card/50 backdrop-blur-sm border border-border rounded hover:border-destructive hover:text-destructive transition-colors"
+                className="p-2 bg-card/50 backdrop-blur-sm border border-border rounded hover:border-destructive hover:text-destructive transition-colors"
                 title="Sign out"
               >
                 <LogOut className="w-4 h-4" />
