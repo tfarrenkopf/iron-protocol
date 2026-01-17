@@ -140,144 +140,146 @@ const Dashboard = () => {
           </p>
         </motion.header>
 
-        {/* Primary Actions + Utility Grid */}
-        <div className="mb-8 space-y-4">
-          <FightNowActions />
+        {/* All Dashboard Widgets - Normalized spacing */}
+        <div className="space-y-6">
+          {/* Primary Actions + Utility Grid */}
+          <div className="space-y-4">
+            <FightNowActions />
 
-          {/* Utility Actions Row - uniform sizing */}
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.2 }}
-            className={`grid gap-4 ${isHandler ? "grid-cols-4" : "grid-cols-3"}`}
-          >
-            <button
-              onClick={() => navigate("/hiit")}
-              className="group relative bg-card border border-section-hiit/50 rounded-lg p-4 text-center transition-all hover:border-section-hiit hover:bg-section-hiit/5"
+            {/* Utility Actions Row - uniform sizing */}
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.2 }}
+              className={`grid gap-4 ${isHandler ? "grid-cols-4" : "grid-cols-3"}`}
             >
-              <Timer className="w-6 h-6 text-section-hiit mx-auto mb-2" />
-              <h2 className="font-display text-sm text-section-hiit">HIIT</h2>
-            </button>
-
-            <button
-              onClick={() => navigate("/intel")}
-              className="group relative bg-card border border-section-intel/50 rounded-lg p-4 text-center transition-all hover:border-section-intel hover:bg-section-intel/5"
-            >
-              <Radio className="w-6 h-6 text-section-intel mx-auto mb-2" />
-              <h2 className="font-display text-sm text-section-intel">INTEL</h2>
-            </button>
-
-            <button
-              onClick={() => navigate("/command")}
-              className="group relative bg-card border border-section-command/50 rounded-lg p-4 text-center transition-all hover:border-section-command hover:bg-section-command/5"
-            >
-              <Crosshair className="w-6 h-6 text-section-command mx-auto mb-2" />
-              <h2 className="font-display text-sm text-section-command">COMMAND</h2>
-            </button>
-
-            {isHandler && (
               <button
-                onClick={() => navigate("/handler")}
-                className="group relative bg-card border border-warning/50 rounded-lg p-4 text-center transition-all hover:border-warning hover:bg-warning/5"
+                onClick={() => navigate("/hiit")}
+                className="group relative bg-card border border-section-hiit/50 rounded-lg p-4 text-center transition-all hover:border-section-hiit hover:bg-section-hiit/5"
               >
-                <Users className="w-6 h-6 text-warning mx-auto mb-2" />
-                <h2 className="font-display text-sm text-warning">HANDLER</h2>
+                <Timer className="w-6 h-6 text-section-hiit mx-auto mb-2" />
+                <h2 className="font-display text-sm text-section-hiit">HIIT</h2>
               </button>
-            )}
-          </motion.div>
-        </div>
 
-        {/* Weekly Summary */}
-        <WeeklySummary />
-
-        {/* Incoming Orders */}
-        {!isAnonymous && <IncomingOrders />}
-
-        {/* Rival Mode Widget */}
-        {!isAnonymous && (
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.3 }}
-            className="mb-8"
-          >
-            <RivalWidget />
-          </motion.div>
-        )}
-
-        {/* Featured Missions */}
-        <motion.section initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.4 }}>
-          <div className="flex items-center justify-between mb-4">
-            <h3 className="font-display text-xl text-muted-foreground tracking-wider">// TODAY'S MISSIONS</h3>
-          </div>
-
-          <div className="space-y-4 mb-6">
-            {featuredMissions.map((mission, i) => (
-              <motion.button
-                key={mission.id}
-                initial={{ opacity: 0, x: -20 }}
-                animate={{ opacity: 1, x: 0 }}
-                transition={{ delay: 0.5 + i * 0.1 }}
-                onClick={() => navigate(`/mission/${mission.id}`)}
-                className="w-full group bg-card border border-border rounded-lg p-4 text-left hover:border-primary/50 transition-all"
+              <button
+                onClick={() => navigate("/intel")}
+                className="group relative bg-card border border-section-intel/50 rounded-lg p-4 text-center transition-all hover:border-section-intel hover:bg-section-intel/5"
               >
-                <div className="flex items-center justify-between">
-                  <div className="flex-1">
-                    <div className="flex items-center gap-2">
-                      <span className="font-display text-lg text-primary group-hover:text-glow-primary transition-all">
-                        {mission.code_name}
-                      </span>
-                      <span
-                        className={`text-xs px-1.5 py-0.5 rounded font-display ${
-                          mission.estimated_minutes < 20
-                            ? "bg-secondary/20 text-secondary"
-                            : mission.estimated_minutes < 40
-                              ? "bg-primary/20 text-primary"
-                              : "bg-accent/20 text-accent"
-                        }`}
-                      >
-                        {mission.estimated_minutes < 20 ? "QUICK" : mission.estimated_minutes < 40 ? "STD" : "LONG"}
-                      </span>
-                    </div>
-                    <div className="text-xs text-muted-foreground mt-1">
-                      {mission.focus_areas?.join(" • ")} • {mission.estimated_minutes}min
-                    </div>
-                  </div>
-                  <div className="flex gap-1">
-                    {[...Array(5)].map((_, j) => (
-                      <div
-                        key={j}
-                        className={`w-2 h-2 rounded-sm ${j < mission.difficulty ? "bg-accent" : "bg-muted"}`}
-                      />
-                    ))}
-                  </div>
-                </div>
-              </motion.button>
-            ))}
+                <Radio className="w-6 h-6 text-section-intel mx-auto mb-2" />
+                <h2 className="font-display text-sm text-section-intel">INTEL</h2>
+              </button>
+
+              <button
+                onClick={() => navigate("/command")}
+                className="group relative bg-card border border-section-command/50 rounded-lg p-4 text-center transition-all hover:border-section-command hover:bg-section-command/5"
+              >
+                <Crosshair className="w-6 h-6 text-section-command mx-auto mb-2" />
+                <h2 className="font-display text-sm text-section-command">COMMAND</h2>
+              </button>
+
+              {isHandler && (
+                <button
+                  onClick={() => navigate("/handler")}
+                  className="group relative bg-card border border-warning/50 rounded-lg p-4 text-center transition-all hover:border-warning hover:bg-warning/5"
+                >
+                  <Users className="w-6 h-6 text-warning mx-auto mb-2" />
+                  <h2 className="font-display text-sm text-warning">HANDLER</h2>
+                </button>
+              )}
+            </motion.div>
           </div>
 
-          {/* Full Arsenal Button */}
-          <motion.button
-            initial={{ opacity: 0, y: 10 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.7 }}
-            onClick={() => navigate("/command")}
-            className="w-full group bg-card border-2 border-section-command/50 rounded-lg p-4 flex items-center justify-between hover:border-section-command hover:box-glow-command transition-all"
-          >
-            <div className="flex items-center gap-3">
-              <Crosshair className="w-6 h-6 text-section-command" />
-              <div className="text-left">
-                <div className="font-display text-lg text-section-command group-hover:text-glow-command transition-all">
-                  ACCESS COMMAND
-                </div>
-                <div className="text-xs text-muted-foreground">
-                  {missions?.length || 0}+ missions • All campaigns • Your arsenal
+          {/* Weekly Summary */}
+          <WeeklySummary />
+
+          {/* Incoming Orders */}
+          {!isAnonymous && <IncomingOrders />}
+
+          {/* Rival Mode Widget */}
+          {!isAnonymous && (
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.3 }}
+            >
+              <RivalWidget />
+            </motion.div>
+          )}
+
+          {/* Featured Missions */}
+          <motion.section initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.4 }}>
+            <div className="flex items-center justify-between mb-4">
+              <h3 className="font-display text-xl text-muted-foreground tracking-wider">// TODAY'S MISSIONS</h3>
+            </div>
+
+            <div className="space-y-4">
+              {featuredMissions.map((mission, i) => (
+                <motion.button
+                  key={mission.id}
+                  initial={{ opacity: 0, x: -20 }}
+                  animate={{ opacity: 1, x: 0 }}
+                  transition={{ delay: 0.5 + i * 0.1 }}
+                  onClick={() => navigate(`/mission/${mission.id}`)}
+                  className="w-full group bg-card border border-border rounded-lg p-4 text-left hover:border-primary/50 transition-all"
+                >
+                  <div className="flex items-center justify-between">
+                    <div className="flex-1">
+                      <div className="flex items-center gap-2">
+                        <span className="font-display text-lg text-primary group-hover:text-glow-primary transition-all">
+                          {mission.code_name}
+                        </span>
+                        <span
+                          className={`text-xs px-1.5 py-0.5 rounded font-display ${
+                            mission.estimated_minutes < 20
+                              ? "bg-secondary/20 text-secondary"
+                              : mission.estimated_minutes < 40
+                                ? "bg-primary/20 text-primary"
+                                : "bg-accent/20 text-accent"
+                          }`}
+                        >
+                          {mission.estimated_minutes < 20 ? "QUICK" : mission.estimated_minutes < 40 ? "STD" : "LONG"}
+                        </span>
+                      </div>
+                      <div className="text-xs text-muted-foreground mt-1">
+                        {mission.focus_areas?.join(" • ")} • {mission.estimated_minutes}min
+                      </div>
+                    </div>
+                    <div className="flex gap-1">
+                      {[...Array(5)].map((_, j) => (
+                        <div
+                          key={j}
+                          className={`w-2 h-2 rounded-sm ${j < mission.difficulty ? "bg-accent" : "bg-muted"}`}
+                        />
+                      ))}
+                    </div>
+                  </div>
+                </motion.button>
+              ))}
+            </div>
+
+            {/* Full Arsenal Button */}
+            <motion.button
+              initial={{ opacity: 0, y: 10 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.7 }}
+              onClick={() => navigate("/command")}
+              className="w-full mt-4 group bg-card border-2 border-section-command/50 rounded-lg p-4 flex items-center justify-between hover:border-section-command hover:box-glow-command transition-all"
+            >
+              <div className="flex items-center gap-3">
+                <Crosshair className="w-6 h-6 text-section-command" />
+                <div className="text-left">
+                  <div className="font-display text-lg text-section-command group-hover:text-glow-command transition-all">
+                    ACCESS COMMAND
+                  </div>
+                  <div className="text-xs text-muted-foreground">
+                    {missions?.length || 0}+ missions • All campaigns • Your arsenal
+                  </div>
                 </div>
               </div>
-            </div>
-            <ChevronRight className="w-5 h-5 text-section-command group-hover:translate-x-1 transition-transform" />
-          </motion.button>
-        </motion.section>
+              <ChevronRight className="w-5 h-5 text-section-command group-hover:translate-x-1 transition-transform" />
+            </motion.button>
+          </motion.section>
+        </div>
 
         {/* Footer */}
         <motion.footer
