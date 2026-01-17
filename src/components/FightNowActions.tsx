@@ -182,7 +182,7 @@ export function FightNowActions() {
             </div>
           </button>
         ) : (
-          /* For logged-in users: Mission as secondary when campaign is active */
+          /* For logged-in users: Flashpoint as secondary when no active campaign */
           <button
             onClick={() => navigate('/command?tab=missions&source=public')}
             className="group relative bg-card border-2 border-primary/50 rounded-lg p-4 text-left transition-all hover:border-primary hover:box-glow-primary"
@@ -201,7 +201,7 @@ export function FightNowActions() {
 
         {/* Secondary action based on state */}
         {isGuest ? (
-          /* For guests: Direct mission strike */
+          /* For guests: Intel as second option */
           <button
             onClick={() => navigate('/intel')}
             className="group relative bg-card border-2 border-secondary/50 rounded-lg p-4 text-left transition-all hover:border-secondary hover:box-glow-secondary"
@@ -233,18 +233,18 @@ export function FightNowActions() {
             </div>
           </button>
         ) : (
-          /* For logged-in without campaign: Mission as second option */
+          /* For logged-in without campaign: Intel as second option */
           <button
-            onClick={() => navigate('/command?tab=missions&source=public')}
-            className="group relative bg-card border-2 border-primary/50 rounded-lg p-4 text-left transition-all hover:border-primary hover:box-glow-primary"
+            onClick={() => navigate('/intel')}
+            className="group relative bg-card border-2 border-secondary/50 rounded-lg p-4 text-left transition-all hover:border-secondary hover:box-glow-secondary"
           >
             <div className="flex items-center gap-3">
-              <div className="p-2 bg-primary/10 rounded-lg group-hover:bg-primary/20 transition-colors">
-                <Crosshair className="w-6 h-6 text-primary" />
+              <div className="p-2 bg-secondary/10 rounded-lg group-hover:bg-secondary/20 transition-colors">
+                <Target className="w-6 h-6 text-secondary" />
               </div>
               <div className="flex-1 min-w-0">
-                <h3 className="font-display text-base text-primary">FLASHPOINT</h3>
-                <p className="text-[10px] text-muted-foreground">One-time strike</p>
+                <h3 className="font-display text-base text-secondary">INTEL</h3>
+                <p className="text-[10px] text-muted-foreground">Live combat feed</p>
               </div>
             </div>
           </button>

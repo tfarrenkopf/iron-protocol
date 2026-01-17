@@ -1,7 +1,7 @@
 import { useState, useMemo } from 'react';
 import { motion } from 'framer-motion';
 import { useNavigate, useParams } from 'react-router-dom';
-import { useQuery } from '@tanstack/react-query';
+import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { ArrowLeft, Clock, Pencil, Trash2, Lock, Globe, Users, Flame, Plus, Trophy, Timer, Rocket, Play, Zap, RefreshCw, X, Target } from 'lucide-react';
 import { useCollection, useDeleteCollection, useRemoveMissionFromCollection, useAddMissionToCollection } from '@/hooks/useCollections';
 import { useCampaignProgress, useCampaignCompletions, useCampaignLeaderboard, CampaignProgress } from '@/hooks/useCampaignProgress';
@@ -46,8 +46,11 @@ function ActiveCampaignControl({
   isOwner 
 }: ActiveCampaignControlProps) {
   const navigate = useNavigate();
+  const queryClient = useQueryClient();
+  const { user } = useAuth();
   const { forfeitCampaign, isForfeiting } = useActiveCampaign();
   const [showForfeitDialog, setShowForfeitDialog] = useState(false);
+  const [isStartingNewRun, setIsStartingNewRun] = useState(false);
   
   const isComplete = completedMissionIds.size >= missions.length && missions.length > 0;
   const totalTime = missions.reduce((acc: number, m: any) => acc + (m?.estimated_minutes || 0), 0);
@@ -166,11 +169,43 @@ function ActiveCampaignControl({
         {isComplete ? (
           <div className="flex gap-2">
             <button
-              onClick={() => missions[0] && navigate(`/workout/${missions[0].id}?campaignId=${collection.id}`)}
-              className="flex-1 py-4 bg-secondary text-secondary-foreground font-display text-lg rounded-lg hover:box-glow-secondary transition-all flex items-center justify-center gap-3"
+              onClick={async () => {
+                if (!user || !missions[0]) return;
+                setIsStartingNewRun(true);
+                try {
+                  // Reset the current_run_started_at to now
+                  const nowIso = new Date().toISOString();
+                  await supabase
+                    .from('user_campaign_progress')
+                    .update({
+                      missions_completed_count: 0,
+                      completed_at: null,
+                      current_run_started_at: nowIso,
+                      updated_at: nowIso,
+                    })
+                    .eq('campaign_id', collection.id)
+                    .eq('user_id', user.id);
+
+                  // Invalidate queries so UI updates
+                  queryClient.invalidateQueries({ queryKey: ['campaign-progress', collection.id] });
+                  queryClient.invalidateQueries({ queryKey: ['campaign-completed-missions', collection.id] });
+                  queryClient.invalidateQueries({ queryKey: ['active-campaign-progress'] });
+                  queryClient.invalidateQueries({ queryKey: ['active-campaign-completed-missions'] });
+
+                  // Navigate to first mission
+                  navigate(`/workout/${missions[0].id}?campaignId=${collection.id}`);
+                } catch (error) {
+                  console.error('Failed to start new run:', error);
+                  toast({ title: 'Error', description: 'Failed to start new run', variant: 'destructive' });
+                } finally {
+                  setIsStartingNewRun(false);
+                }
+              }}
+              disabled={isStartingNewRun}
+              className="flex-1 py-4 bg-secondary text-secondary-foreground font-display text-lg rounded-lg hover:box-glow-secondary transition-all flex items-center justify-center gap-3 disabled:opacity-50"
             >
-              <RefreshCw className="w-5 h-5" />
-              START NEW RUN
+              <RefreshCw className={`w-5 h-5 ${isStartingNewRun ? 'animate-spin' : ''}`} />
+              {isStartingNewRun ? 'RESETTING...' : 'START NEW RUN'}
             </button>
             <button
               onClick={() => setShowForfeitDialog(true)}
