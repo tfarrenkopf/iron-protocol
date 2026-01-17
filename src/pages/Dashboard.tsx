@@ -171,6 +171,7 @@ const Dashboard = () => {
               >
                 <Timer className="w-6 h-6 text-section-hiit mx-auto mb-2" />
                 <h2 className="font-display text-sm text-section-hiit">HIIT</h2>
+                <p className="text-[10px] text-muted-foreground mt-1">Interval Timer</p>
               </button>
 
               <button
@@ -179,6 +180,7 @@ const Dashboard = () => {
               >
                 <Radio className="w-6 h-6 text-section-intel mx-auto mb-2" />
                 <h2 className="font-display text-sm text-section-intel">INTEL</h2>
+                <p className="text-[10px] text-muted-foreground mt-1">Global Activity</p>
               </button>
 
               <button
@@ -187,6 +189,7 @@ const Dashboard = () => {
               >
                 <Crosshair className="w-6 h-6 text-section-command mx-auto mb-2" />
                 <h2 className="font-display text-sm text-section-command">COMMAND</h2>
+                <p className="text-[10px] text-muted-foreground mt-1">Mission Arsenal</p>
               </button>
 
               {isHandler && (
@@ -196,6 +199,7 @@ const Dashboard = () => {
                 >
                   <Users className="w-6 h-6 text-warning mx-auto mb-2" />
                   <h2 className="font-display text-sm text-warning">HANDLER</h2>
+                  <p className="text-[10px] text-muted-foreground mt-1">Squad Control</p>
                 </button>
               )}
             </motion.div>

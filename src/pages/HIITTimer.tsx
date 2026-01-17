@@ -301,9 +301,9 @@ const HIITTimer = () => {
                 exit={{ opacity: 0, height: 0 }}
                 className="mb-6"
               >
-                <div className="bg-card border-2 border-accent rounded-lg p-5 space-y-6">
+                <div className="bg-card border-2 border-section-hiit rounded-lg p-5 space-y-6">
                   <div className="text-center">
-                    <h2 className="font-display text-2xl text-accent text-glow-accent">
+                    <h2 className="font-display text-2xl text-section-hiit">
                       {getCustomProtocolName(customWork, customRest, customRounds)}
                     </h2>
                     <p className="text-xs text-muted-foreground mt-1">
@@ -377,12 +377,12 @@ const HIITTimer = () => {
                   <div className="space-y-2">
                     <div className="flex items-center justify-between">
                       <span className="text-sm text-muted-foreground font-display">ROUNDS</span>
-                      <span className="font-display text-xl text-secondary">{customRounds}</span>
+                      <span className="font-display text-xl text-section-hiit">{customRounds}</span>
                     </div>
                     <div className="flex items-center gap-3">
                       <button
                         onClick={() => setCustomRounds(Math.max(1, customRounds - 1))}
-                        className="p-2 bg-background border border-border rounded-lg hover:border-secondary transition-colors"
+                        className="p-2 bg-background border border-border rounded-lg hover:border-section-hiit transition-colors"
                       >
                         <Minus className="w-4 h-4" />
                       </button>
@@ -393,11 +393,11 @@ const HIITTimer = () => {
                         step="1"
                         value={customRounds}
                         onChange={(e) => setCustomRounds(Number(e.target.value))}
-                        className="flex-1 accent-secondary"
+                        className="flex-1 accent-section-hiit"
                       />
                       <button
                         onClick={() => setCustomRounds(Math.min(30, customRounds + 1))}
-                        className="p-2 bg-background border border-border rounded-lg hover:border-secondary transition-colors"
+                        className="p-2 bg-background border border-border rounded-lg hover:border-section-hiit transition-colors"
                       >
                         <Plus className="w-4 h-4" />
                       </button>
@@ -420,7 +420,7 @@ const HIITTimer = () => {
                     </div>
                     <div className="text-center">
                       <div className="text-xs text-muted-foreground">INTENSITY</div>
-                      <div className="font-display text-lg text-accent">
+                      <div className="font-display text-lg text-section-hiit">
                         {Math.round((customWork / (customWork + customRest)) * 100)}%
                       </div>
                     </div>
@@ -436,7 +436,7 @@ const HIITTimer = () => {
                     </button>
                     <button
                       onClick={handleStartCustom}
-                      className="flex-1 py-3 bg-accent text-accent-foreground font-display rounded-lg hover:box-glow-accent transition-all flex items-center justify-center gap-2"
+                      className="flex-1 py-3 bg-section-hiit text-white font-display rounded-lg hover:box-glow-hiit transition-all flex items-center justify-center gap-2"
                     >
                       <Play className="w-5 h-5" />
                       ENGAGE
@@ -450,12 +450,12 @@ const HIITTimer = () => {
                 initial={{ opacity: 0, y: -10 }}
                 animate={{ opacity: 1, y: 0 }}
                 onClick={() => setShowCustomCreator(true)}
-                className="w-full mb-6 group bg-accent/10 border-2 border-dashed border-accent/50 rounded-lg p-5 text-center hover:border-accent hover:bg-accent/20 transition-all"
+                className="w-full mb-6 group bg-section-hiit/10 border-2 border-dashed border-section-hiit/50 rounded-lg p-5 text-center hover:border-section-hiit hover:bg-section-hiit/20 transition-all"
               >
                 <div className="flex items-center justify-center gap-3">
-                  <Zap className="w-6 h-6 text-accent" />
-                  <span className="font-display text-xl text-accent">FORGE YOUR OWN PROTOCOL</span>
-                  <Zap className="w-6 h-6 text-accent" />
+                  <Zap className="w-6 h-6 text-section-hiit" />
+                  <span className="font-display text-xl text-section-hiit">FORGE YOUR OWN PROTOCOL</span>
+                  <Zap className="w-6 h-6 text-section-hiit" />
                 </div>
                 <p className="text-xs text-muted-foreground mt-2">
                   Create a custom HIIT session with your own work, rest, and round settings
