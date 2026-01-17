@@ -62,7 +62,8 @@ const MissionSelect = () => {
 
   const handleEditClick = (e: React.MouseEvent, missionId: string) => {
     e.stopPropagation();
-    navigate(`/create-mission?edit=${missionId}`);
+    // Navigate to exercises page - the edit functionality is handled there via modal
+    navigate('/exercises');
   };
 
   const clearFilters = () => {
@@ -136,8 +137,9 @@ const MissionSelect = () => {
             </button>
             {user && (
               <button
-                onClick={() => navigate('/create-mission')}
+                onClick={() => navigate('/exercises')}
                 className="p-2 border border-primary text-primary rounded hover:bg-primary/10 transition-colors"
+                title="Create new mission"
               >
                 <Plus className="w-5 h-5" />
               </button>
@@ -288,7 +290,7 @@ const MissionSelect = () => {
             <p className="text-muted-foreground">No missions found. {hasFilters && 'Try clearing filters.'}</p>
             {showOnlyMine && (
               <button
-                onClick={() => navigate('/create-mission')}
+                onClick={() => navigate('/exercises')}
                 className="mt-4 text-sm text-secondary hover:text-glow-secondary font-display"
               >
                 + CREATE YOUR FIRST MISSION
@@ -309,48 +311,51 @@ const MissionSelect = () => {
                 {/* Glow effect on hover */}
                 <div className="absolute inset-0 bg-gradient-to-r from-primary/0 via-primary/5 to-primary/0 opacity-0 group-hover:opacity-100 transition-opacity" />
                 
-                {/* Custom mission badge + edit/delete controls (Story 13.4) */}
-                {!mission.is_public && user && mission.created_by === user.id && (
-                  <div className="absolute top-2 right-2 flex items-center gap-1">
-                    <button
-                      onClick={(e) => handleEditClick(e, mission.id)}
-                      className="p-1.5 bg-secondary/20 text-secondary rounded hover:bg-secondary/30 transition-colors"
-                      title="Edit mission"
-                    >
-                      <Pencil className="w-3.5 h-3.5" />
-                    </button>
-                    <button
-                      onClick={(e) => handleDeleteClick(e, mission)}
-                      className="p-1.5 bg-destructive/20 text-destructive rounded hover:bg-destructive/30 transition-colors"
-                      title="Delete mission"
-                    >
-                      <Trash2 className="w-3.5 h-3.5" />
-                    </button>
-                    <span className="text-xs px-2 py-0.5 bg-accent/20 text-accent rounded ml-1">
+                {/* Top-right badges - all on one line */}
+                <div className="absolute top-2 right-2 flex items-center gap-1">
+                  {/* Custom mission controls */}
+                  {!mission.is_public && user && mission.created_by === user.id && (
+                    <>
+                      <button
+                        onClick={(e) => handleEditClick(e, mission.id)}
+                        className="p-1.5 bg-secondary/20 text-secondary rounded hover:bg-secondary/30 transition-colors"
+                        title="Edit mission"
+                      >
+                        <Pencil className="w-3.5 h-3.5" />
+                      </button>
+                      <button
+                        onClick={(e) => handleDeleteClick(e, mission)}
+                        className="p-1.5 bg-destructive/20 text-destructive rounded hover:bg-destructive/30 transition-colors"
+                        title="Delete mission"
+                      >
+                        <Trash2 className="w-3.5 h-3.5" />
+                      </button>
+                      <span className="text-xs px-2 py-0.5 bg-accent/20 text-accent rounded">
+                        CUSTOM
+                      </span>
+                    </>
+                  )}
+
+                  {/* Custom mission badge (not owner) */}
+                  {!mission.is_public && (!user || mission.created_by !== user.id) && (
+                    <span className="text-xs px-2 py-0.5 bg-accent/20 text-accent rounded">
                       CUSTOM
                     </span>
-                  </div>
-                )}
+                  )}
 
-                {/* Custom mission badge (not owner) */}
-                {!mission.is_public && (!user || mission.created_by !== user.id) && (
-                  <div className="absolute top-2 right-2 text-xs px-2 py-0.5 bg-accent/20 text-accent rounded">
-                    CUSTOM
-                  </div>
-                )}
-
-                {/* Story 13.3: Popularity badge OR "No survivors" encouragement */}
-                {mission.is_public && (
-                  <div className="absolute top-2 right-2">
-                    {(mission.popularity_score || 0) === 0 ? (
-                      <span className="text-xs px-2 py-1 bg-primary/20 text-primary rounded font-display animate-pulse">
-                        NO SURVIVORS YET
-                      </span>
-                    ) : getPopularityTier(mission.popularity_score || 0) ? (
-                      <PopularityBadge score={mission.popularity_score || 0} />
-                    ) : null}
-                  </div>
-                )}
+                  {/* Popularity badge OR "No survivors" encouragement */}
+                  {mission.is_public && (
+                    <>
+                      {(mission.popularity_score || 0) === 0 ? (
+                        <span className="text-xs px-2 py-1 bg-primary/20 text-primary rounded font-display animate-pulse">
+                          NO SURVIVORS YET
+                        </span>
+                      ) : getPopularityTier(mission.popularity_score || 0) ? (
+                        <PopularityBadge score={mission.popularity_score || 0} />
+                      ) : null}
+                    </>
+                  )}
+                </div>
                 
                 <div className="relative z-10">
                   <div className="flex items-start justify-between mb-3">

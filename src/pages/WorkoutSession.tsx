@@ -80,16 +80,23 @@ const WorkoutSession = () => {
     }
   }, [mission, missionId, currentSession]);
 
-  // Set initial reps and weight when exercise changes
+  // Track the last exercise index to only reset reps/weight when moving to a new exercise
+  const lastExerciseIndexRef = useRef<number>(-1);
+
+  // Set initial reps and weight when exercise changes (only when moving to a NEW exercise)
   useEffect(() => {
     if (mission && mission.mission_exercises && currentExerciseIndex < mission.mission_exercises.length) {
-      const missionExercise = mission.mission_exercises[currentExerciseIndex];
-      setReps(missionExercise.target_reps);
-      
-      // Get last weight for this exercise
-      const exerciseId = missionExercise.exercise_id;
-      const lastWeight = weightHistory?.[exerciseId]?.lastWeight;
-      setWeight(lastWeight || 20);
+      // Only reset reps/weight when the exercise actually changes
+      if (lastExerciseIndexRef.current !== currentExerciseIndex) {
+        lastExerciseIndexRef.current = currentExerciseIndex;
+        const missionExercise = mission.mission_exercises[currentExerciseIndex];
+        setReps(missionExercise.target_reps);
+        
+        // Get last weight for this exercise
+        const exerciseId = missionExercise.exercise_id;
+        const lastWeight = weightHistory?.[exerciseId]?.lastWeight;
+        setWeight(lastWeight || 20);
+      }
     }
   }, [currentExerciseIndex, mission, weightHistory]);
 

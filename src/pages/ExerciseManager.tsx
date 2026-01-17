@@ -411,13 +411,23 @@ const ExerciseManager = () => {
                       onClick={() => setExpandedMission(expandedMission === mission.id ? null : mission.id)}
                       className="flex-1 p-3 text-left hover:bg-muted/30 transition-colors"
                     >
-                      <div className="flex items-center justify-between">
+                        <div className="flex items-center justify-between">
                         <div className="flex items-center gap-3">
                           <div>
                             <span className="font-display text-secondary">{mission.code_name}</span>
                             <span className="text-xs text-muted-foreground ml-2">
                               {mission.mission_exercises?.length || 0} exercises • {mission.estimated_minutes}min
                             </span>
+                            {/* Focus areas */}
+                            {mission.focus_areas && mission.focus_areas.length > 0 && (
+                              <div className="flex gap-1 mt-1 flex-wrap">
+                                {mission.focus_areas.slice(0, 3).map(area => (
+                                  <span key={area} className="text-xs px-1.5 py-0.5 bg-muted rounded text-muted-foreground">
+                                    {area}
+                                  </span>
+                                ))}
+                              </div>
+                            )}
                           </div>
                         </div>
                         <div className="flex items-center gap-2">
@@ -535,18 +545,10 @@ const ExerciseManager = () => {
                   <div className="flex items-start justify-between">
                     <div className="flex-1">
                       <h3 className="font-display text-lg text-primary">{exercise.name}</h3>
-                      <div className="flex items-center gap-2 mt-1">
-                        <span className="text-sm text-secondary">{exercise.primary_muscle_group}</span>
-                        {exercise.secondary_muscle_groups && exercise.secondary_muscle_groups.length > 0 && (
-                          <span className="text-xs text-muted-foreground">
-                            + {exercise.secondary_muscle_groups.join(', ')}
-                          </span>
-                        )}
-                      </div>
                       
-                      {/* Equipment tags */}
+                      {/* Equipment tags - first line after title */}
                       {exercise.equipment && exercise.equipment.length > 0 && (
-                        <div className="flex gap-1 mt-2 flex-wrap">
+                        <div className="flex gap-1 mt-1 flex-wrap">
                           {exercise.equipment.map(eq => (
                             <span key={eq} className="text-xs px-2 py-0.5 bg-accent/20 text-accent rounded">
                               {eq.replace(/_/g, ' ')}
@@ -555,16 +557,15 @@ const ExerciseManager = () => {
                         </div>
                       )}
                       
-                      {/* Focus areas */}
-                      {exercise.focus_areas && exercise.focus_areas.length > 0 && (
-                        <div className="flex gap-1 mt-2 flex-wrap">
-                          {exercise.focus_areas.map(fa => (
-                            <span key={fa} className="text-xs px-2 py-0.5 bg-muted rounded text-muted-foreground">
-                              {fa}
-                            </span>
-                          ))}
-                        </div>
-                      )}
+                      {/* Primary and secondary muscles */}
+                      <div className="flex items-center gap-2 mt-2">
+                        <span className="text-sm text-secondary">{exercise.primary_muscle_group}</span>
+                        {exercise.secondary_muscle_groups && exercise.secondary_muscle_groups.length > 0 && (
+                          <span className="text-xs text-muted-foreground">
+                            + {exercise.secondary_muscle_groups.join(', ')}
+                          </span>
+                        )}
+                      </div>
                       
                       {/* Description preview */}
                       {exercise.description && (
