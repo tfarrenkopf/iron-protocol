@@ -569,17 +569,7 @@ const ExerciseManager = () => {
             </div>
           ) : myExercises.length === 0 ? (
             <div className="bg-card border border-border rounded-lg p-8 text-center">
-              <Target className="w-8 h-8 mx-auto mb-3 text-muted-foreground" />
-              <p className="text-muted-foreground text-sm">No custom exercises yet.</p>
-              <button
-                onClick={() => {
-                  setShowExerciseForm(true);
-                  resetMissionForm();
-                }}
-                className="mt-3 text-sm text-secondary hover:text-glow-secondary font-display"
-              >
-                + CREATE YOUR FIRST Exercise
-              </button>
+              <p className="text-muted-foreground mb-4">No custom exercises yet. Create your first one!</p>
             </div>
           ) : (
             <div className="space-y-3">
