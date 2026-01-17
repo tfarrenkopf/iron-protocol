@@ -1,11 +1,13 @@
 import { useMemo } from 'react';
 import { motion } from 'framer-motion';
 import { useNavigate } from 'react-router-dom';
-import { Flame, Clock, Dumbbell, Target, Zap, Play, Pencil, Trash2, CheckCircle2, Crown } from 'lucide-react';
+import { Flame, Clock, Dumbbell, Target, Zap, Play, Pencil, Trash2, CheckCircle2, Crown, Users, Swords } from 'lucide-react';
 import { CollectionWithMissions } from '@/hooks/useCollections';
 import { StartCampaignButton } from '@/components/ActiveCampaignHero';
 import { useActiveCampaignDetails } from '@/hooks/useActiveCampaign';
 import { formatEquipment } from '@/data/muscleGroups';
+import { supabase } from '@/integrations/supabase/client';
+import { useQuery } from '@tanstack/react-query';
 
 interface CampaignCardProps {
   collection: CollectionWithMissions;
@@ -34,6 +36,48 @@ export function CampaignCard({
   const completedCount = isActive ? completedMissionIds.size : 0;
   const isComplete = isActive && completedCount >= missionCount && missionCount > 0;
   
+  // Fetch FOMO stats - last completion time and total completions
+  const { data: fomoStats } = useQuery({
+    queryKey: ['campaign-fomo', collection.id],
+    queryFn: async () => {
+      // Get last completion
+      const { data: lastCompletion } = await supabase
+        .from('campaign_completions')
+        .select('completed_at')
+        .eq('campaign_id', collection.id)
+        .order('completed_at', { ascending: false })
+        .limit(1)
+        .single();
+      
+      // Get total completions count
+      const { count } = await supabase
+        .from('campaign_completions')
+        .select('*', { count: 'exact', head: true })
+        .eq('campaign_id', collection.id);
+      
+      return {
+        lastCompletedAt: lastCompletion?.completed_at,
+        totalCompletions: count || 0
+      };
+    },
+    staleTime: 60000, // Cache for 1 minute
+  });
+  
+  // Format time ago
+  const formatTimeAgo = (dateStr: string) => {
+    const date = new Date(dateStr);
+    const now = new Date();
+    const diffMs = now.getTime() - date.getTime();
+    const diffMins = Math.floor(diffMs / 60000);
+    const diffHours = Math.floor(diffMs / 3600000);
+    const diffDays = Math.floor(diffMs / 86400000);
+    
+    if (diffMins < 60) return `${diffMins}m ago`;
+    if (diffHours < 24) return `${diffHours}h ago`;
+    if (diffDays < 7) return `${diffDays}d ago`;
+    return `${Math.floor(diffDays / 7)}w ago`;
+  };
+  
   // Calculate campaign stats
   const stats = useMemo(() => {
     const missions = collection.collection_missions?.map(cm => (cm as any).missions) || [];
@@ -59,9 +103,9 @@ export function CampaignCard({
     return {
       totalTime,
       avgDifficulty,
-      equipment: Array.from(equipmentSet).slice(0, 4),
+      equipment: Array.from(equipmentSet),
       focusAreas: Array.from(focusSet).slice(0, 3),
-      hasMoreEquipment: equipmentSet.size > 4
+      hasMoreEquipment: equipmentSet.size > 5
     };
   }, [collection.collection_missions]);
 
@@ -87,7 +131,7 @@ export function CampaignCard({
         <div className="flex items-start justify-between gap-3 mb-3">
           <div className="flex items-center gap-3">
             {/* Energetic icon */}
-            <div className={`p-2 rounded-lg transition-colors ${
+            <div className={`p-2.5 rounded-lg transition-colors ${
               isActive 
                 ? 'bg-accent/20' 
                 : isSystem 
@@ -95,11 +139,11 @@ export function CampaignCard({
                   : 'bg-primary/20 group-hover:bg-primary/30'
             }`}>
               {isActive ? (
-                <Flame className="w-6 h-6 text-accent animate-pulse" />
+                <Flame className="w-7 h-7 text-accent animate-pulse" />
               ) : isSystem ? (
-                <Crown className="w-6 h-6 text-secondary" />
+                <Crown className="w-7 h-7 text-secondary" />
               ) : (
-                <Target className="w-6 h-6 text-primary" />
+                <Swords className="w-7 h-7 text-primary" />
               )}
             </div>
             
@@ -120,6 +164,11 @@ export function CampaignCard({
                     ACTIVE
                   </span>
                 )}
+                {isOwner && !isSystem && (
+                  <span className="text-[10px] px-1.5 py-0.5 bg-primary/20 text-primary rounded font-display">
+                    YOURS
+                  </span>
+                )}
               </div>
               {collection.description && (
                 <p className="text-xs text-muted-foreground mt-0.5 line-clamp-1">{collection.description}</p>
@@ -127,28 +176,25 @@ export function CampaignCard({
             </div>
           </div>
 
-          {/* Actions */}
-          <div className="flex items-center gap-1 flex-shrink-0">
-            {isOwner && !isSystem && (
-              <div className="flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
-                <button
-                  onClick={(e) => { e.stopPropagation(); onEdit?.(collection.id); }}
-                  className="p-1.5 hover:bg-secondary/20 rounded transition-colors"
-                  title="Edit campaign"
-                >
-                  <Pencil className="w-3.5 h-3.5 text-secondary" />
-                </button>
-                <button
-                  onClick={(e) => { e.stopPropagation(); onDelete?.(collection.id, collection.code_name); }}
-                  className="p-1.5 hover:bg-destructive/20 rounded transition-colors"
-                  title="Delete campaign"
-                >
-                  <Trash2 className="w-3.5 h-3.5 text-destructive" />
-                </button>
-              </div>
-            )}
-            <StartCampaignButton campaignId={collection.id} size="small" />
-          </div>
+          {/* Owner Actions - always visible for owners */}
+          {isOwner && !isSystem && (
+            <div className="flex gap-1 flex-shrink-0">
+              <button
+                onClick={(e) => { e.stopPropagation(); onEdit?.(collection.id); }}
+                className="p-2 bg-secondary/20 text-secondary rounded hover:bg-secondary/30 transition-colors"
+                title="Edit campaign"
+              >
+                <Pencil className="w-4 h-4" />
+              </button>
+              <button
+                onClick={(e) => { e.stopPropagation(); onDelete?.(collection.id, collection.code_name); }}
+                className="p-2 bg-destructive/20 text-destructive rounded hover:bg-destructive/30 transition-colors"
+                title="Delete campaign"
+              >
+                <Trash2 className="w-4 h-4" />
+              </button>
+            </div>
+          )}
         </div>
 
         {/* Stats row */}
@@ -163,7 +209,7 @@ export function CampaignCard({
           </span>
           <span className="flex items-center gap-1">
             <Zap className="w-3 h-3" />
-            Avg {stats.avgDifficulty}/5
+            {stats.avgDifficulty}/5
           </span>
         </div>
 
@@ -178,22 +224,45 @@ export function CampaignCard({
           </div>
         )}
 
-        {/* Equipment */}
+        {/* Equipment - expanded view */}
         {stats.equipment.length > 0 && (
-          <div className="flex items-center gap-2">
-            <Dumbbell className="w-3 h-3 text-accent flex-shrink-0" />
+          <div className="flex items-start gap-2 mb-3">
+            <Dumbbell className="w-3 h-3 text-accent flex-shrink-0 mt-0.5" />
             <div className="flex gap-1.5 flex-wrap">
-              {stats.equipment.map(eq => (
+              {stats.equipment.slice(0, 5).map(eq => (
                 <span key={eq} className="text-[10px] px-1.5 py-0.5 bg-accent/10 text-accent rounded">
                   {formatEquipment(eq)}
                 </span>
               ))}
               {stats.hasMoreEquipment && (
-                <span className="text-[10px] text-muted-foreground">+more</span>
+                <span className="text-[10px] text-muted-foreground">+{stats.equipment.length - 5} more</span>
               )}
             </div>
           </div>
         )}
+
+        {/* FOMO Stats */}
+        {fomoStats && (fomoStats.totalCompletions > 0 || fomoStats.lastCompletedAt) && (
+          <div className="flex items-center gap-4 text-[10px] text-muted-foreground/80 mb-3 py-2 px-3 bg-muted/30 rounded-lg">
+            {fomoStats.totalCompletions > 0 && (
+              <span className="flex items-center gap-1">
+                <Users className="w-3 h-3 text-secondary" />
+                <span className="text-secondary">{fomoStats.totalCompletions}</span> completions
+              </span>
+            )}
+            {fomoStats.lastCompletedAt && (
+              <span className="flex items-center gap-1">
+                <Flame className="w-3 h-3 text-accent" />
+                Last run <span className="text-accent">{formatTimeAgo(fomoStats.lastCompletedAt)}</span>
+              </span>
+            )}
+          </div>
+        )}
+
+        {/* Large Start Button */}
+        <div className="mt-3" onClick={(e) => e.stopPropagation()}>
+          <StartCampaignButton campaignId={collection.id} size="large" />
+        </div>
 
         {/* Progress bar for active campaign */}
         {isActive && !isLoading && (
@@ -213,7 +282,7 @@ export function CampaignCard({
                 )}
               </span>
             </div>
-            <div className="h-1.5 bg-muted rounded-full overflow-hidden">
+            <div className="h-2 bg-muted rounded-full overflow-hidden">
               <div 
                 className="h-full bg-gradient-to-r from-accent to-accent/70 rounded-full transition-all"
                 style={{ width: `${missionCount > 0 ? (completedCount / missionCount) * 100 : 0}%` }}
