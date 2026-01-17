@@ -68,6 +68,60 @@ export type Database = {
         }
         Relationships: []
       }
+      campaign_completions: {
+        Row: {
+          campaign_id: string
+          completed_at: string
+          completion_time_seconds: number
+          created_at: string
+          id: string
+          is_personal_record: boolean
+          missions_completed: number
+          total_score: number
+          total_weight: number
+          user_id: string
+        }
+        Insert: {
+          campaign_id: string
+          completed_at?: string
+          completion_time_seconds: number
+          created_at?: string
+          id?: string
+          is_personal_record?: boolean
+          missions_completed: number
+          total_score?: number
+          total_weight?: number
+          user_id: string
+        }
+        Update: {
+          campaign_id?: string
+          completed_at?: string
+          completion_time_seconds?: number
+          created_at?: string
+          id?: string
+          is_personal_record?: boolean
+          missions_completed?: number
+          total_score?: number
+          total_weight?: number
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "campaign_completions_campaign_id_fkey"
+            columns: ["campaign_id"]
+            isOneToOne: false
+            referencedRelation: "collections"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "campaign_completions_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       collection_missions: {
         Row: {
           added_at: string
@@ -801,6 +855,60 @@ export type Database = {
           },
           {
             foreignKeyName: "user_achievements_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      user_campaign_progress: {
+        Row: {
+          best_completion_time_seconds: number | null
+          campaign_id: string
+          completed_at: string | null
+          created_at: string
+          id: string
+          missions_completed_count: number
+          total_completions: number
+          total_missions_count: number
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          best_completion_time_seconds?: number | null
+          campaign_id: string
+          completed_at?: string | null
+          created_at?: string
+          id?: string
+          missions_completed_count?: number
+          total_completions?: number
+          total_missions_count?: number
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          best_completion_time_seconds?: number | null
+          campaign_id?: string
+          completed_at?: string | null
+          created_at?: string
+          id?: string
+          missions_completed_count?: number
+          total_completions?: number
+          total_missions_count?: number
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "user_campaign_progress_campaign_id_fkey"
+            columns: ["campaign_id"]
+            isOneToOne: false
+            referencedRelation: "collections"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "user_campaign_progress_user_id_fkey"
             columns: ["user_id"]
             isOneToOne: false
             referencedRelation: "profiles"
