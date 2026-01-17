@@ -55,7 +55,7 @@ export function FightNowActions() {
       className="mb-6 space-y-3"
     >
       {/* Primary Action: Continue Campaign (if active) */}
-      {hasActiveCampaign && (
+      {hasActiveCampaign ? (
         <button
           onClick={handleContinueCampaign}
           className="w-full group relative bg-gradient-to-r from-accent/20 via-accent/10 to-accent/20 border-2 border-accent rounded-lg p-5 text-left transition-all hover:box-glow-accent hover:from-accent/30 hover:via-accent/20 hover:to-accent/30"
@@ -105,6 +105,16 @@ export function FightNowActions() {
             />
           </div>
         </button>
+      ) : (
+        /* No active campaign - show instructional hero */
+        <div className="bg-gradient-to-r from-primary/10 via-accent/5 to-primary/10 border-2 border-primary/30 rounded-lg p-5">
+          <div className="text-center mb-4">
+            <h2 className="font-display text-xl text-primary mb-1">CHOOSE YOUR BATTLEFIELD</h2>
+            <p className="text-xs text-muted-foreground">
+              Campaigns are multi-mission wars. Missions are single strikes. Pick your poison.
+            </p>
+          </div>
+        </div>
       )}
 
       {/* Secondary Actions Grid */}
@@ -120,9 +130,9 @@ export function FightNowActions() {
             </div>
             <div className="flex-1 min-w-0">
               <h3 className="font-display text-base text-accent">
-                {hasActiveCampaign ? 'SWITCH' : 'SELECT'}
+                {hasActiveCampaign ? 'SWITCH' : 'CAMPAIGN'}
               </h3>
-              <p className="text-[10px] text-muted-foreground">Campaign</p>
+              <p className="text-[10px] text-muted-foreground">Multi-mission war</p>
             </div>
           </div>
         </button>
@@ -137,8 +147,8 @@ export function FightNowActions() {
               <Target className="w-6 h-6 text-primary" />
             </div>
             <div className="flex-1 min-w-0">
-              <h3 className="font-display text-base text-primary">SELECT</h3>
-              <p className="text-[10px] text-muted-foreground">Mission</p>
+              <h3 className="font-display text-base text-primary">MISSION</h3>
+              <p className="text-[10px] text-muted-foreground">Quick strike op</p>
             </div>
           </div>
         </button>

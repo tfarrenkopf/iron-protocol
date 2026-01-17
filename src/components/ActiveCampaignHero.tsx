@@ -1,11 +1,11 @@
-import { useState } from 'react';
+import { useState, useMemo } from 'react';
 import { motion } from 'framer-motion';
 import { useNavigate } from 'react-router-dom';
-import { Target, ChevronRight, Trophy, RotateCcw, AlertTriangle, CheckCircle2, Circle, Clock, Zap, Play } from 'lucide-react';
+import { Flame, ChevronRight, AlertTriangle, Play, Clock, Dumbbell, Trophy, RefreshCw, Skull } from 'lucide-react';
 import { useActiveCampaign, useActiveCampaignDetails } from '@/hooks/useActiveCampaign';
 import { useAuth } from '@/hooks/useAuth';
-import { Progress } from '@/components/ui/progress';
 import { toast } from 'sonner';
+import { formatEquipment } from '@/data/muscleGroups';
 import {
   AlertDialog,
   AlertDialogAction,
@@ -17,22 +17,38 @@ import {
   AlertDialogTitle,
 } from '@/components/ui/alert-dialog';
 
-export function ActiveCampaignHero() {
+interface ActiveCampaignHeroProps {
+  className?: string;
+}
+
+export function ActiveCampaignHero({ className = '' }: ActiveCampaignHeroProps) {
   const navigate = useNavigate();
   const { forfeitCampaign, isForfeiting } = useActiveCampaign();
   const { campaign, progress, completedMissionIds, isLoading } = useActiveCampaignDetails();
   const [showForfeitDialog, setShowForfeitDialog] = useState(false);
 
-  if (isLoading || !campaign) return null;
+  // Calculate equipment from campaign missions
+  const equipment = useMemo(() => {
+    if (!campaign?.collection_missions) return [];
+    const equipmentSet = new Set<string>();
+    campaign.collection_missions.forEach((cm: any) => {
+      cm.missions?.mission_exercises?.forEach((me: any) => {
+        me.exercises?.equipment?.forEach((eq: string) => equipmentSet.add(eq));
+      });
+    });
+    return Array.from(equipmentSet);
+  }, [campaign]);
+
+  if (isLoading || !campaign) {
+    return null;
+  }
 
   const missions = campaign.collection_missions
     ?.sort((a: any, b: any) => a.order_index - b.order_index)
-    .map((cm: any) => cm.missions) || [];
-
+    .map((cm: any) => cm.missions)
+    .filter(Boolean) || [];
+  
   const totalMissions = missions.length;
-  const completedCount = completedMissionIds.size;
-  const progressPercent = totalMissions > 0 ? (completedCount / totalMissions) * 100 : 0;
-  const isComplete = completedCount >= totalMissions && totalMissions > 0;
 
   // Find next uncompleted mission
   const nextMission = missions.find((m: any) => !completedMissionIds.has(m.id));
@@ -46,147 +62,130 @@ export function ActiveCampaignHero() {
     e.stopPropagation();
     if (nextMission) {
       navigate(`/workout/${nextMission.id}?campaign=${campaign.id}`);
-    }
-  };
-
-  const handleReplay = (e: React.MouseEvent) => {
-    e.stopPropagation();
-    // Start from first mission
-    if (missions[0]) {
+    } else if (missions[0]) {
+      // Campaign complete, replay from start
       navigate(`/workout/${missions[0].id}?campaign=${campaign.id}`);
     }
   };
+
+  const formatTime = (seconds: number) => {
+    const mins = Math.floor(seconds / 60);
+    const secs = seconds % 60;
+    return `${mins}:${secs.toString().padStart(2, '0')}`;
+  };
+
+  const completedCount = completedMissionIds.size;
+  const isComplete = completedCount >= totalMissions;
+
+  // Calculate total time for remaining missions
+  const remainingTime = useMemo(() => {
+    return missions
+      .filter((m: any) => !completedMissionIds.has(m.id))
+      .reduce((sum: number, m: any) => sum + (m.estimated_minutes || 0), 0);
+  }, [missions, completedMissionIds]);
 
   return (
     <>
       <motion.div
         initial={{ opacity: 0, y: -10 }}
         animate={{ opacity: 1, y: 0 }}
-        className="mb-6"
+        className={`bg-accent/10 border-2 border-accent rounded-lg p-4 cursor-pointer hover:box-glow-accent transition-all ${className}`}
+        onClick={() => navigate(`/campaign/${campaign.id}`)}
       >
-        <div className="text-xs text-muted-foreground tracking-wider mb-2 flex items-center gap-2">
-          <Target className="w-3 h-3 text-accent" />
-          ACTIVE DEPLOYMENT
+        <div className="flex items-center justify-between mb-3">
+          <div className="flex items-center gap-2">
+            <Flame className="w-5 h-5 text-accent animate-pulse" />
+            <span className="font-display text-xs text-accent tracking-wider">ACTIVE CAMPAIGN</span>
+          </div>
+          <button
+            onClick={(e) => { e.stopPropagation(); setShowForfeitDialog(true); }}
+            className="text-xs text-destructive/60 hover:text-destructive font-display transition-colors"
+          >
+            FORFEIT
+          </button>
         </div>
+
+        <h2 className="font-display text-2xl text-accent mb-2">{campaign.code_name}</h2>
         
-        <div 
-          onClick={() => navigate(`/campaign/${campaign.id}`)}
-          className={`bg-card border rounded-lg p-4 cursor-pointer transition-all hover:border-accent ${
-            isComplete ? 'border-accent/50 bg-accent/5' : 'border-border hover:bg-card/80'
-          }`}
-        >
-          <div className="flex items-start justify-between mb-3">
-            <div>
-              <h2 className="font-display text-xl text-primary">{campaign.name}</h2>
-              <p className="text-xs text-muted-foreground mt-0.5">{campaign.code_name}</p>
-            </div>
-            <button
-              onClick={(e) => { e.stopPropagation(); setShowForfeitDialog(true); }}
-              disabled={isForfeiting}
-              className="text-xs font-display text-destructive/70 hover:text-destructive px-2 py-1 rounded hover:bg-destructive/10 transition-colors"
-            >
-              FORFEIT
-            </button>
+        {/* Progress */}
+        <div className="flex items-center gap-4 mb-3">
+          <div className="flex items-center gap-1.5">
+            <Play className="w-3.5 h-3.5 text-accent/70" />
+            <span className="text-sm">
+              <span className="text-accent font-display">{completedCount}</span>
+              <span className="text-muted-foreground">/{totalMissions}</span>
+            </span>
           </div>
-
-          {/* Progress bar */}
-          <div className="mb-3">
-            <div className="flex justify-between text-xs mb-1">
-              <span className={isComplete ? 'text-accent font-display' : 'text-muted-foreground'}>
-                {completedCount}/{totalMissions} missions
-              </span>
-              <span className={isComplete ? 'text-accent' : 'text-muted-foreground'}>
-                {Math.round(progressPercent)}%
-              </span>
-            </div>
-            <Progress 
-              value={progressPercent} 
-              className={`h-2 ${isComplete ? '[&>div]:bg-accent' : ''}`}
-            />
-          </div>
-
-          {/* Mission checklist - show next missions more prominently */}
-          <div className="space-y-1.5 mb-4">
-            {missions.slice(0, 4).map((mission: any, idx: number) => {
-              const isCompleted = completedMissionIds.has(mission.id);
-              const isNext = mission.id === nextMission?.id;
-              return (
-                <div
-                  key={mission.id}
-                  className={`flex items-center gap-2 px-2 py-1.5 rounded text-xs ${
-                    isCompleted
-                      ? 'bg-accent/10 text-accent/70'
-                      : isNext
-                      ? 'bg-primary/10 text-primary border border-primary/20'
-                      : 'bg-muted/50 text-muted-foreground'
-                  }`}
-                >
-                  {isCompleted ? (
-                    <CheckCircle2 className="w-3.5 h-3.5 flex-shrink-0" />
-                  ) : (
-                    <Circle className="w-3.5 h-3.5 flex-shrink-0" />
-                  )}
-                  <span className="flex-1 truncate">{mission.code_name || mission.name}</span>
-                  <span className="text-[10px] opacity-70">{mission.estimated_minutes}m</span>
-                  {isNext && (
-                    <span className="text-[10px] font-display text-primary">NEXT</span>
-                  )}
-                </div>
-              );
-            })}
-            {missions.length > 4 && (
-              <div className="text-xs text-muted-foreground text-center py-1">
-                +{missions.length - 4} more missions
-              </div>
-            )}
-          </div>
-
-          {/* Action buttons */}
-          {isComplete ? (
-            <div className="flex gap-2">
-              <button
-                onClick={handleReplay}
-                className="flex-1 flex items-center justify-center gap-2 px-4 py-2.5 bg-accent text-accent-foreground font-display rounded hover:box-glow-accent transition-all"
-              >
-                <RotateCcw className="w-4 h-4" />
-                RUN AGAIN
-              </button>
-              <button
-                onClick={(e) => { e.stopPropagation(); navigate('/command?tab=campaigns'); }}
-                className="px-4 py-2.5 border border-border text-muted-foreground font-display rounded hover:border-primary hover:text-primary transition-colors"
-              >
-                NEW CAMPAIGN
-              </button>
-            </div>
-          ) : nextMission ? (
-            <button
-              onClick={handleStartNext}
-              className="w-full flex items-center justify-center gap-2 px-4 py-3 bg-primary text-primary-foreground font-display rounded hover:box-glow-primary transition-all"
-            >
-              <Zap className="w-4 h-4" />
-              DEPLOY: {nextMission.code_name || nextMission.name}
-              <ChevronRight className="w-4 h-4" />
-            </button>
-          ) : null}
-
-          {/* Stats row */}
-          {progress && (progress.total_completions > 0 || progress.best_completion_time_seconds) && (
-            <div className="flex gap-4 mt-3 pt-3 border-t border-border text-xs text-muted-foreground">
-              {progress.total_completions > 0 && (
-                <div className="flex items-center gap-1">
-                  <Trophy className="w-3 h-3 text-accent" />
-                  <span>{progress.total_completions} runs</span>
-                </div>
-              )}
-              {progress.best_completion_time_seconds && (
-                <div className="flex items-center gap-1">
-                  <Clock className="w-3 h-3 text-secondary" />
-                  <span>Best: {formatTime(progress.best_completion_time_seconds)}</span>
-                </div>
-              )}
+          {remainingTime > 0 && (
+            <div className="flex items-center gap-1.5">
+              <Clock className="w-3.5 h-3.5 text-muted-foreground" />
+              <span className="text-sm text-muted-foreground">~{remainingTime}min left</span>
             </div>
           )}
         </div>
+
+        {/* Progress bar */}
+        <div className="h-2 bg-accent/20 rounded-full overflow-hidden mb-3">
+          <div 
+            className="h-full bg-accent rounded-full transition-all"
+            style={{ width: `${totalMissions > 0 ? (completedCount / totalMissions) * 100 : 0}%` }}
+          />
+        </div>
+
+        {/* Equipment */}
+        {equipment.length > 0 && (
+          <div className="flex items-center gap-2 mb-3">
+            <Dumbbell className="w-3.5 h-3.5 text-muted-foreground" />
+            <div className="flex gap-1 flex-wrap">
+              {equipment.slice(0, 4).map(eq => (
+                <span key={eq} className="text-[10px] px-1.5 py-0.5 bg-muted/50 text-muted-foreground rounded">
+                  {formatEquipment(eq)}
+                </span>
+              ))}
+              {equipment.length > 4 && (
+                <span className="text-[10px] px-1.5 py-0.5 bg-muted/50 text-muted-foreground rounded">
+                  +{equipment.length - 4}
+                </span>
+              )}
+            </div>
+          </div>
+        )}
+
+        {/* Action button */}
+        <button
+          onClick={handleStartNext}
+          className="w-full py-3 bg-accent text-accent-foreground font-display rounded-lg hover:bg-accent/90 transition-colors flex items-center justify-center gap-2 text-lg"
+        >
+          {isComplete ? (
+            <>
+              <RefreshCw className="w-5 h-5" />
+              REPLAY CAMPAIGN
+            </>
+          ) : (
+            <>
+              <ChevronRight className="w-5 h-5" />
+              {nextMission ? `NEXT: ${nextMission.code_name}` : 'CONTINUE'}
+            </>
+          )}
+        </button>
+
+        {/* Stats */}
+        {progress && (progress.total_completions > 0 || progress.best_completion_time_seconds) && (
+          <div className="mt-3 pt-3 border-t border-accent/20 flex items-center gap-4 text-xs text-muted-foreground">
+            {progress.total_completions > 0 && (
+              <div className="flex items-center gap-1">
+                <Trophy className="w-3 h-3 text-secondary" />
+                <span>{progress.total_completions}x cleared</span>
+              </div>
+            )}
+            {progress.best_completion_time_seconds && (
+              <div className="flex items-center gap-1">
+                <Clock className="w-3 h-3 text-secondary" />
+                <span>Best: {formatTime(progress.best_completion_time_seconds)}</span>
+              </div>
+            )}
+          </div>
+        )}
       </motion.div>
 
       {/* Forfeit Confirmation Dialog */}
@@ -226,23 +225,18 @@ export function ActiveCampaignHero() {
   );
 }
 
-function formatTime(seconds: number): string {
-  const mins = Math.floor(seconds / 60);
-  const secs = seconds % 60;
-  return `${mins}:${secs.toString().padStart(2, '0')}`;
+// StartCampaignButton - for use on campaign cards when user wants to begin/switch campaigns
+interface StartCampaignButtonProps {
+  campaignId: string;
+  size?: 'small' | 'default' | 'large';
 }
 
-// Start Campaign button for campaign cards/rows (replaces PinCampaignButton)
-export function StartCampaignButton({ 
-  campaignId, 
-  size = 'default' 
-}: { 
-  campaignId: string;
-  size?: 'default' | 'small' | 'large';
-}) {
+export function StartCampaignButton({ campaignId, size = 'default' }: StartCampaignButtonProps) {
   const navigate = useNavigate();
   const { user } = useAuth();
   const { activeCampaignId, setActiveCampaign, isSettingActive } = useActiveCampaign();
+  const [showSwitchConfirm, setShowSwitchConfirm] = useState(false);
+  
   const isActive = activeCampaignId === campaignId;
   const hasOtherActive = activeCampaignId && activeCampaignId !== campaignId;
 
@@ -255,51 +249,104 @@ export function StartCampaignButton({
       return;
     }
     
-    if (!isActive) {
+    if (isActive) return;
+    
+    // If switching from another campaign, show confirmation
+    if (hasOtherActive) {
+      setShowSwitchConfirm(true);
+    } else {
+      // Starting fresh
       setActiveCampaign(campaignId);
-      toast.success(hasOtherActive ? 'Campaign switched!' : 'Campaign started!');
+      toast.success('CAMPAIGN ACTIVATED', {
+        description: 'Prepare for deployment, soldier.',
+      });
     }
+  };
+
+  const confirmSwitch = () => {
+    setActiveCampaign(campaignId);
+    setShowSwitchConfirm(false);
+    toast.success('CAMPAIGN SWITCHED', {
+      description: 'Previous operation abandoned. New mission parameters loaded.',
+    });
   };
 
   const sizeClasses = {
     small: 'text-[10px] px-1.5 py-0.5',
-    default: 'text-xs px-2 py-1',
-    large: 'text-sm px-4 py-3 w-full'
+    default: 'text-xs px-3 py-1.5',
+    large: 'text-sm px-4 py-2.5',
   };
   
   const iconSizes = {
-    small: 'w-2.5 h-2.5',
-    default: 'w-3 h-3',
-    large: 'w-4 h-4'
+    small: 'w-3 h-3',
+    default: 'w-3.5 h-3.5',
+    large: 'w-4 h-4',
   };
 
   if (isActive) {
     return (
-      <span className={`${sizeClasses[size]} bg-accent/20 text-accent rounded font-display flex items-center justify-center gap-2`}>
-        <Play className={iconSizes[size]} />
-        ACTIVE OP
+      <span className={`flex items-center gap-1 bg-accent/20 text-accent rounded font-display ${sizeClasses[size]}`}>
+        <Flame className={iconSizes[size]} />
+        ACTIVE
       </span>
     );
   }
 
   return (
-    <button
-      onClick={handleClick}
-      disabled={isSettingActive}
-      className={`${sizeClasses[size]} rounded font-display transition-all flex items-center justify-center gap-2 ${
-        size === 'large' 
-          ? hasOtherActive
-            ? 'border-2 border-primary/50 text-primary hover:bg-primary/10 hover:box-glow-primary'
-            : 'bg-primary text-primary-foreground hover:box-glow-primary'
-          : hasOtherActive
-            ? 'text-muted-foreground hover:text-primary hover:bg-primary/10'
-            : 'bg-primary/10 text-primary hover:bg-primary/20'
-      }`}
-      title={hasOtherActive ? 'Switch to this campaign' : 'Start this campaign'}
-    >
-      <Play className={iconSizes[size]} />
-      {isSettingActive ? 'STARTING...' : hasOtherActive ? 'SWITCH CAMPAIGN' : 'BEGIN CAMPAIGN'}
-    </button>
+    <>
+      <button
+        onClick={handleClick}
+        disabled={isSettingActive}
+        className={`flex items-center gap-1.5 bg-accent text-accent-foreground rounded font-display hover:bg-accent/90 transition-colors disabled:opacity-50 ${sizeClasses[size]} ${
+          size === 'large' ? 'w-full justify-center' : ''
+        }`}
+        title={hasOtherActive ? 'Switch to this campaign' : 'Start this campaign'}
+      >
+        <Play className={iconSizes[size]} />
+        {isSettingActive ? 'STARTING...' : hasOtherActive ? 'ACTIVATE OP' : 'BEGIN CAMPAIGN'}
+      </button>
+
+      {/* Switch Confirmation Dialog */}
+      <AlertDialog open={showSwitchConfirm} onOpenChange={setShowSwitchConfirm}>
+        <AlertDialogContent className="bg-card border-destructive/50">
+          <AlertDialogHeader>
+            <AlertDialogTitle className="font-display text-destructive flex items-center gap-2">
+              <Skull className="w-5 h-5" />
+              ABANDON CURRENT OP?
+            </AlertDialogTitle>
+            <AlertDialogDescription className="space-y-3">
+              <p className="text-destructive font-display text-sm">
+                ⚠️ WARNING: MISSION ABORT DETECTED
+              </p>
+              <p>
+                Switching campaigns will <span className="text-destructive font-display">FORFEIT</span> your current progress.
+              </p>
+              <div className="bg-destructive/10 border border-destructive/30 rounded-lg p-3 space-y-1">
+                <p className="text-destructive text-sm font-display">CONSEQUENCES:</p>
+                <ul className="text-sm text-muted-foreground space-y-1 list-disc list-inside">
+                  <li>Campaign progress resets to 0%</li>
+                  <li>All mission checkpoints lost</li>
+                  <li>You must restart from the beginning</li>
+                </ul>
+              </div>
+              <p className="text-xs text-muted-foreground italic">
+                Your past workout stats and XP remain intact. Only campaign progress is reset.
+              </p>
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel className="border-border">RETREAT</AlertDialogCancel>
+            <AlertDialogAction
+              onClick={confirmSwitch}
+              disabled={isSettingActive}
+              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+            >
+              {isSettingActive ? 'SWITCHING...' : 'ABANDON & SWITCH'}
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+    </>
   );
 }
 
