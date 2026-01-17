@@ -27,6 +27,25 @@ export function useActiveCampaign() {
     mutationFn: async (campaignId: string | null) => {
       if (!user) throw new Error('Must be logged in');
 
+      // When activating a campaign, reset progress to start fresh
+      if (campaignId) {
+        // Reset any existing progress for this campaign
+        const { error: progressError } = await supabase
+          .from('user_campaign_progress')
+          .update({ 
+            missions_completed_count: 0,
+            completed_at: null,
+            updated_at: new Date().toISOString()
+          })
+          .eq('campaign_id', campaignId)
+          .eq('user_id', user.id);
+
+        // It's okay if no rows were updated (no existing progress)
+        if (progressError) {
+          console.warn('Could not reset progress:', progressError);
+        }
+      }
+
       const { error } = await supabase
         .from('profiles')
         .update({ active_campaign_id: campaignId })
@@ -35,9 +54,17 @@ export function useActiveCampaign() {
       if (error) throw error;
       return campaignId;
     },
-    onSuccess: () => {
+    onSuccess: (campaignId) => {
       queryClient.invalidateQueries({ queryKey: ['active-campaign', user?.id] });
       queryClient.invalidateQueries({ queryKey: ['profile'] });
+      // Also invalidate campaign-specific queries to ensure fresh data
+      if (campaignId) {
+        queryClient.invalidateQueries({ queryKey: ['campaign-progress', campaignId] });
+        queryClient.invalidateQueries({ queryKey: ['campaign-completed-missions', campaignId] });
+        queryClient.invalidateQueries({ queryKey: ['active-campaign-details'] });
+        queryClient.invalidateQueries({ queryKey: ['active-campaign-progress'] });
+        queryClient.invalidateQueries({ queryKey: ['active-campaign-completed-missions'] });
+      }
     },
   });
 

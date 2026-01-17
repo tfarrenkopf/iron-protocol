@@ -50,6 +50,7 @@ function ActiveCampaignControl({
   const [showForfeitDialog, setShowForfeitDialog] = useState(false);
   
   const isComplete = completedMissionIds.size >= missions.length && missions.length > 0;
+  const totalTime = missions.reduce((acc: number, m: any) => acc + (m?.estimated_minutes || 0), 0);
 
   const formatTime = (seconds: number) => {
     const mins = Math.floor(seconds / 60);
@@ -74,7 +75,7 @@ function ActiveCampaignControl({
             : 'bg-gradient-to-br from-accent/20 via-accent/10 to-background border-accent'
         }`}
       >
-        {/* Header */}
+        {/* Header with status */}
         <div className="flex items-center justify-between mb-3">
           <div className="flex items-center gap-2">
             {isComplete ? (
@@ -89,7 +90,24 @@ function ActiveCampaignControl({
               </>
             )}
           </div>
+          
+          {/* Quick stats */}
+          <div className="flex items-center gap-3 text-xs text-muted-foreground">
+            <span className="flex items-center gap-1">
+              <Target className="w-3 h-3 text-primary" />
+              {missions.length} missions
+            </span>
+            <span className="flex items-center gap-1">
+              <Clock className="w-3 h-3 text-secondary" />
+              ~{totalTime} min
+            </span>
+          </div>
         </div>
+
+        {/* Description - moved here from separate widget */}
+        {collection.description && (
+          <p className="text-sm text-foreground/80 mb-4">{collection.description}</p>
+        )}
         
         {/* Status */}
         <div className="flex items-center justify-between mb-4">
@@ -126,9 +144,9 @@ function ActiveCampaignControl({
           />
         </div>
 
-        {/* Stats row */}
+        {/* Historical stats row */}
         {progress && (progress.total_completions > 0 || progress.best_completion_time_seconds) && (
-          <div className="flex items-center gap-4 mb-4 text-xs text-muted-foreground">
+          <div className="flex items-center gap-4 mb-4 text-xs text-muted-foreground py-2 px-3 bg-muted/30 rounded-lg">
             {progress.total_completions > 0 && (
               <div className="flex items-center gap-1">
                 <RefreshCw className="w-3 h-3 text-secondary" />
@@ -471,42 +489,44 @@ const CampaignDetail = () => {
           </motion.div>
         )}
 
-        {/* Core Campaign Info - Description integrated with stats */}
-        <motion.div
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          transition={{ delay: 0.1 }}
-          className="mb-6 p-4 bg-card border border-border rounded-lg"
-        >
-          {/* Campaign Description */}
-          {collection.description && (
-            <p className="text-sm text-foreground mb-4">{collection.description}</p>
-          )}
-          
-          {/* Compact inline stats */}
-          <div className="flex items-center gap-4 text-xs text-muted-foreground flex-wrap">
-            <span className="flex items-center gap-1">
-              <Target className="w-3 h-3 text-primary" />
-              {missions.length} missions
-            </span>
-            <span className="flex items-center gap-1">
-              <Clock className="w-3 h-3 text-secondary" />
-              ~{missions.reduce((acc, m) => acc + (m?.estimated_minutes || 0), 0)} min
-            </span>
-            {progress?.total_completions && progress.total_completions > 0 && (
-              <span className="flex items-center gap-1">
-                <RefreshCw className="w-3 h-3 text-accent" />
-                {progress.total_completions}x cleared
-              </span>
+        {/* Core Campaign Info - Only show for non-active campaigns (active has info in control panel) */}
+        {!isActiveCampaign && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            transition={{ delay: 0.1 }}
+            className="mb-6 p-4 bg-card border border-border rounded-lg"
+          >
+            {/* Campaign Description */}
+            {collection.description && (
+              <p className="text-sm text-foreground mb-4">{collection.description}</p>
             )}
-            {progress?.best_completion_time_seconds && (
+            
+            {/* Compact inline stats */}
+            <div className="flex items-center gap-4 text-xs text-muted-foreground flex-wrap">
               <span className="flex items-center gap-1">
-                <Timer className="w-3 h-3 text-secondary" />
-                Best: {formatTime(progress.best_completion_time_seconds)}
+                <Target className="w-3 h-3 text-primary" />
+                {missions.length} missions
               </span>
-            )}
-          </div>
-        </motion.div>
+              <span className="flex items-center gap-1">
+                <Clock className="w-3 h-3 text-secondary" />
+                ~{missions.reduce((acc, m) => acc + (m?.estimated_minutes || 0), 0)} min
+              </span>
+              {progress?.total_completions && progress.total_completions > 0 && (
+                <span className="flex items-center gap-1">
+                  <RefreshCw className="w-3 h-3 text-accent" />
+                  {progress.total_completions}x cleared
+                </span>
+              )}
+              {progress?.best_completion_time_seconds && (
+                <span className="flex items-center gap-1">
+                  <Timer className="w-3 h-3 text-secondary" />
+                  Best: {formatTime(progress.best_completion_time_seconds)}
+                </span>
+              )}
+            </div>
+          </motion.div>
+        )}
 
         {/* Missions List */}
         <motion.section
