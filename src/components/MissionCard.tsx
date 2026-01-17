@@ -261,19 +261,21 @@ export function MissionCard({
           </div>
         </div>
 
-        {/* Action button */}
+        {/* Action button - larger touch target for mobile */}
         {variant === 'picker' && (
           <div className="flex items-center flex-shrink-0 ml-2">
             {isAdded ? (
-              <div className="w-10 h-10 rounded-lg flex items-center justify-center bg-secondary/20 text-secondary">
-                <CheckCircle2 className="w-5 h-5" />
+              <div className="w-12 h-12 rounded-lg flex items-center justify-center bg-secondary/20 text-secondary">
+                <CheckCircle2 className="w-6 h-6" />
               </div>
             ) : (
               <button
                 onClick={(e) => { e.stopPropagation(); onAdd?.(); }}
-                className="w-10 h-10 rounded-lg flex items-center justify-center bg-primary/20 text-primary hover:bg-primary hover:text-primary-foreground transition-colors"
+                className="w-12 h-12 rounded-lg flex items-center justify-center bg-section-missions text-white 
+                           hover:box-glow-missions active:scale-95 transition-all"
+                aria-label="Add mission to campaign"
               >
-                <Plus className="w-5 h-5" />
+                <Plus className="w-6 h-6" />
               </button>
             )}
           </div>

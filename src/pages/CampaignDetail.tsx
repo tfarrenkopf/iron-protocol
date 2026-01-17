@@ -572,7 +572,7 @@ const CampaignDetail = () => {
           transition={{ delay: 0.15 }}
           className="mb-6"
         >
-          <div className="flex items-center justify-between mb-3">
+          <div className="flex items-center justify-between mb-4">
             <h2 className="font-display text-sm text-section-missions tracking-wider flex items-center gap-2">
               <Crosshair className="w-4 h-4" />
               {isActiveCampaign ? 'MISSION QUEUE' : 'MISSIONS'} ({completedMissionIds.size}/{missions.length})
@@ -580,9 +580,12 @@ const CampaignDetail = () => {
             {canEdit && (
               <button
                 onClick={() => setMissionPickerOpen(true)}
-                className="flex items-center gap-1 text-xs text-primary hover:text-glow-primary font-display"
+                className="flex items-center gap-2 px-3 py-2 text-sm text-section-missions 
+                           border border-section-missions/50 rounded-lg
+                           hover:bg-section-missions/10 hover:border-section-missions
+                           transition-all font-display"
               >
-                <Plus className="w-3 h-3" /> ADD MISSIONS
+                <Plus className="w-4 h-4" /> ADD
               </button>
             )}
           </div>

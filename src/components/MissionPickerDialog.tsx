@@ -92,30 +92,37 @@ export function MissionPickerDialog({
         <div className="sticky top-0 z-20 bg-background border-b border-border">
           {/* Title bar */}
           <div className="flex items-center justify-between p-4 pb-3">
-            <h2 className="font-display text-lg text-primary">ADD MISSIONS</h2>
+            <div>
+              <h2 className="font-display text-lg text-section-missions">ADD MISSIONS</h2>
+              <p className="text-xs text-muted-foreground">
+                {existingMissionIds.length} mission{existingMissionIds.length !== 1 ? 's' : ''} in campaign
+              </p>
+            </div>
             <button
               onClick={handleClose}
-              className="p-2 -mr-2 hover:bg-muted rounded-lg transition-colors"
+              className="p-3 -mr-2 hover:bg-muted rounded-lg transition-colors"
+              aria-label="Close"
             >
               <X className="w-5 h-5" />
             </button>
           </div>
 
-          {/* Search bar */}
+          {/* Search bar - larger touch target */}
           <div className="px-4 pb-3">
             <div className="relative">
-              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+              <Search className="absolute left-4 top-1/2 transform -translate-y-1/2 w-5 h-5 text-muted-foreground" />
               <Input
-                placeholder="Search missions..."
+                placeholder="Search missions or exercises..."
                 value={search}
                 onChange={(e) => setSearch(e.target.value)}
-                className="pl-10 pr-10 bg-card border-border h-12 text-base"
+                className="pl-12 pr-12 bg-card border-border h-14 text-base rounded-lg"
                 autoFocus
               />
               {search && (
                 <button
                   onClick={() => setSearch('')}
-                  className="absolute right-3 top-1/2 transform -translate-y-1/2 p-1 hover:bg-muted rounded"
+                  className="absolute right-3 top-1/2 transform -translate-y-1/2 p-2 hover:bg-muted rounded"
+                  aria-label="Clear search"
                 >
                   <X className="w-4 h-4 text-muted-foreground" />
                 </button>
@@ -123,38 +130,38 @@ export function MissionPickerDialog({
             </div>
           </div>
 
-          {/* Quick filter chips */}
+          {/* Quick filter chips - larger touch targets */}
           <div className="px-4 pb-3 flex items-center gap-2 overflow-x-auto scrollbar-hide">
             <button
               onClick={() => setShowFilters(!showFilters)}
-              className={`flex items-center gap-1.5 px-3 py-2 rounded-lg border transition-colors flex-shrink-0 ${
+              className={`flex items-center gap-2 px-4 py-3 rounded-lg border transition-colors flex-shrink-0 ${
                 activeFilterCount > 0 
-                  ? 'bg-primary/20 border-primary text-primary' 
-                  : 'border-border hover:border-primary/50'
+                  ? 'bg-section-missions/20 border-section-missions text-section-missions' 
+                  : 'border-border hover:border-section-missions/50'
               }`}
             >
               <Filter className="w-4 h-4" />
               <span className="text-sm font-display">FILTERS</span>
               {activeFilterCount > 0 && (
-                <span className="w-5 h-5 rounded-full bg-primary text-primary-foreground text-xs flex items-center justify-center">
+                <span className="w-5 h-5 rounded-full bg-section-missions text-white text-xs flex items-center justify-center">
                   {activeFilterCount}
                 </span>
               )}
               <ChevronDown className={`w-4 h-4 transition-transform ${showFilters ? 'rotate-180' : ''}`} />
             </button>
 
-            {/* Duration quick filters */}
+            {/* Duration quick filters - larger touch targets */}
             {DURATION_FILTERS.slice(1).map((filter) => (
               <button
                 key={filter.value}
                 onClick={() => setDurationFilter(durationFilter === filter.value ? '' : filter.value)}
-                className={`flex items-center gap-1 px-3 py-2 rounded-lg border transition-colors flex-shrink-0 ${
+                className={`flex items-center gap-1.5 px-4 py-3 rounded-lg border transition-colors flex-shrink-0 ${
                   durationFilter === filter.value
                     ? 'bg-secondary/20 border-secondary text-secondary'
                     : 'border-border hover:border-secondary/50'
                 }`}
               >
-                <Clock className="w-3 h-3" />
+                <Clock className="w-4 h-4" />
                 <span className="text-sm">{filter.label}</span>
               </button>
             ))}
@@ -226,24 +233,23 @@ export function MissionPickerDialog({
           </AnimatePresence>
         </div>
 
-        {/* Mission List */}
-        <div className="flex-1 overflow-y-auto p-4 space-y-3">
+        {/* Mission List - increased spacing for touch */}
+        <div className="flex-1 overflow-y-auto p-4 space-y-4">
           {isLoading ? (
             <div className="text-center py-12">
-              <Zap className="w-8 h-8 mx-auto mb-3 text-primary animate-pulse" />
-              <p className="text-muted-foreground">Loading missions...</p>
+              <Zap className="w-8 h-8 mx-auto mb-3 text-section-missions animate-pulse" />
+              <p className="text-sm text-muted-foreground">Loading missions...</p>
             </div>
           ) : filteredMissions.length === 0 ? (
             <div className="text-center py-12">
               <X className="w-8 h-8 mx-auto mb-3 text-muted-foreground" />
-              <p className="text-muted-foreground mb-2">No missions found</p>
+              <p className="text-sm text-muted-foreground mb-2">No missions found</p>
               <p className="text-xs text-muted-foreground">Try adjusting your search or filters</p>
             </div>
           ) : (
             <>
-              <p className="text-xs text-muted-foreground mb-2">
-                {filteredMissions.length} mission{filteredMissions.length !== 1 ? 's' : ''} found
-                {existingMissionIds.length > 0 && ` • ${existingMissionIds.length} in campaign`}
+              <p className="text-xs text-muted-foreground">
+                {filteredMissions.length} mission{filteredMissions.length !== 1 ? 's' : ''} available
               </p>
               {filteredMissions.map((mission, index) => (
                 <MissionCard

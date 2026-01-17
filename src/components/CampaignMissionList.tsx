@@ -108,6 +108,19 @@ export function CampaignMissionList({
           />
         );
       })}
+      
+      {/* Mobile-friendly add mission button at bottom of list */}
+      {isOwner && !isSystem && (
+        <button
+          onClick={onAddMission}
+          className="w-full py-4 border-2 border-dashed border-section-missions/40 rounded-lg
+                     text-section-missions hover:bg-section-missions/10 hover:border-section-missions
+                     transition-all flex items-center justify-center gap-2 font-display text-sm"
+        >
+          <Plus className="w-5 h-5" />
+          ADD MORE MISSIONS
+        </button>
+      )}
     </div>
   );
 }
