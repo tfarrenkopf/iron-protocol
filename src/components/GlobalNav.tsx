@@ -100,12 +100,11 @@ export function GlobalNav({
   const navigate = useNavigate();
   const location = useLocation();
   const { data: isHandler } = useIsHandler();
-  const { user, signOut, isLoading } = useAuth();
+  const { user, signOut, isLoading, isAnonymous } = useAuth();
 
   // Auto-detect section from current path or use override
   const currentSection = sectionOverride || getSectionFromPath(location.pathname);
   const sectionColors = SECTION_COLORS[currentSection];
-  const isHomePage = location.pathname === "/";
 
   const navItems = [
     { path: "/", icon: Home, label: "HOME", section: "home" as SectionType },
@@ -127,6 +126,22 @@ export function GlobalNav({
       animate={{ opacity: 1, y: 0 }}
       className={cn("mb-6", className)}
     >
+      {/* Guest Mode Banner - shown on all pages when not logged in */}
+      {isAnonymous && (
+        <div className="mb-4 px-3 py-2 bg-warning/10 border border-warning/30 rounded flex items-center justify-between gap-3">
+          <div className="flex items-center gap-2 min-w-0">
+            <span className="text-warning text-xs">⚠️</span>
+            <span className="text-xs text-warning/90 font-display truncate">GUEST MODE</span>
+          </div>
+          <button
+            onClick={() => navigate("/auth")}
+            className="flex-shrink-0 px-3 py-1 bg-primary text-primary-foreground font-display text-xs rounded hover:box-glow-primary transition-all"
+          >
+            SIGN IN
+          </button>
+        </div>
+      )}
+
       {/* Primary nav row */}
       <div className="flex items-center justify-between mb-3">
         {/* Left side: Back button + Branding */}
@@ -148,12 +163,10 @@ export function GlobalNav({
             <div className="w-9 flex-shrink-0" /> // Spacer for alignment
           )}
 
-          {/* IRON PROTOCOL branding - subdued on home page */}
-          {!isHomePage && (
-            <span className="font-display text-sm text-primary/80 tracking-wider truncate">
-              IRON PROTOCOL
-            </span>
-          )}
+          {/* IRON PROTOCOL branding */}
+          <span className="font-display text-sm text-primary/80 tracking-wider truncate">
+            IRON PROTOCOL
+          </span>
         </div>
 
         {/* Right side: Nav icons + Auth controls */}
@@ -199,10 +212,7 @@ export function GlobalNav({
 
           {/* Auth controls - only shown when logged in */}
           {!isLoading && user && (
-            <div className={cn(
-              "flex items-center gap-1 ml-1 pl-1 border-l border-border",
-              isHomePage && "opacity-70"
-            )}>
+            <div className="flex items-center gap-1 ml-1 pl-1 border-l border-border">
               <button
                 onClick={() => navigate("/profile")}
                 className={cn(
