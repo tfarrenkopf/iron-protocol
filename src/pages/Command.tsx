@@ -163,9 +163,9 @@ const Command = () => {
       });
     }
     
-    // Always put active campaign at top if it's in current view
-    if (activeCampaign && campaigns.find(c => c.id === activeCampaignId)) {
-      campaigns = [activeCampaign, ...campaigns.filter(c => c.id !== activeCampaignId)];
+    // Filter out active campaign since it's shown in ActiveCampaignHero
+    if (activeCampaignId) {
+      campaigns = campaigns.filter(c => c.id !== activeCampaignId);
     }
     
     return campaigns;
