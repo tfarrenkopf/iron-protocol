@@ -34,14 +34,15 @@ const AuthPage = () => {
   // Support redirectTo from both URL query params and location state
   const searchParams = new URLSearchParams(location.search);
   const queryRedirect = searchParams.get('redirectTo');
+  const queryMode = searchParams.get('mode'); // 'signup' or 'signin'
   const stateRedirect = (location.state as { redirect?: string })?.redirect;
   const redirectTo = queryRedirect || stateRedirect || '/';
-  const intent = (location.state as { intent?: string })?.intent;
+  const isQuickFlow = !!queryRedirect; // Coming from a share link or deep link
   const { signIn, signUp, user } = useAuth();
   const updateProfile = useUpdateProfile();
   const updateProfileStats = useUpdateProfileStats();
   const createWorkoutSession = useCreateWorkoutSession();
-  const [isSignUp, setIsSignUp] = useState(false);
+  const [isSignUp, setIsSignUp] = useState(queryMode === 'signup');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [displayName, setDisplayName] = useState('');
@@ -287,30 +288,32 @@ const AuthPage = () => {
           </div>
         </motion.form>
 
-        {/* Anonymous Warning */}
-        <motion.div
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          transition={{ delay: 0.3 }}
-          className="mt-8 p-4 bg-card border border-border rounded"
-        >
-          <div className="flex items-start gap-3">
-            <AlertCircle className="w-5 h-5 text-warning flex-shrink-0 mt-0.5" />
-            <div>
-              <p className="font-display text-sm text-warning">GUEST MODE AVAILABLE</p>
-              <p className="text-xs text-muted-foreground mt-1">
-                You can use IRON PROTOCOL without signing in, but your progress won't be saved. 
-                Like a save file that's been corrupted. Forever.
-              </p>
-              <button
-                onClick={() => navigate('/')}
-                className="mt-3 text-xs text-secondary hover:underline"
-              >
-                Continue as Guest →
-              </button>
+        {/* Anonymous Warning - hide on quick flow */}
+        {!isQuickFlow && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            transition={{ delay: 0.3 }}
+            className="mt-8 p-4 bg-card border border-border rounded"
+          >
+            <div className="flex items-start gap-3">
+              <AlertCircle className="w-5 h-5 text-warning flex-shrink-0 mt-0.5" />
+              <div>
+                <p className="font-display text-sm text-warning">GUEST MODE AVAILABLE</p>
+                <p className="text-xs text-muted-foreground mt-1">
+                  You can use IRON PROTOCOL without signing in, but your progress won't be saved. 
+                  Like a save file that's been corrupted. Forever.
+                </p>
+                <button
+                  onClick={() => navigate('/')}
+                  className="mt-3 text-xs text-secondary hover:underline"
+                >
+                  Continue as Guest →
+                </button>
+              </div>
             </div>
-          </div>
-        </motion.div>
+          </motion.div>
+        )}
       </div>
     </div>
   );

@@ -18,7 +18,7 @@ const RivalInvite = () => {
   // Redirect to auth if not logged in
   useEffect(() => {
     if (!authLoading && !user) {
-      navigate(`/auth?redirectTo=/rival/${rivalCode}`);
+      navigate(`/auth?redirectTo=/rival/${rivalCode}&mode=signup`);
     }
   }, [user, authLoading, rivalCode, navigate]);
 
