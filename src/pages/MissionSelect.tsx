@@ -1,12 +1,13 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useSearchParams } from 'react-router-dom';
 import { ArrowLeft, Zap, Plus, Filter, X, RefreshCw, AlertCircle, Clock, Pencil, Trash2 } from 'lucide-react';
 import { useMissions, useDeleteMission } from '@/hooks/useMissions';
 import { useAuth } from '@/hooks/useAuth';
 import { PopularityBadge } from '@/components/SocialProof';
 import { getPopularityTier } from '@/hooks/useMissionStats';
 import { GuestIndicator } from '@/components/AnonymousConversion';
+import { FOCUS_AREAS, getMusclesForFocusArea, EQUIPMENT_OPTIONS, formatEquipment } from '@/data/muscleGroups';
 import {
   AlertDialog,
   AlertDialogAction,
@@ -18,9 +19,6 @@ import {
   AlertDialogTitle,
 } from '@/components/ui/alert-dialog';
 
-// Simplified focus areas - broad movement patterns (what you're doing)
-const FOCUS_AREAS = ['PUSH', 'PULL', 'LEGS', 'UPPER', 'FULL BODY', 'CORE', 'CARDIO'];
-
 const DURATION_FILTERS = [
   { label: 'Quick', value: 'short', max: 20 },
   { label: 'Standard', value: 'medium', min: 20, max: 40 },
@@ -29,17 +27,46 @@ const DURATION_FILTERS = [
 
 const MissionSelect = () => {
   const navigate = useNavigate();
+  const [searchParams, setSearchParams] = useSearchParams();
   const { user, isAnonymous } = useAuth();
+  
+  // Initialize filters from URL params
   const [showFilters, setShowFilters] = useState(false);
-  const [focusFilter, setFocusFilter] = useState<string>('');
-  const [showOnlyPublic, setShowOnlyPublic] = useState(false);
-  const [showOnlyMine, setShowOnlyMine] = useState(false);
-  const [durationFilter, setDurationFilter] = useState<string>('');
+  const [focusFilter, setFocusFilter] = useState<string>(searchParams.get('focus') || '');
+  const [muscleFilter, setMuscleFilter] = useState<string>(searchParams.get('muscle') || '');
+  const [equipmentFilter, setEquipmentFilter] = useState<string>(searchParams.get('equipment') || '');
+  const [showOnlyPublic, setShowOnlyPublic] = useState(searchParams.get('public') === 'true');
+  const [showOnlyMine, setShowOnlyMine] = useState(searchParams.get('mine') === 'true');
+  const [durationFilter, setDurationFilter] = useState<string>(searchParams.get('duration') || '');
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [missionToDelete, setMissionToDelete] = useState<{ id: string; name: string } | null>(null);
 
+  // Get available muscles based on selected focus area
+  const availableMuscles = getMusclesForFocusArea(focusFilter || null);
+
+  // Sync filters to URL
+  useEffect(() => {
+    const params = new URLSearchParams();
+    if (focusFilter) params.set('focus', focusFilter);
+    if (muscleFilter) params.set('muscle', muscleFilter);
+    if (equipmentFilter) params.set('equipment', equipmentFilter);
+    if (showOnlyPublic) params.set('public', 'true');
+    if (showOnlyMine) params.set('mine', 'true');
+    if (durationFilter) params.set('duration', durationFilter);
+    setSearchParams(params, { replace: true });
+  }, [focusFilter, muscleFilter, equipmentFilter, showOnlyPublic, showOnlyMine, durationFilter]);
+
+  // Clear muscle filter if it's not in the available muscles for the new focus area
+  useEffect(() => {
+    if (muscleFilter && !availableMuscles.includes(muscleFilter as any)) {
+      setMuscleFilter('');
+    }
+  }, [focusFilter, availableMuscles, muscleFilter]);
+
   const { data: missions, isLoading, error, refetch, isRefetching } = useMissions({
     focusArea: focusFilter || undefined,
+    muscleGroup: muscleFilter || undefined,
+    equipment: equipmentFilter || undefined,
     showOnlyPublic: showOnlyPublic || !user,
   });
 
@@ -61,18 +88,21 @@ const MissionSelect = () => {
 
   const handleEditClick = (e: React.MouseEvent, missionId: string) => {
     e.stopPropagation();
-    // Navigate to exercises page with mission ID to auto-open edit dialog
-    navigate(`/exercises?editMission=${missionId}`);
+    // Preserve current filters in the URL when navigating to edit
+    const currentParams = new URLSearchParams(searchParams);
+    navigate(`/exercises?editMission=${missionId}&returnFilters=${encodeURIComponent(currentParams.toString())}`);
   };
 
   const clearFilters = () => {
     setFocusFilter('');
+    setMuscleFilter('');
+    setEquipmentFilter('');
     setShowOnlyPublic(false);
     setShowOnlyMine(false);
     setDurationFilter('');
   };
 
-  const hasFilters = focusFilter || showOnlyPublic || showOnlyMine || durationFilter;
+  const hasFilters = focusFilter || muscleFilter || equipmentFilter || showOnlyPublic || showOnlyMine || durationFilter;
 
   // Filter missions for "My Missions" and duration options
   let filteredMissions = showOnlyMine && user 
@@ -182,6 +212,47 @@ const MissionSelect = () => {
                   ))}
                 </div>
               </div>
+
+              {/* Primary Muscle - filtered by focus area */}
+              <div>
+                <label className="text-xs text-muted-foreground tracking-wider">PRIMARY MUSCLE</label>
+                <div className="flex flex-wrap gap-2 mt-2">
+                  {availableMuscles.map(muscle => (
+                    <button
+                      key={muscle}
+                      onClick={() => setMuscleFilter(muscleFilter === muscle ? '' : muscle)}
+                      className={`text-xs px-2 py-1 rounded border transition-colors ${
+                        muscleFilter === muscle
+                          ? 'bg-secondary text-secondary-foreground border-secondary'
+                          : 'bg-background border-border hover:border-secondary/50'
+                      }`}
+                    >
+                      {muscle}
+                    </button>
+                  ))}
+                </div>
+              </div>
+
+              {/* Equipment Filter */}
+              <div>
+                <label className="text-xs text-muted-foreground tracking-wider">EQUIPMENT</label>
+                <div className="flex flex-wrap gap-2 mt-2">
+                  {['DUMBBELLS', 'BARBELL', 'BODYWEIGHT', 'CABLE_MACHINE', 'BENCH'].map(equip => (
+                    <button
+                      key={equip}
+                      onClick={() => setEquipmentFilter(equipmentFilter === equip ? '' : equip)}
+                      className={`text-xs px-2 py-1 rounded border transition-colors ${
+                        equipmentFilter === equip
+                          ? 'bg-accent text-accent-foreground border-accent'
+                          : 'bg-background border-border hover:border-accent/50'
+                      }`}
+                    >
+                      {formatEquipment(equip)}
+                    </button>
+                  ))}
+                </div>
+              </div>
+
               {/* Duration Filter */}
               <div>
                 <label className="text-xs text-muted-foreground tracking-wider flex items-center gap-1">
@@ -333,7 +404,7 @@ const MissionSelect = () => {
                     </>
                   )}
 
-                  {/* Difficulty badge - moved here to avoid overlap */}
+                  {/* Difficulty badge */}
                   <div className="flex items-center gap-1 bg-muted px-2 py-1 rounded">
                     <Zap className="w-3 h-3 text-accent" />
                     <span className="text-xs font-display text-accent">{mission.difficulty}</span>

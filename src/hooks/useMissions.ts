@@ -15,6 +15,7 @@ export interface MissionWithExercises extends Mission {
 export function useMissions(filters?: {
   muscleGroup?: string;
   focusArea?: string;
+  equipment?: string;
   showOnlyPublic?: boolean;
 }) {
   const { user } = useAuth();
@@ -60,6 +61,14 @@ export function useMissions(filters?: {
         filtered = filtered.filter(m =>
           m.mission_exercises?.some(me => 
             me.exercises?.primary_muscle_group?.toLowerCase().includes(filters.muscleGroup!.toLowerCase())
+          )
+        );
+      }
+
+      if (filters?.equipment) {
+        filtered = filtered.filter(m =>
+          m.mission_exercises?.some(me => 
+            me.exercises?.equipment?.includes(filters.equipment! as any)
           )
         );
       }

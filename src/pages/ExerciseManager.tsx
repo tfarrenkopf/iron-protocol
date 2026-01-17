@@ -5,22 +5,7 @@ import { ArrowLeft, Plus, Edit2, Trash2, X, Check, AlertCircle, Target, ChevronD
 import { useAuth } from '@/hooks/useAuth';
 import { useExercises, useCreateExercise, useUpdateExercise, useDeleteExercise, Exercise } from '@/hooks/useExercises';
 import { useMissions, useDeleteMission, useUpdateMission, useCreateMission, MissionWithExercises } from '@/hooks/useMissions';
-
-const EQUIPMENT_OPTIONS = [
-  'DUMBBELLS', 'BARBELL', 'BENCH', 'CABLE_MACHINE', 'LAT_PULLDOWN',
-  'LEG_PRESS', 'LEG_CURL', 'LEG_EXTENSION', 'SMITH_MACHINE', 'PEC_DECK',
-  'CHEST_PRESS', 'SHOULDER_PRESS_MACHINE', 'SEATED_ROW', 'PULL_UP_BAR',
-  'DIP_STATION', 'PREACHER_BENCH', 'HACK_SQUAT', 'CALF_RAISE', 'AB_MACHINE',
-  'BODYWEIGHT', 'KETTLEBELL', 'EZ_BAR'
-];
-
-const MUSCLE_GROUPS = [
-  'Chest', 'Back', 'Shoulders', 'Biceps', 'Triceps', 'Quadriceps',
-  'Hamstrings', 'Glutes', 'Calves', 'Core', 'Forearms', 'Traps',
-  'Lats', 'Deltoids', 'Obliques'
-];
-
-const FOCUS_AREAS = ['PUSH', 'PULL', 'LEGS', 'CORE', 'CARDIO', 'ARMS', 'SHOULDERS', 'CHEST', 'BACK'];
+import { FOCUS_AREAS, MUSCLE_GROUPS, EQUIPMENT_OPTIONS } from '@/data/muscleGroups';
 
 interface MissionExerciseItem {
   id: string;
@@ -82,8 +67,13 @@ const ExerciseManager = () => {
       const missionToEdit = myMissions.find(m => m.id === editMissionId);
       if (missionToEdit) {
         handleEditMission(missionToEdit);
-        // Clear the URL param after opening
-        setSearchParams({}, { replace: true });
+        // Keep returnFilters but clear editMission
+        const returnFilters = searchParams.get('returnFilters');
+        if (returnFilters) {
+          setSearchParams({ returnFilters }, { replace: true });
+        } else {
+          setSearchParams({}, { replace: true });
+        }
       }
     }
   }, [searchParams, myMissions]);
@@ -211,6 +201,7 @@ const ExerciseManager = () => {
     }
 
     const estimatedMinutes = calculateEstimatedMinutes();
+    const returnFilters = searchParams.get('returnFilters');
 
     try {
       const missionData = {
@@ -232,11 +223,17 @@ const ExerciseManager = () => {
           id: editingMission.id,
           ...missionData,
         });
+        // Return to missions page with preserved filters
+        if (returnFilters) {
+          navigate(`/missions?${decodeURIComponent(returnFilters)}`);
+        } else {
+          navigate('/missions');
+        }
       } else {
         await createMission.mutateAsync(missionData);
+        setShowMissionForm(false);
+        resetMissionForm();
       }
-      setShowMissionForm(false);
-      resetMissionForm();
     } catch (err: any) {
       setMissionError(err.message || `Failed to ${editingMission ? 'update' : 'create'} mission`);
     }
