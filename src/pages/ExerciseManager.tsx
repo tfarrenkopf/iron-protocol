@@ -78,14 +78,16 @@ const ExerciseManager = () => {
 
   const myExercises = exercises?.filter((e) => e.created_by === user?.id) || [];
 
-  // Auto-open edit mission dialog if editMission param is present
+  // Auto-open dialogs based on URL params
   useEffect(() => {
     const editMissionId = searchParams.get("editMission");
+    const newMission = searchParams.get("newMission");
+    const newExercise = searchParams.get("newExercise");
+    
     if (editMissionId && myMissions.length > 0) {
       const missionToEdit = myMissions.find((m) => m.id === editMissionId);
       if (missionToEdit) {
         handleEditMission(missionToEdit);
-        // Keep returnFilters but clear editMission
         const returnFilters = searchParams.get("returnFilters");
         if (returnFilters) {
           setSearchParams({ returnFilters }, { replace: true });
@@ -93,6 +95,14 @@ const ExerciseManager = () => {
           setSearchParams({}, { replace: true });
         }
       }
+    } else if (newMission === 'true') {
+      setShowMissionForm(true);
+      resetMissionForm();
+      setSearchParams({}, { replace: true });
+    } else if (newExercise === 'true') {
+      setShowForm(true);
+      resetForm();
+      setSearchParams({}, { replace: true });
     }
   }, [searchParams, myMissions]);
 

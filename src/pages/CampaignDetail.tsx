@@ -93,7 +93,7 @@ const CampaignDetail = () => {
   const handleDeleteCampaign = async () => {
     if (collection) {
       await deleteCollection.mutateAsync(collection.id);
-      navigate('/collections');
+      navigate('/command?tab=campaigns');
     }
   };
 
@@ -139,7 +139,7 @@ const CampaignDetail = () => {
       <div className="min-h-screen bg-background flex flex-col items-center justify-center gap-4">
         <div className="font-display text-2xl text-destructive">CAMPAIGN NOT FOUND</div>
         <button
-          onClick={() => navigate('/collections')}
+          onClick={() => navigate('/command?tab=campaigns')}
           className="text-primary hover:underline"
         >
           Return to Campaigns
@@ -161,7 +161,7 @@ const CampaignDetail = () => {
         >
           <div className="flex items-center gap-4">
             <button 
-              onClick={() => navigate('/collections')}
+              onClick={() => navigate('/command?tab=campaigns')}
               className="p-2 border border-border rounded hover:border-primary transition-colors"
             >
               <ArrowLeft className="w-5 h-5" />
