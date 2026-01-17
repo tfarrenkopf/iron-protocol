@@ -1,7 +1,7 @@
-import { useEffect, useState } from 'react';
+import { useEffect } from 'react';
 import { useForm } from 'react-hook-form';
 import { Folder, Lock, Globe, Users } from 'lucide-react';
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
+import { Dialog, DialogContent } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
@@ -98,12 +98,12 @@ export function CollectionFormDialog({ open, onOpenChange, collectionId }: Colle
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="bg-card border-border max-w-md">
-        <DialogHeader>
-          <DialogTitle className="font-display text-xl text-primary flex items-center gap-2">
-            <Folder className="w-5 h-5" />
+        <div className="flex items-center gap-2 mb-4">
+          <Folder className="w-5 h-5 text-primary" />
+          <h2 className="font-display text-xl text-primary">
             {isEditing ? 'EDIT COLLECTION' : 'NEW COLLECTION'}
-          </DialogTitle>
-        </DialogHeader>
+          </h2>
+        </div>
 
         <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
           <div>
