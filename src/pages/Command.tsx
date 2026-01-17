@@ -406,6 +406,7 @@ const Command = () => {
                 onChange={setSource}
                 publicLabel="GLOBAL"
                 personalLabel="MY MISSIONS"
+                section="missions"
               />
             )}
           </motion.div>
@@ -738,7 +739,7 @@ const Command = () => {
           {activeTab === 'missions' && (
             missionsLoading ? (
               <div className="text-center py-12">
-                <div className="font-display text-2xl text-primary animate-neon-pulse">LOADING...</div>
+                <div className="font-display text-2xl text-section-missions animate-neon-pulse">LOADING...</div>
               </div>
             ) : missionsError ? (
               <div className="text-center py-12">
@@ -746,7 +747,7 @@ const Command = () => {
                 <p className="font-display text-xl text-destructive mb-2">TRANSMISSION FAILED</p>
                 <button
                   onClick={() => refetchMissions()}
-                  className="px-6 py-3 bg-primary text-primary-foreground font-display rounded hover:box-glow-primary transition-all flex items-center gap-2 mx-auto"
+                  className="px-6 py-3 bg-section-missions text-white font-display rounded hover:box-glow-missions transition-all flex items-center gap-2 mx-auto"
                 >
                   <RefreshCw className="w-4 h-4" /> RETRY
                 </button>
@@ -771,7 +772,7 @@ const Command = () => {
                     {source === 'personal' && user && (
                       <button
                         onClick={() => navigate('/exercises?newMission=true')}
-                        className="text-sm text-secondary hover:text-glow-secondary font-display"
+                        className="text-sm text-section-missions hover:text-glow-missions font-display"
                       >
                         + CREATE YOUR FIRST MISSION
                       </button>
@@ -795,7 +796,7 @@ const Command = () => {
                                 <>
                                   <button
                                     onClick={(e) => handleEditMission(e, mission.id)}
-                                    className="p-1.5 bg-secondary/20 text-secondary rounded hover:bg-secondary/30 transition-colors"
+                                    className="p-1.5 bg-section-missions/20 text-section-missions rounded hover:bg-section-missions/30 transition-colors"
                                     title="Edit mission"
                                   >
                                     <Pencil className="w-3.5 h-3.5" />
@@ -824,14 +825,14 @@ const Command = () => {
           {activeTab === 'exercises' && (
             exercisesLoading ? (
               <div className="text-center py-12">
-                <div className="font-display text-lg text-primary animate-neon-pulse">LOADING...</div>
+                <div className="font-display text-lg text-section-command animate-neon-pulse">LOADING...</div>
               </div>
             ) : (
               <>
                 {/* Exercise instruction */}
-                <div className="mb-4 p-3 bg-primary/5 border border-primary/20 rounded-lg">
+                <div className="mb-4 p-3 bg-section-command/5 border border-section-command/20 rounded-lg">
                   <p className="text-xs text-muted-foreground">
-                    <span className="text-primary font-display">EXERCISES</span> are your building blocks. Browse global or create custom moves for your missions.
+                    <span className="text-section-command font-display">EXERCISES</span> are your building blocks. Browse global or create custom moves for your missions.
                   </p>
                 </div>
                 
@@ -843,6 +844,7 @@ const Command = () => {
                       onChange={setSource}
                       publicLabel="GLOBAL"
                       personalLabel="MY EXERCISES"
+                      section="exercises"
                     />
                   </div>
                 )}
@@ -856,7 +858,7 @@ const Command = () => {
                     {source === 'personal' && user && (
                       <button
                         onClick={() => navigate('/exercises?newExercise=true')}
-                        className="text-sm text-primary hover:text-glow-primary font-display"
+                        className="text-sm text-section-command hover:text-glow-command font-display"
                       >
                         + CREATE YOUR FIRST EXERCISE
                       </button>
@@ -884,7 +886,7 @@ const Command = () => {
           {activeTab === 'campaigns' && (
             collectionsLoading ? (
               <div className="text-center py-12">
-                <div className="font-display text-lg text-primary animate-neon-pulse">LOADING...</div>
+                <div className="font-display text-lg text-section-campaigns animate-neon-pulse">LOADING...</div>
               </div>
             ) : filteredCampaigns.length === 0 ? (
               <div className="text-center py-12 border border-dashed border-border rounded-lg">
@@ -900,7 +902,7 @@ const Command = () => {
                 {campaignSource === 'personal' && user && (
                   <button
                     onClick={() => setCampaignDialogOpen(true)}
-                    className="text-sm text-accent hover:text-glow-accent font-display"
+                    className="text-sm text-section-campaigns hover:text-glow-campaigns font-display"
                   >
                     + CREATE YOUR FIRST CAMPAIGN
                   </button>
@@ -912,8 +914,8 @@ const Command = () => {
                 {activeCampaign && filteredCampaigns.find(c => c.id === activeCampaignId) && (
                   <div className="mb-2">
                     <div className="flex items-center gap-2 mb-2">
-                      <Flame className="w-4 h-4 text-accent animate-pulse" />
-                      <span className="font-display text-xs text-accent tracking-wider">YOUR ACTIVE OP</span>
+                      <Flame className="w-4 h-4 text-section-campaigns animate-pulse" />
+                      <span className="font-display text-xs text-section-campaigns tracking-wider">YOUR ACTIVE OP</span>
                     </div>
                   </div>
                 )}
@@ -936,7 +938,7 @@ const Command = () => {
                 {campaignSource === 'personal' && user && filteredCampaigns.length > 0 && (
                   <button
                     onClick={() => setCampaignDialogOpen(true)}
-                    className="w-full py-4 border-2 border-dashed border-accent/30 rounded-lg text-accent/60 hover:border-accent hover:text-accent transition-colors font-display text-sm"
+                    className="w-full py-4 border-2 border-dashed border-section-campaigns/30 rounded-lg text-section-campaigns/60 hover:border-section-campaigns hover:text-section-campaigns transition-colors font-display text-sm"
                   >
                     + CREATE NEW CAMPAIGN
                   </button>
