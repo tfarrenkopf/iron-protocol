@@ -140,50 +140,52 @@ const Dashboard = () => {
           </p>
         </motion.header>
 
-        {/* Primary Actions - Fight Now */}
-        <FightNowActions />
+        {/* Primary Actions + Utility Grid */}
+        <div className="mb-8 space-y-4">
+          <FightNowActions />
 
-        {/* Utility Actions Row - uniform sizing */}
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.2 }}
-          className={`grid gap-4 mb-8 ${isHandler ? "grid-cols-4" : "grid-cols-3"}`}
-        >
-          <button
-            onClick={() => navigate("/hiit")}
-            className="group relative bg-card border border-section-hiit/50 rounded-lg p-4 text-center transition-all hover:border-section-hiit hover:bg-section-hiit/5"
+          {/* Utility Actions Row - uniform sizing */}
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.2 }}
+            className={`grid gap-4 ${isHandler ? "grid-cols-4" : "grid-cols-3"}`}
           >
-            <Timer className="w-6 h-6 text-section-hiit mx-auto mb-2" />
-            <h2 className="font-display text-sm text-section-hiit">HIIT</h2>
-          </button>
-
-          <button
-            onClick={() => navigate("/intel")}
-            className="group relative bg-card border border-section-intel/50 rounded-lg p-4 text-center transition-all hover:border-section-intel hover:bg-section-intel/5"
-          >
-            <Radio className="w-6 h-6 text-section-intel mx-auto mb-2" />
-            <h2 className="font-display text-sm text-section-intel">INTEL</h2>
-          </button>
-
-          <button
-            onClick={() => navigate("/command")}
-            className="group relative bg-card border border-section-command/50 rounded-lg p-4 text-center transition-all hover:border-section-command hover:bg-section-command/5"
-          >
-            <Crosshair className="w-6 h-6 text-section-command mx-auto mb-2" />
-            <h2 className="font-display text-sm text-section-command">COMMAND</h2>
-          </button>
-
-          {isHandler && (
             <button
-              onClick={() => navigate("/handler")}
-              className="group relative bg-card border border-warning/50 rounded-lg p-4 text-center transition-all hover:border-warning hover:bg-warning/5"
+              onClick={() => navigate("/hiit")}
+              className="group relative bg-card border border-section-hiit/50 rounded-lg p-4 text-center transition-all hover:border-section-hiit hover:bg-section-hiit/5"
             >
-              <Users className="w-6 h-6 text-warning mx-auto mb-2" />
-              <h2 className="font-display text-sm text-warning">HANDLER</h2>
+              <Timer className="w-6 h-6 text-section-hiit mx-auto mb-2" />
+              <h2 className="font-display text-sm text-section-hiit">HIIT</h2>
             </button>
-          )}
-        </motion.div>
+
+            <button
+              onClick={() => navigate("/intel")}
+              className="group relative bg-card border border-section-intel/50 rounded-lg p-4 text-center transition-all hover:border-section-intel hover:bg-section-intel/5"
+            >
+              <Radio className="w-6 h-6 text-section-intel mx-auto mb-2" />
+              <h2 className="font-display text-sm text-section-intel">INTEL</h2>
+            </button>
+
+            <button
+              onClick={() => navigate("/command")}
+              className="group relative bg-card border border-section-command/50 rounded-lg p-4 text-center transition-all hover:border-section-command hover:bg-section-command/5"
+            >
+              <Crosshair className="w-6 h-6 text-section-command mx-auto mb-2" />
+              <h2 className="font-display text-sm text-section-command">COMMAND</h2>
+            </button>
+
+            {isHandler && (
+              <button
+                onClick={() => navigate("/handler")}
+                className="group relative bg-card border border-warning/50 rounded-lg p-4 text-center transition-all hover:border-warning hover:bg-warning/5"
+              >
+                <Users className="w-6 h-6 text-warning mx-auto mb-2" />
+                <h2 className="font-display text-sm text-warning">HANDLER</h2>
+              </button>
+            )}
+          </motion.div>
+        </div>
 
         {/* Weekly Summary */}
         <WeeklySummary />
