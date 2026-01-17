@@ -75,7 +75,15 @@ const MissionDetail = () => {
           className="flex items-center gap-4 mb-6"
         >
           <button 
-            onClick={() => navigate(-1)}
+            onClick={() => {
+              const searchParams = new URLSearchParams(location.search);
+              const campaignId = searchParams.get('campaignId');
+              if (campaignId) {
+                navigate(`/campaign/${campaignId}`);
+              } else {
+                navigate(-1);
+              }
+            }}
             className="p-2 border border-border rounded hover:border-primary transition-colors"
           >
             <ArrowLeft className="w-5 h-5" />
@@ -334,7 +342,11 @@ const MissionDetail = () => {
               />
             )}
             <button
-              onClick={() => navigate(`/workout/${missionId}`)}
+              onClick={() => {
+                const searchParams = new URLSearchParams(location.search);
+                const campaignId = searchParams.get('campaignId');
+                navigate(`/workout/${missionId}${campaignId ? `?campaignId=${campaignId}` : ''}`);
+              }}
               className="w-full py-4 bg-gradient-to-r from-primary to-accent text-primary-foreground font-display text-xl rounded-lg hover:opacity-90 transition-opacity flex items-center justify-center gap-3"
             >
               <Play className="w-6 h-6" />

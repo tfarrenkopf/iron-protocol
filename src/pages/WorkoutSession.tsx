@@ -1,6 +1,6 @@
 import { useState, useEffect, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { useParams, useNavigate } from 'react-router-dom';
+import { useParams, useNavigate, useSearchParams } from 'react-router-dom';
 import { X, Plus, Minus, Check, ChevronRight, Info, Scroll, AlertTriangle } from 'lucide-react';
 import { useGameStore } from '@/stores/gameStore';
 import { useMission } from '@/hooks/useMissions';
@@ -19,6 +19,8 @@ import { useBatchPersist } from '@/hooks/useBatchPersist';
 
 const WorkoutSession = () => {
   const { missionId } = useParams();
+  const [searchParams] = useSearchParams();
+  const campaignId = searchParams.get('campaignId');
   const navigate = useNavigate();
   const { user, isAnonymous } = useAuth();
   const { data: mission, isLoading: missionLoading } = useMission(missionId);
@@ -377,7 +379,11 @@ const WorkoutSession = () => {
           <button
             onClick={() => {
               resetGame();
-              navigate('/');
+              if (campaignId) {
+                navigate(`/campaign/${campaignId}`);
+              } else {
+                navigate('/');
+              }
             }}
             className="px-8 py-4 bg-primary text-primary-foreground font-display text-xl rounded hover:box-glow-primary transition-all"
           >
