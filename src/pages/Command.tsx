@@ -3,6 +3,7 @@ import { motion } from 'framer-motion';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import { Crosshair, Dumbbell, Flame, Filter, X, Clock, Plus, Pencil, Trash2, RefreshCw, AlertCircle, Crown } from 'lucide-react';
 import { GlobalNav } from '@/components/GlobalNav';
+import { AppFooter } from '@/components/AppFooter';
 import { useMissions, useDeleteMission } from '@/hooks/useMissions';
 import { useCollections, useDeleteCollection, CollectionWithMissions } from '@/hooks/useCollections';
 import { useExercises, useDeleteExercise } from '@/hooks/useExercises';
@@ -938,9 +939,10 @@ const Command = () => {
             )
           )}
         </div>
-      </div>
 
-      {/* Delete Dialog */}
+        {/* Footer */}
+        <AppFooter />
+      </div>
       <AlertDialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
         <AlertDialogContent className="bg-card border-destructive/50">
           <AlertDialogHeader>

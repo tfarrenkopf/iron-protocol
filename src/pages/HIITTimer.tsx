@@ -10,6 +10,7 @@ import { KillFeed } from '@/components/KillFeed';
 import { useHIITSounds } from '@/hooks/useHIITSounds';
 import { Progress } from '@/components/ui/progress';
 import { GlobalNav } from '@/components/GlobalNav';
+import { AppFooter } from '@/components/AppFooter';
 import {
   AlertDialog,
   AlertDialogAction,
@@ -506,6 +507,9 @@ const HIITTimer = () => {
               ))}
             </div>
           )}
+
+          {/* Footer */}
+          <AppFooter />
         </div>
       </div>
     );

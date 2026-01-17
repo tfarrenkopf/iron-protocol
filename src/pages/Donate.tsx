@@ -1,6 +1,7 @@
 import { motion } from 'framer-motion';
 import { useNavigate } from 'react-router-dom';
 import { ArrowLeft, Heart, Sparkles, Shield, Coffee, Users, Zap, Lock, FlaskConical } from 'lucide-react';
+import { AppFooter } from '@/components/AppFooter';
 
 const Donate = () => {
   const navigate = useNavigate();
@@ -230,6 +231,9 @@ const Donate = () => {
               // NO MERCY
             </p>
           </motion.div>
+
+          {/* Footer */}
+          <AppFooter />
         </div>
       </div>
     </div>

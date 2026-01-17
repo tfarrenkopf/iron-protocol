@@ -42,6 +42,7 @@ import { MilestoneList } from '@/components/MilestoneProgress';
 import { useAchievements, useUserAchievements } from '@/hooks/useAchievements';
 import { AchievementList } from '@/components/AchievementList';
 import { useMissions } from '@/hooks/useMissions';
+import { AppFooter } from '@/components/AppFooter';
 
 // ==================== HACKER PSEUDONYMS ====================
 const HACKER_NAMES = [
@@ -1168,11 +1169,7 @@ const Intel = () => {
         </Tabs>
 
         {/* Footer */}
-        <div className="text-center py-8 mt-8 border-t border-border">
-          <p className="font-display text-xs text-muted-foreground">
-            INTEL CENTER :: ALPHA SYSTEM
-          </p>
-        </div>
+        <AppFooter />
       </div>
     </div>
   );

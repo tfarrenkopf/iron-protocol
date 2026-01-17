@@ -5,6 +5,7 @@ import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { Clock, Pencil, Trash2, Lock, Globe, Users, Flame, Plus, Trophy, Timer, Rocket, Zap, RefreshCw, X, Crosshair, Calendar } from 'lucide-react';
 import { format } from 'date-fns';
 import { GlobalNav } from '@/components/GlobalNav';
+import { AppFooter } from '@/components/AppFooter';
 import { useCollection, useDeleteCollection, useRemoveMissionFromCollection, useAddMissionToCollection } from '@/hooks/useCollections';
 import { useCampaignProgress, useCampaignCompletions, useCampaignLeaderboard, CampaignProgress } from '@/hooks/useCampaignProgress';
 import { useAuth } from '@/hooks/useAuth';
@@ -768,6 +769,8 @@ const CampaignDetail = () => {
           </motion.section>
         )}
 
+        {/* Footer */}
+        <AppFooter />
       </div>
 
       {/* Mission Picker Dialog */}

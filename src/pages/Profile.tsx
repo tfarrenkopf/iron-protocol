@@ -22,6 +22,7 @@ import {
   Users,
 } from "lucide-react";
 import { GlobalNav } from "@/components/GlobalNav";
+import { AppFooter } from "@/components/AppFooter";
 import { useAuth } from "@/hooks/useAuth";
 import { useProfile, useUpdateProfile } from "@/hooks/useProfile";
 import { useCompletedSessions, useDeleteSession } from "@/hooks/useWorkoutSessions";
@@ -521,9 +522,10 @@ const ProfilePage = () => {
             </motion.section>
           </>
         )}
-      </div>
 
-      {/* Wipe Confirmation Modal */}
+        {/* Footer */}
+        <AppFooter />
+      </div>
       <AnimatePresence>
         {showWipeConfirm && (
           <motion.div

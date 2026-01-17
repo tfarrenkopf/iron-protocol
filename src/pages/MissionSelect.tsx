@@ -2,6 +2,7 @@ import { useState, useEffect, useMemo } from 'react';
 import { motion } from 'framer-motion';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import { ArrowLeft, Zap, Plus, Filter, X, RefreshCw, AlertCircle, Clock, Pencil, Trash2 } from 'lucide-react';
+import { AppFooter } from '@/components/AppFooter';
 import { useMissions, useDeleteMission } from '@/hooks/useMissions';
 import { useCollections } from '@/hooks/useCollections';
 import { useAuth } from '@/hooks/useAuth';
@@ -438,6 +439,9 @@ const MissionSelect = () => {
             ))}
           </div>
         )}
+
+        {/* Footer */}
+        <AppFooter />
 
         {/* Delete Confirmation Dialog */}
         <AlertDialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>

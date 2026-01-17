@@ -11,6 +11,7 @@ import {
   Plus
 } from 'lucide-react';
 import { GlobalNav } from '@/components/GlobalNav';
+import { AppFooter } from '@/components/AppFooter';
 
 const GUIDE_SECTIONS = [
   {
@@ -220,7 +221,7 @@ const Guide = () => {
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           transition={{ delay: 0.5 }}
-          className="mt-12 mb-8"
+          className="mt-12"
         >
           <button
             onClick={() => navigate('/')}
@@ -229,6 +230,9 @@ const Guide = () => {
             BEGIN TRAINING
           </button>
         </motion.div>
+
+        {/* Footer */}
+        <AppFooter />
       </div>
     </div>
   );
