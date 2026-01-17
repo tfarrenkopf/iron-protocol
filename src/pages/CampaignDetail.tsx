@@ -671,21 +671,23 @@ const CampaignDetail = () => {
             <div className="bg-card border border-border rounded-lg overflow-hidden divide-y divide-border">
               {runSessions.map((session: any) => {
                 const completedDate = new Date(session.completed_at);
-                const dayOfWeek = format(completedDate, 'EEE');
+                const dayOfWeek = format(completedDate, 'EEEE'); // Full day name
                 const dateStr = format(completedDate, 'MMM d');
                 const missionName = session.missions?.code_name || session.missions?.name || 'Unknown Mission';
                 
                 return (
                   <div key={session.id} className="p-3 flex items-center justify-between">
                     <div className="flex items-center gap-3">
-                      <div className="text-center min-w-[50px]">
-                        <div className="text-[10px] text-muted-foreground uppercase">{dayOfWeek}</div>
-                        <div className="text-sm font-display text-primary">{dateStr}</div>
+                      <div className="text-center min-w-[70px]">
+                        <div className="text-xs text-primary font-display">{dayOfWeek}</div>
+                        <div className="text-[10px] text-muted-foreground">{dateStr}</div>
                       </div>
                       <div>
                         <div className="text-sm font-display text-foreground">{missionName}</div>
-                        <div className="text-[10px] text-muted-foreground">
-                          {session.score_earned} pts • {session.total_weight} lbs
+                        <div className="text-[10px] text-muted-foreground flex items-center gap-2">
+                          <span>{session.score_earned} pts</span>
+                          <span>•</span>
+                          <span>{session.total_weight.toLocaleString()} lbs lifted</span>
                         </div>
                       </div>
                     </div>
