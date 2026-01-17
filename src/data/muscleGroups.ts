@@ -6,10 +6,10 @@ export const FOCUS_AREAS = [
   'FULL BODY',
   'CORE',
   'CARDIO',
-  'Strength',
-  'Hypertrophy',
-  'Power',
-  'Endurance',
+  'STRENGTH',
+  'HYPERTROPHY',
+  'POWER',
+  'ENDURANCE',
 ] as const;
 
 export type FocusArea = typeof FOCUS_AREAS[number];
@@ -92,7 +92,7 @@ export const FOCUS_AREA_MUSCLES: Record<FocusArea, MuscleGroup[]> = {
     'Core',
     'Quadriceps',
   ],
-  'Strength': [
+  'STRENGTH': [
     'Full Body',
     'Chest',
     'Back',
@@ -101,7 +101,7 @@ export const FOCUS_AREA_MUSCLES: Record<FocusArea, MuscleGroup[]> = {
     'Glutes',
     'Shoulders',
   ],
-  'Hypertrophy': [
+  'HYPERTROPHY': [
     'Full Body',
     'Chest',
     'Back',
@@ -110,14 +110,14 @@ export const FOCUS_AREA_MUSCLES: Record<FocusArea, MuscleGroup[]> = {
     'Quadriceps',
     'Shoulders',
   ],
-  'Power': [
+  'POWER': [
     'Full Body',
     'Quadriceps',
     'Hamstrings',
     'Glutes',
     'Core',
   ],
-  'Endurance': [
+  'ENDURANCE': [
     'Full Body',
     'Core',
     'Quadriceps',

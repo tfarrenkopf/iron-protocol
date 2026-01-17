@@ -197,7 +197,7 @@ export function MissionCard({
               {mission.focus_areas?.slice(0, 3).map((area) => (
                 <span 
                   key={area}
-                  className="text-xs px-2 py-0.5 bg-muted rounded text-muted-foreground"
+                  className="text-xs px-2 py-0.5 bg-muted rounded text-muted-foreground uppercase"
                 >
                   {area}
                 </span>
