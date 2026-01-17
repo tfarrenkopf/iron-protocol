@@ -1,9 +1,18 @@
 import { useState, useMemo } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Search, Clock, Zap, Plus, Check, X } from 'lucide-react';
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
+import { Search, X, Filter, Clock, Zap, ChevronDown } from 'lucide-react';
+import { Dialog, DialogContent } from '@/components/ui/dialog';
 import { Input } from '@/components/ui/input';
-import { useMissions, MissionWithExercises } from '@/hooks/useMissions';
+import { useMissions } from '@/hooks/useMissions';
+import { MissionCard } from '@/components/MissionCard';
+import { FOCUS_AREAS } from '@/data/muscleGroups';
+
+const DURATION_FILTERS = [
+  { label: 'All', value: '' },
+  { label: '< 20m', value: 'short', max: 20 },
+  { label: '20-40m', value: 'medium', min: 20, max: 40 },
+  { label: '> 40m', value: 'long', min: 40 },
+];
 
 interface MissionPickerDialogProps {
   open: boolean;
@@ -19,128 +28,203 @@ export function MissionPickerDialog({
   existingMissionIds,
 }: MissionPickerDialogProps) {
   const [search, setSearch] = useState('');
+  const [focusFilter, setFocusFilter] = useState('');
+  const [durationFilter, setDurationFilter] = useState('');
+  const [showFilters, setShowFilters] = useState(false);
+  
   const { data: missions, isLoading } = useMissions({ showOnlyPublic: true });
 
   const filteredMissions = useMemo(() => {
     if (!missions) return [];
     
     return missions.filter(m => {
+      // Search filter
       const matchesSearch = !search || 
         m.name.toLowerCase().includes(search.toLowerCase()) ||
         m.code_name.toLowerCase().includes(search.toLowerCase()) ||
+        m.description?.toLowerCase().includes(search.toLowerCase()) ||
         m.focus_areas?.some(f => f.toLowerCase().includes(search.toLowerCase()));
       
-      return matchesSearch;
+      // Focus area filter
+      const matchesFocus = !focusFilter || m.focus_areas?.includes(focusFilter);
+      
+      // Duration filter
+      let matchesDuration = true;
+      if (durationFilter) {
+        const filter = DURATION_FILTERS.find(f => f.value === durationFilter);
+        if (filter) {
+          if (filter.max && m.estimated_minutes >= filter.max) matchesDuration = false;
+          if (filter.min && m.estimated_minutes < filter.min) matchesDuration = false;
+        }
+      }
+      
+      return matchesSearch && matchesFocus && matchesDuration;
     });
-  }, [missions, search]);
-
-  const getDifficultyLabel = (difficulty: number) => {
-    if (difficulty <= 2) return { label: 'EASY', color: 'text-green-400' };
-    if (difficulty <= 4) return { label: 'MEDIUM', color: 'text-yellow-400' };
-    if (difficulty <= 6) return { label: 'HARD', color: 'text-orange-400' };
-    return { label: 'EXTREME', color: 'text-red-400' };
-  };
+  }, [missions, search, focusFilter, durationFilter]);
 
   const isAlreadyAdded = (missionId: string) => existingMissionIds.includes(missionId);
 
-  return (
-    <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-lg max-h-[80vh] flex flex-col bg-card border-border">
-        <DialogHeader>
-          <DialogTitle className="font-display text-primary flex items-center gap-2">
-            <Plus className="w-5 h-5" />
-            ADD MISSIONS
-          </DialogTitle>
-        </DialogHeader>
+  const activeFilterCount = [focusFilter, durationFilter].filter(Boolean).length;
 
-        <div className="relative mb-4">
-          <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-muted-foreground" />
-          <Input
-            placeholder="Search missions..."
-            value={search}
-            onChange={(e) => setSearch(e.target.value)}
-            className="pl-10 bg-background border-border"
-          />
+  const handleClose = () => {
+    setSearch('');
+    setFocusFilter('');
+    setDurationFilter('');
+    setShowFilters(false);
+    onOpenChange(false);
+  };
+
+  return (
+    <Dialog open={open} onOpenChange={handleClose}>
+      <DialogContent className="max-w-full h-[100dvh] sm:max-w-lg sm:h-[85vh] p-0 gap-0 bg-background border-none sm:border sm:border-border sm:rounded-lg overflow-hidden">
+        {/* Sticky Header */}
+        <div className="sticky top-0 z-20 bg-background border-b border-border">
+          {/* Title bar */}
+          <div className="flex items-center justify-between p-4 pb-3">
+            <h2 className="font-display text-lg text-primary">ADD MISSIONS</h2>
+            <button
+              onClick={handleClose}
+              className="p-2 -mr-2 hover:bg-muted rounded-lg transition-colors"
+            >
+              <X className="w-5 h-5" />
+            </button>
+          </div>
+
+          {/* Search bar */}
+          <div className="px-4 pb-3">
+            <div className="relative">
+              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+              <Input
+                placeholder="Search missions..."
+                value={search}
+                onChange={(e) => setSearch(e.target.value)}
+                className="pl-10 pr-10 bg-card border-border h-12 text-base"
+                autoFocus
+              />
+              {search && (
+                <button
+                  onClick={() => setSearch('')}
+                  className="absolute right-3 top-1/2 transform -translate-y-1/2 p-1 hover:bg-muted rounded"
+                >
+                  <X className="w-4 h-4 text-muted-foreground" />
+                </button>
+              )}
+            </div>
+          </div>
+
+          {/* Quick filter chips */}
+          <div className="px-4 pb-3 flex items-center gap-2 overflow-x-auto scrollbar-hide">
+            <button
+              onClick={() => setShowFilters(!showFilters)}
+              className={`flex items-center gap-1.5 px-3 py-2 rounded-lg border transition-colors flex-shrink-0 ${
+                activeFilterCount > 0 
+                  ? 'bg-primary/20 border-primary text-primary' 
+                  : 'border-border hover:border-primary/50'
+              }`}
+            >
+              <Filter className="w-4 h-4" />
+              <span className="text-sm font-display">FILTERS</span>
+              {activeFilterCount > 0 && (
+                <span className="w-5 h-5 rounded-full bg-primary text-primary-foreground text-xs flex items-center justify-center">
+                  {activeFilterCount}
+                </span>
+              )}
+              <ChevronDown className={`w-4 h-4 transition-transform ${showFilters ? 'rotate-180' : ''}`} />
+            </button>
+
+            {/* Duration quick filters */}
+            {DURATION_FILTERS.slice(1).map((filter) => (
+              <button
+                key={filter.value}
+                onClick={() => setDurationFilter(durationFilter === filter.value ? '' : filter.value)}
+                className={`flex items-center gap-1 px-3 py-2 rounded-lg border transition-colors flex-shrink-0 ${
+                  durationFilter === filter.value
+                    ? 'bg-secondary/20 border-secondary text-secondary'
+                    : 'border-border hover:border-secondary/50'
+                }`}
+              >
+                <Clock className="w-3 h-3" />
+                <span className="text-sm">{filter.label}</span>
+              </button>
+            ))}
+          </div>
+
+          {/* Expanded filters */}
+          <AnimatePresence>
+            {showFilters && (
+              <motion.div
+                initial={{ height: 0, opacity: 0 }}
+                animate={{ height: 'auto', opacity: 1 }}
+                exit={{ height: 0, opacity: 0 }}
+                className="overflow-hidden border-t border-border"
+              >
+                <div className="p-4 space-y-3 bg-card/50">
+                  <div>
+                    <label className="text-xs text-muted-foreground font-display tracking-wider mb-2 block">
+                      FOCUS AREA
+                    </label>
+                    <div className="flex flex-wrap gap-2">
+                      {FOCUS_AREAS.map((area) => (
+                        <button
+                          key={area}
+                          onClick={() => setFocusFilter(focusFilter === area ? '' : area)}
+                          className={`px-3 py-1.5 rounded text-sm transition-colors ${
+                            focusFilter === area
+                              ? 'bg-primary text-primary-foreground'
+                              : 'bg-muted hover:bg-muted/80'
+                          }`}
+                        >
+                          {area}
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+                  
+                  {(focusFilter || durationFilter) && (
+                    <button
+                      onClick={() => { setFocusFilter(''); setDurationFilter(''); }}
+                      className="text-xs text-destructive hover:underline"
+                    >
+                      Clear all filters
+                    </button>
+                  )}
+                </div>
+              </motion.div>
+            )}
+          </AnimatePresence>
         </div>
 
-        <div className="flex-1 overflow-y-auto space-y-2 pr-2 -mr-2">
+        {/* Mission List */}
+        <div className="flex-1 overflow-y-auto p-4 space-y-3">
           {isLoading ? (
-            <div className="text-center py-8 text-muted-foreground">
-              <Zap className="w-6 h-6 mx-auto mb-2 animate-pulse" />
-              Loading missions...
+            <div className="text-center py-12">
+              <Zap className="w-8 h-8 mx-auto mb-3 text-primary animate-pulse" />
+              <p className="text-muted-foreground">Loading missions...</p>
             </div>
           ) : filteredMissions.length === 0 ? (
-            <div className="text-center py-8 text-muted-foreground">
-              <X className="w-6 h-6 mx-auto mb-2" />
-              No missions found
+            <div className="text-center py-12">
+              <X className="w-8 h-8 mx-auto mb-3 text-muted-foreground" />
+              <p className="text-muted-foreground mb-2">No missions found</p>
+              <p className="text-xs text-muted-foreground">Try adjusting your search or filters</p>
             </div>
           ) : (
-            <AnimatePresence mode="popLayout">
-              {filteredMissions.map((mission, index) => {
-                const difficulty = getDifficultyLabel(mission.difficulty);
-                const added = isAlreadyAdded(mission.id);
-                
-                return (
-                  <motion.div
-                    key={mission.id}
-                    initial={{ opacity: 0, y: 10 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    exit={{ opacity: 0, y: -10 }}
-                    transition={{ delay: index * 0.02 }}
-                    className={`group p-3 bg-background border rounded-lg transition-all cursor-pointer ${
-                      added 
-                        ? 'border-secondary/50 opacity-60' 
-                        : 'border-border hover:border-primary/50'
-                    }`}
-                    onClick={() => !added && onAddMission(mission.id)}
-                  >
-                    <div className="flex items-center justify-between">
-                      <div className="flex-1 min-w-0">
-                        <div className="flex items-center gap-2">
-                          <h3 className="font-display text-sm text-primary truncate">
-                            {mission.code_name}
-                          </h3>
-                          <span className={`text-[10px] ${difficulty.color}`}>
-                            {difficulty.label}
-                          </span>
-                        </div>
-                        
-                        <div className="flex items-center gap-3 mt-1 text-xs text-muted-foreground">
-                          <span className="flex items-center gap-1">
-                            <Clock className="w-3 h-3" />
-                            {mission.estimated_minutes}m
-                          </span>
-                          {mission.focus_areas && mission.focus_areas.length > 0 && (
-                            <span className="truncate">
-                              {mission.focus_areas.slice(0, 2).join(' • ')}
-                            </span>
-                          )}
-                        </div>
-                      </div>
-
-                      <div className="flex-shrink-0 ml-2">
-                        {added ? (
-                          <div className="w-8 h-8 rounded flex items-center justify-center bg-secondary/20 text-secondary">
-                            <Check className="w-4 h-4" />
-                          </div>
-                        ) : (
-                          <div className="w-8 h-8 rounded flex items-center justify-center bg-primary/20 text-primary group-hover:bg-primary group-hover:text-primary-foreground transition-colors">
-                            <Plus className="w-4 h-4" />
-                          </div>
-                        )}
-                      </div>
-                    </div>
-                  </motion.div>
-                );
-              })}
-            </AnimatePresence>
+            <>
+              <p className="text-xs text-muted-foreground mb-2">
+                {filteredMissions.length} mission{filteredMissions.length !== 1 ? 's' : ''} found
+                {existingMissionIds.length > 0 && ` • ${existingMissionIds.length} in campaign`}
+              </p>
+              {filteredMissions.map((mission, index) => (
+                <MissionCard
+                  key={mission.id}
+                  mission={mission}
+                  index={index}
+                  variant="picker"
+                  isAdded={isAlreadyAdded(mission.id)}
+                  onAdd={() => onAddMission(mission.id)}
+                />
+              ))}
+            </>
           )}
-        </div>
-
-        <div className="pt-4 border-t border-border text-center">
-          <p className="text-xs text-muted-foreground">
-            {existingMissionIds.length} missions in campaign
-          </p>
         </div>
       </DialogContent>
     </Dialog>
