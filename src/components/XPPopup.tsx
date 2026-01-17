@@ -92,24 +92,6 @@ export const XPPopup = ({
     };
   };
 
-  // Determine border color based on achievement rarity or default
-  const getBorderStyle = () => {
-    if (achievement) {
-      const rarityColors: Record<string, string> = {
-        legendary: 'hsl(45 100% 50%)',
-        epic: 'hsl(280 100% 60%)',
-        rare: 'hsl(200 100% 50%)',
-        common: 'hsl(343 100% 59%)',
-      };
-      return {
-        borderColor: rarityColors[achievement.rarity] || rarityColors.common,
-        boxShadow: `0 0 30px ${rarityColors[achievement.rarity]}80, inset 0 0 20px ${rarityColors[achievement.rarity]}20`,
-      };
-    }
-    return {
-      boxShadow: '0 0 30px hsl(343 100% 59% / 0.5), inset 0 0 20px hsl(343 100% 59% / 0.1)',
-    };
-  };
 
   return (
     <AnimatePresence>
