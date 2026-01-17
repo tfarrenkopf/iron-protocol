@@ -145,19 +145,19 @@ export function RivalWidget({ variant = 'compact' }: RivalWidgetProps) {
       <div className="grid grid-cols-4 gap-2 text-center">
         <div>
           <div className="font-display text-sm text-accent">{stat.weekly_weight.toLocaleString()}</div>
-          <div className="text-[9px] text-muted-foreground uppercase">LBS</div>
+          <div className="text-xs text-muted-foreground uppercase">LBS</div>
         </div>
         <div>
           <div className="font-display text-sm text-secondary">{stat.weekly_sets}</div>
-          <div className="text-[9px] text-muted-foreground uppercase">SETS</div>
+          <div className="text-xs text-muted-foreground uppercase">SETS</div>
         </div>
         <div>
           <div className="font-display text-sm text-primary">{stat.weekly_max_combo}x</div>
-          <div className="text-[9px] text-muted-foreground uppercase">COMBO</div>
+          <div className="text-xs text-muted-foreground uppercase">COMBO</div>
         </div>
         <div>
           <div className="font-display text-sm text-destructive">{stat.weekly_sessions}</div>
-          <div className="text-[9px] text-muted-foreground uppercase">OPS</div>
+          <div className="text-xs text-muted-foreground uppercase">OPS</div>
         </div>
       </div>
     </motion.div>

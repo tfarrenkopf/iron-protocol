@@ -126,7 +126,7 @@ export function MissionCard({
             >
               <ChevronUp className="w-4 h-4 text-primary" />
             </button>
-            <span className="text-[10px] text-muted-foreground text-center font-display">
+            <span className="text-xs text-muted-foreground text-center font-display">
               #{orderIndex + 1}
             </span>
             <button
@@ -220,14 +220,14 @@ export function MissionCard({
                 {uniqueEquipment.map((eq) => (
                   <span 
                     key={eq}
-                    className="text-[10px] px-1.5 py-0.5 bg-accent/10 text-accent rounded"
+                    className="text-xs px-1.5 py-0.5 bg-accent/10 text-accent rounded"
                   >
                     {formatEquipment(eq)}
                   </span>
                 ))}
                 {(mission.mission_exercises?.length || 0) > 0 && 
                   Array.from(new Set(mission.mission_exercises?.flatMap(me => me.exercises?.equipment || []))).length > 4 && (
-                  <span className="text-[10px] text-muted-foreground">
+                  <span className="text-xs text-muted-foreground">
                     +{Array.from(new Set(mission.mission_exercises?.flatMap(me => me.exercises?.equipment || []))).length - 4}
                   </span>
                 )}
@@ -239,7 +239,7 @@ export function MissionCard({
           {variant === 'picker' && exerciseNames && exerciseNames.length > 0 && (
             <div className="flex items-center gap-2 mt-2">
               <Crosshair className="w-3 h-3 text-muted-foreground flex-shrink-0" />
-              <p className="text-[10px] text-muted-foreground truncate">
+              <p className="text-xs text-muted-foreground truncate">
                 {exerciseNames.join(', ')}
                 {(mission.mission_exercises?.length || 0) > 4 && ` +${(mission.mission_exercises?.length || 0) - 4} more`}
               </p>

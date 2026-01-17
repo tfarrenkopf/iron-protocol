@@ -204,17 +204,17 @@ export function CampaignCard({
                     {collection.code_name}
                   </h3>
                   {isSystem && (
-                    <span className="text-[10px] px-1.5 py-0.5 bg-secondary/20 text-secondary rounded font-display">
+                    <span className="text-xs px-1.5 py-0.5 bg-secondary/20 text-secondary rounded font-display">
                       OFFICIAL
                     </span>
                   )}
                   {isActive && (
-                    <span className="text-[10px] px-1.5 py-0.5 bg-accent/20 text-accent rounded font-display animate-pulse">
+                    <span className="text-xs px-1.5 py-0.5 bg-accent/20 text-accent rounded font-display animate-pulse">
                       ACTIVE
                     </span>
                   )}
                   {isOwner && !isSystem && (
-                    <span className="text-[10px] px-1.5 py-0.5 bg-primary/20 text-primary rounded font-display">
+                    <span className="text-xs px-1.5 py-0.5 bg-primary/20 text-primary rounded font-display">
                       YOURS
                     </span>
                   )}
@@ -266,7 +266,7 @@ export function CampaignCard({
           {stats.focusAreas.length > 0 && (
             <div className="flex gap-1.5 flex-wrap mb-2">
               {stats.focusAreas.map(area => (
-                <span key={area} className="text-[10px] px-2 py-0.5 bg-muted rounded text-muted-foreground">
+                <span key={area} className="text-xs px-2 py-0.5 bg-muted rounded text-muted-foreground">
                   {area}
                 </span>
               ))}
@@ -279,12 +279,12 @@ export function CampaignCard({
               <Dumbbell className="w-3 h-3 text-accent flex-shrink-0 mt-0.5" />
               <div className="flex gap-1.5 flex-wrap">
                 {stats.equipment.slice(0, 5).map(eq => (
-                  <span key={eq} className="text-[10px] px-1.5 py-0.5 bg-accent/10 text-accent rounded">
+                  <span key={eq} className="text-xs px-1.5 py-0.5 bg-accent/10 text-accent rounded">
                     {formatEquipment(eq)}
                   </span>
                 ))}
                 {stats.hasMoreEquipment && (
-                  <span className="text-[10px] text-muted-foreground">+{stats.equipment.length - 5} more</span>
+                  <span className="text-xs text-muted-foreground">+{stats.equipment.length - 5} more</span>
                 )}
               </div>
             </div>
@@ -292,7 +292,7 @@ export function CampaignCard({
 
           {/* FOMO Stats */}
           {fomoStats && (fomoStats.totalCompletions > 0 || fomoStats.lastCompletedAt) && (
-            <div className="flex items-center gap-4 text-[10px] text-muted-foreground/80 mb-3 py-2 px-3 bg-muted/30 rounded-lg">
+            <div className="flex items-center gap-4 text-xs text-muted-foreground/80 mb-3 py-2 px-3 bg-muted/30 rounded-lg">
               {fomoStats.totalCompletions > 0 && (
                 <span className="flex items-center gap-1">
                   <Users className="w-3 h-3 text-secondary" />

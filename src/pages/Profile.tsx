@@ -76,7 +76,7 @@ const ProfilePage = () => {
     return (
       <div className="min-h-screen bg-background relative overflow-hidden">
         <div className="fixed inset-0 pointer-events-none scanlines opacity-30" />
-        <div className="relative z-10 container mx-auto px-4 py-8 max-w-md">
+        <div className="relative z-10 container mx-auto px-4 py-6 max-w-3xl">
           <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} className="text-center">
             <h1 className="font-display text-3xl text-primary mb-4">ACCESS DENIED</h1>
             <p className="text-muted-foreground mb-6">You must authenticate to view your profile.</p>
@@ -146,7 +146,7 @@ const ProfilePage = () => {
       {/* Scanlines overlay */}
       <div className="fixed inset-0 pointer-events-none scanlines opacity-30" />
 
-      <div className="relative z-10 container mx-auto px-4 py-8 max-w-md">
+      <div className="relative z-10 container mx-auto px-4 py-6 max-w-3xl">
         {/* Header */}
         <GlobalNav 
           title="AGENT PROFILE"

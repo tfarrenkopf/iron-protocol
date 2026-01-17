@@ -112,7 +112,7 @@ export function TodayMissionsWidget({ missions }: TodayMissionsWidgetProps) {
                 <h4 className="font-display text-sm text-accent truncate group-hover:text-glow-accent transition-all flex-1">
                   {mission.code_name}
                 </h4>
-                <span className={`text-[9px] px-1.5 py-0.5 rounded font-display flex-shrink-0 ${
+                <span className={`text-xs px-1.5 py-0.5 rounded font-display flex-shrink-0 ${
                   mission.estimated_minutes < 20
                     ? 'bg-secondary/20 text-secondary'
                     : mission.estimated_minutes < 40
@@ -131,7 +131,7 @@ export function TodayMissionsWidget({ missions }: TodayMissionsWidgetProps) {
                     {mission.focus_areas.slice(0, 2).map((area) => (
                       <span 
                         key={area}
-                        className="text-[9px] px-1.5 py-0.5 bg-section-missions/15 text-section-missions rounded"
+                        className="text-xs px-1.5 py-0.5 bg-section-missions/15 text-section-missions rounded"
                       >
                         {area}
                       </span>
@@ -142,7 +142,7 @@ export function TodayMissionsWidget({ missions }: TodayMissionsWidgetProps) {
 
               {/* Muscle groups */}
               {muscles.length > 0 && (
-                <div className="text-[10px] text-muted-foreground mb-2 truncate">
+                <div className="text-xs text-muted-foreground mb-2 truncate">
                   {muscles.join(' • ')}
                 </div>
               )}
@@ -155,7 +155,7 @@ export function TodayMissionsWidget({ missions }: TodayMissionsWidgetProps) {
                     {equipment.map((eq) => (
                       <span 
                         key={eq}
-                        className="text-[9px] px-1.5 py-0.5 bg-muted text-muted-foreground rounded"
+                        className="text-xs px-1.5 py-0.5 bg-muted text-muted-foreground rounded"
                       >
                         {formatEquipment(eq)}
                       </span>
@@ -165,7 +165,7 @@ export function TodayMissionsWidget({ missions }: TodayMissionsWidgetProps) {
               )}
 
               {/* Stats row */}
-              <div className="flex items-center gap-3 text-[10px] text-muted-foreground border-t border-border/50 pt-2 mt-auto">
+              <div className="flex items-center gap-3 text-xs text-muted-foreground border-t border-border/50 pt-2 mt-auto">
                 <span className="flex items-center gap-0.5">
                   <Clock className="w-2.5 h-2.5" />
                   {mission.estimated_minutes}m

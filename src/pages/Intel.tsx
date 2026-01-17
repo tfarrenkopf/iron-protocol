@@ -385,7 +385,7 @@ const SampleDataBanner = () => (
     <AlertTriangle className="w-5 h-5 text-warning flex-shrink-0" />
     <div>
       <p className="text-xs text-warning font-display">SAMPLE DATA PREVIEW</p>
-      <p className="text-[10px] text-muted-foreground">Sign in to see real community activity</p>
+      <p className="text-xs text-muted-foreground">Sign in to see real community activity</p>
     </div>
   </motion.div>
 );

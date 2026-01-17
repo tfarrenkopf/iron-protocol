@@ -454,12 +454,12 @@ const CampaignDetail = () => {
               <div className="flex items-center gap-2">
                 <h1 className="font-display text-2xl text-primary">{collection.code_name}</h1>
                 {collection.is_system && (
-                  <span className="text-[10px] px-1.5 py-0.5 bg-secondary/20 text-secondary rounded">
+                  <span className="text-xs px-1.5 py-0.5 bg-secondary/20 text-secondary rounded">
                     OFFICIAL
                   </span>
                 )}
                 {isActiveCampaign && (
-                  <span className="text-[10px] px-1.5 py-0.5 bg-accent/20 text-accent rounded animate-pulse">
+                  <span className="text-xs px-1.5 py-0.5 bg-accent/20 text-accent rounded animate-pulse">
                     ACTIVE
                   </span>
                 )}
