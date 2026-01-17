@@ -1,0 +1,76 @@
+-- =============================================
+-- ADD MISSING EXERCISES FOR STRUCTURED PROGRAMS
+-- =============================================
+
+-- Only insert exercises that don't already exist
+INSERT INTO public.exercises (name, description, equipment, primary_muscle_group, secondary_muscle_groups, focus_areas, instructions_setup, instructions_execution, instructions_tips, is_public, is_public_mission_allowed)
+SELECT * FROM (VALUES
+  ('Barbell Back Squat', 'The king of leg exercises. Builds total lower body strength.', ARRAY['BARBELL']::equipment_type[], 'Quadriceps', ARRAY['Glutes', 'Hamstrings', 'Core']::text[], ARRAY['Strength', 'Power']::text[], 'Bar on upper back, feet shoulder-width or slightly wider. Toes slightly out, chest up.', 'Break at hips and knees together. Descend until hip crease is below knee. Drive up through heels.', 'Keep knees tracking over toes. Maintain neutral spine. Depth is key - hit parallel or below.', true, true),
+  
+  ('Barbell Bench Press', 'The king of chest exercises. Builds raw pressing power.', ARRAY['BARBELL', 'BENCH']::equipment_type[], 'Chest', ARRAY['Triceps', 'Shoulders']::text[], ARRAY['Strength', 'Power']::text[], 'Lie flat on bench, feet planted. Grip bar slightly wider than shoulder width. Unrack with arms locked.', 'Lower bar to mid-chest with control. Drive up explosively. Lock out at top.', 'Keep shoulder blades retracted. Maintain slight arch in lower back. Do not bounce bar off chest.', true, true),
+  
+  ('Barbell Deadlift', 'The ultimate full-body strength builder. Posterior chain domination.', ARRAY['BARBELL']::equipment_type[], 'Back', ARRAY['Hamstrings', 'Glutes', 'Core', 'Forearms']::text[], ARRAY['Strength', 'Power']::text[], 'Stand with feet hip-width, bar over mid-foot. Grip just outside legs. Hips back, chest up, back flat.', 'Drive through heels, extend hips and knees together. Keep bar close to body. Lock out at top.', 'Do not round lower back. Think of pushing the floor away. Bar stays close throughout.', true, true),
+  
+  ('Barbell Overhead Press', 'The press. Builds raw overhead strength and shoulder mass.', ARRAY['BARBELL']::equipment_type[], 'Shoulders', ARRAY['Triceps', 'Core']::text[], ARRAY['Strength', 'Power']::text[], 'Stand with feet shoulder-width. Bar racked at front of shoulders, grip just outside shoulders.', 'Press bar straight up, moving head back slightly. Lock out overhead. Lower with control to shoulders.', 'Keep core braced, glutes squeezed. Do not lean back excessively. Bar path should be straight.', true, true),
+  
+  ('Barbell Row', 'Primary back thickness builder. Essential for a powerful back.', ARRAY['BARBELL']::equipment_type[], 'Back', ARRAY['Biceps', 'Core', 'Shoulders']::text[], ARRAY['Strength', 'Hypertrophy']::text[], 'Hinge at hips, back flat, grip bar slightly wider than shoulder width. Let bar hang at arm length.', 'Pull bar to lower chest/upper abdomen. Squeeze shoulder blades together at top. Lower with control.', 'Do not use excessive body English. Keep core braced. Pull with elbows, not hands.', true, true),
+  
+  ('Barbell Romanian Deadlift', 'Hamstring and glute builder. Essential hip hinge pattern.', ARRAY['BARBELL']::equipment_type[], 'Hamstrings', ARRAY['Glutes', 'Back', 'Core']::text[], ARRAY['Strength', 'Hypertrophy']::text[], 'Stand with feet hip-width, holding bar at thigh level. Slight bend in knees maintained throughout.', 'Hinge at hips, pushing them back. Lower bar along legs until deep hamstring stretch. Drive hips forward to stand.', 'Keep bar close to legs. Do not round back. Feel the stretch in hamstrings before reversing.', true, true),
+
+  ('Barbell Front Squat', 'Quad-dominant squat. Requires and builds mobility and core strength.', ARRAY['BARBELL']::equipment_type[], 'Quadriceps', ARRAY['Glutes', 'Core']::text[], ARRAY['Strength']::text[], 'Bar in front rack position on shoulders. Elbows high, fingers under bar.', 'Squat to full depth keeping torso upright. Drive up through heels.', 'Keep elbows high throughout. If flexibility is an issue, use cross-arm grip.', true, true),
+  
+  ('Barbell Curl', 'Primary bicep builder. Builds peak and overall arm size.', ARRAY['BARBELL']::equipment_type[], 'Biceps', ARRAY['Forearms']::text[], ARRAY['Hypertrophy', 'Strength']::text[], 'Stand with feet shoulder-width. Grip bar at shoulder width, arms extended.', 'Curl bar to shoulders, keeping elbows pinned to sides. Squeeze at top. Lower with control.', 'Do not swing or use momentum. Keep elbows stationary. Full extension at bottom.', true, true),
+  
+  ('Pull Up', 'Bodyweight back builder. Tests and builds real-world strength.', ARRAY['PULL_UP_BAR']::equipment_type[], 'Back', ARRAY['Biceps', 'Core', 'Forearms']::text[], ARRAY['Strength']::text[], 'Hang from bar with overhand grip, slightly wider than shoulders. Arms fully extended.', 'Pull until chin clears bar. Lower with control to full extension. No kipping.', 'Initiate with shoulder blades, then pull with arms. Keep core tight.', true, true),
+  
+  ('Chin Up', 'Supinated pull. Emphasizes biceps while building back.', ARRAY['PULL_UP_BAR']::equipment_type[], 'Back', ARRAY['Biceps', 'Core']::text[], ARRAY['Strength']::text[], 'Hang from bar with underhand grip, shoulder-width or narrower.', 'Pull until chin clears bar. Lower with control to full extension.', 'Underhand grip hits biceps more. Same pulling mechanics as pull-up.', true, true),
+  
+  ('Dumbbell Lunge', 'Unilateral leg builder. Builds balance and single-leg strength.', ARRAY['DUMBBELLS']::equipment_type[], 'Quadriceps', ARRAY['Glutes', 'Hamstrings', 'Core']::text[], ARRAY['Strength', 'Hypertrophy']::text[], 'Stand holding dumbbells at sides. Feet hip-width apart, core braced.', 'Step forward, lowering until both knees are at 90 degrees. Drive through front heel to return.', 'Keep torso upright. Do not let front knee cave inward. Alternate legs.', true, true),
+  
+  ('Dumbbell Lateral Raise', 'Medial delt isolation. Builds shoulder width and caps.', ARRAY['DUMBBELLS']::equipment_type[], 'Shoulders', ARRAY[]::text[], ARRAY['Hypertrophy']::text[], 'Stand with dumbbells at sides, slight bend in elbows. Shoulders down, core braced.', 'Raise dumbbells out to sides until arms are parallel to floor. Lower with control.', 'Lead with elbows, not hands. Do not swing or use momentum.', true, true),
+  
+  ('Dumbbell Curl', 'Classic bicep builder. Builds arm size with unilateral control.', ARRAY['DUMBBELLS']::equipment_type[], 'Biceps', ARRAY['Forearms']::text[], ARRAY['Hypertrophy']::text[], 'Stand with dumbbells at sides, palms forward.', 'Curl dumbbells to shoulders, keeping elbows pinned. Lower with control.', 'Can alternate or curl together. Supinate wrist at top for peak contraction.', true, true),
+  
+  ('Tricep Pushdown', 'Tricep isolation. Hits all three heads with peak contraction.', ARRAY['CABLE_MACHINE']::equipment_type[], 'Triceps', ARRAY[]::text[], ARRAY['Hypertrophy']::text[], 'Stand at cable machine with bar attachment at high position. Grip bar, elbows at sides.', 'Push down to full extension. Squeeze triceps. Return with control.', 'Keep elbows pinned to sides. Full extension and squeeze at bottom.', true, true),
+  
+  ('Face Pull', 'Rear delt and rotator cuff builder. Essential for shoulder health.', ARRAY['CABLE_MACHINE']::equipment_type[], 'Shoulders', ARRAY['Back']::text[], ARRAY['Hypertrophy', 'Mobility']::text[], 'Set cable at face height with rope attachment. Grip rope with thumbs toward you.', 'Pull rope to face, separating hands and externally rotating. Squeeze rear delts.', 'Pull apart as you pull back. Keep elbows high.', true, true),
+  
+  ('Hanging Leg Raise', 'Advanced core exercise. Builds lower abs and hip flexor strength.', ARRAY['PULL_UP_BAR']::equipment_type[], 'Core', ARRAY[]::text[], ARRAY['Strength', 'Hypertrophy']::text[], 'Hang from bar with straight arms. Shoulders engaged, body still.', 'Raise legs to parallel or higher by flexing at hips. Lower with control. No swinging.', 'If too hard, start with knee raises. Control the descent.', true, true),
+  
+  ('Hip Thrust', 'Glute builder. Isolates and builds the glutes for strength and size.', ARRAY['BARBELL', 'BENCH']::equipment_type[], 'Glutes', ARRAY['Hamstrings']::text[], ARRAY['Strength', 'Hypertrophy']::text[], 'Upper back on bench, feet flat on floor. Barbell across hips.', 'Drive hips up until body is straight from shoulders to knees. Squeeze glutes at top. Lower.', 'Chin tucked, looking forward at top. Full hip extension. Squeeze hard at peak.', true, true),
+  
+  ('Skull Crusher', 'Tricep builder. Targets the long head for complete tricep development.', ARRAY['EZ_BAR', 'BENCH']::equipment_type[], 'Triceps', ARRAY[]::text[], ARRAY['Hypertrophy']::text[], 'Lie on bench, hold EZ bar with narrow grip, arms extended over chest.', 'Lower bar toward forehead by bending elbows only. Extend back to start.', 'Keep upper arms stationary. Do not flare elbows. Control the weight.', true, true),
+  
+  ('Close Grip Bench Press', 'Tricep-focused pressing. Builds tricep strength and chest.', ARRAY['BARBELL', 'BENCH']::equipment_type[], 'Triceps', ARRAY['Chest', 'Shoulders']::text[], ARRAY['Strength', 'Hypertrophy']::text[], 'Lie on bench, grip bar at shoulder width or slightly narrower. Unrack.', 'Lower bar to lower chest with elbows tucked. Press up to lockout.', 'Do not go too narrow - shoulder width is fine. Keep elbows at 45 degrees.', true, true),
+  
+  ('Pendlay Row', 'Strict barbell row. Dead stop each rep for maximum back engagement.', ARRAY['BARBELL']::equipment_type[], 'Back', ARRAY['Biceps', 'Core']::text[], ARRAY['Strength', 'Power']::text[], 'Hinge over bar on floor. Grip just outside shoulder width. Back flat.', 'Explosively row bar to lower chest. Lower to floor completely. Reset and repeat.', 'Each rep starts from floor. Explosive pull. Builds raw pulling power.', true, true),
+  
+  ('Turkish Get Up', 'Full body strength and stability. Builds functional, integrated strength.', ARRAY['KETTLEBELL']::equipment_type[], 'Core', ARRAY['Shoulders', 'Glutes', 'Quadriceps']::text[], ARRAY['Strength', 'Mobility']::text[], 'Lie on back with kettlebell pressed overhead in one hand. Arm locked, eyes on bell.', 'Rise to standing through a series of positions while keeping bell overhead. Reverse to return.', 'Keep eyes on bell. Move slowly and deliberately. Master without weight first.', true, true),
+  
+  ('Kettlebell Goblet Squat', 'Full body squat pattern with kettlebell. Great for mobility and strength.', ARRAY['KETTLEBELL']::equipment_type[], 'Quadriceps', ARRAY['Glutes', 'Core']::text[], ARRAY['Strength', 'Mobility']::text[], 'Hold kettlebell at chest by horns, elbows down. Feet slightly wider than shoulder-width.', 'Squat down, using elbows to push knees out. Drive through heels to stand.', 'Keep chest up and back flat. Elbows track inside knees. Full depth.', true, true),
+  
+  ('Farmers Walk', 'Full body carry. Builds grip, core, and total body strength.', ARRAY['DUMBBELLS']::equipment_type[], 'Forearms', ARRAY['Core', 'Back', 'Shoulders']::text[], ARRAY['Strength', 'Endurance']::text[], 'Stand holding heavy dumbbells at sides. Shoulders back, core braced.', 'Walk forward with short, quick steps. Maintain posture throughout.', 'Keep shoulders down and back. Brace core hard. Do not let weights swing.', true, true),
+  
+  ('Box Jump', 'Lower body power developer. Builds explosive strength.', ARRAY['BODYWEIGHT']::equipment_type[], 'Quadriceps', ARRAY['Glutes', 'Calves']::text[], ARRAY['Power']::text[], 'Stand facing box, feet shoulder-width. Arms at sides.', 'Swing arms and explosively jump onto box. Land softly. Step down.', 'Land with soft knees. Step down, do not jump down. Choose appropriate height.', true, true),
+  
+  ('Good Morning', 'Hip hinge pattern. Builds hamstring and lower back strength.', ARRAY['BARBELL']::equipment_type[], 'Hamstrings', ARRAY['Glutes', 'Back']::text[], ARRAY['Strength']::text[], 'Bar on upper back as for squat. Feet shoulder-width, slight knee bend.', 'Hinge at hips, pushing them back. Lower until torso is near parallel. Drive hips forward to stand.', 'Keep back flat. This is a hip hinge, not a squat. Feel the hamstring stretch.', true, true),
+  
+  ('Incline Barbell Press', 'Upper chest builder with barbell. Heavy compound for upper pecs.', ARRAY['BARBELL', 'BENCH']::equipment_type[], 'Chest', ARRAY['Shoulders', 'Triceps']::text[], ARRAY['Strength', 'Hypertrophy']::text[], 'Set bench to 30-45 degree incline. Grip bar slightly wider than shoulders. Unrack.', 'Lower bar to upper chest. Press up to lockout.', 'Same principles as flat bench. Keep shoulder blades retracted.', true, true),
+  
+  ('Sumo Deadlift', 'Wide-stance deadlift variation. Emphasizes quads and adductors.', ARRAY['BARBELL']::equipment_type[], 'Quadriceps', ARRAY['Glutes', 'Hamstrings', 'Back']::text[], ARRAY['Strength', 'Power']::text[], 'Wide stance, toes pointed out. Grip bar inside legs. Hips low, chest up.', 'Drive through legs, extending hips and knees. Keep bar close. Lockout at top.', 'Push knees out. More upright torso than conventional. Powerful leg drive.', true, true),
+  
+  ('Dumbbell Bulgarian Split Squat', 'Advanced unilateral leg builder. Tests and builds single-leg strength.', ARRAY['DUMBBELLS', 'BENCH']::equipment_type[], 'Quadriceps', ARRAY['Glutes', 'Hamstrings', 'Core']::text[], ARRAY['Strength', 'Hypertrophy']::text[], 'Rear foot elevated on bench behind you. Front foot 2-3 feet in front. Hold dumbbells at sides.', 'Lower until front thigh is parallel to floor. Drive through front heel to stand.', 'Keep torso upright. Most weight through front leg.', true, true),
+  
+  ('Russian Twist', 'Rotational core builder. Develops anti-rotation and oblique strength.', ARRAY['BODYWEIGHT']::equipment_type[], 'Core', ARRAY[]::text[], ARRAY['Hypertrophy', 'Endurance']::text[], 'Sit with knees bent, feet off floor. Lean back slightly, hands together.', 'Rotate torso side to side, touching floor beside hips. Control the movement.', 'Keep feet elevated. Move through the torso, not just arms.', true, true),
+  
+  ('Overhead Tricep Extension', 'Long head tricep builder. Stretches and builds the horseshoe.', ARRAY['DUMBBELLS']::equipment_type[], 'Triceps', ARRAY[]::text[], ARRAY['Hypertrophy']::text[], 'Stand or sit, hold dumbbell overhead with both hands, arms extended.', 'Lower dumbbell behind head by bending elbows. Extend back overhead.', 'Keep elbows close to head and pointing up. Full stretch at bottom.', true, true),
+  
+  ('Bent Over Dumbbell Fly', 'Rear delt isolation. Builds posterior deltoid thickness.', ARRAY['DUMBBELLS']::equipment_type[], 'Shoulders', ARRAY['Back']::text[], ARRAY['Hypertrophy']::text[], 'Hinge at hips, dumbbells hanging, slight bend in elbows.', 'Raise dumbbells out to sides, squeezing rear delts. Lower with control.', 'Lead with elbows. Do not swing or use momentum.', true, true)
+
+) AS v(name, description, equipment, primary_muscle_group, secondary_muscle_groups, focus_areas, instructions_setup, instructions_execution, instructions_tips, is_public, is_public_mission_allowed)
+WHERE NOT EXISTS (
+  SELECT 1 FROM exercises e WHERE e.name = v.name AND e.is_public = true
+);
+
+-- Check exercise count
+SELECT COUNT(*) as total_public_exercises FROM exercises WHERE is_public = true;
