@@ -1,7 +1,7 @@
-import { useMemo } from 'react';
-import { motion } from 'framer-motion';
+import { useState, useMemo } from 'react';
+import { motion, AnimatePresence } from 'framer-motion';
 import { useNavigate } from 'react-router-dom';
-import { Flame, Clock, Dumbbell, Target, Zap, Play, Pencil, Trash2, CheckCircle2, Crown, Users, Swords } from 'lucide-react';
+import { Flame, Clock, Dumbbell, Target, Zap, Play, Pencil, Trash2, CheckCircle2, Crown, Users, Swords, ChevronDown, ChevronUp } from 'lucide-react';
 import { CollectionWithMissions } from '@/hooks/useCollections';
 import { StartCampaignButton } from '@/components/ActiveCampaignHero';
 import { useActiveCampaignDetails } from '@/hooks/useActiveCampaign';
@@ -29,6 +29,7 @@ export function CampaignCard({
   onDelete 
 }: CampaignCardProps) {
   const navigate = useNavigate();
+  const [isExpanded, setIsExpanded] = useState(false);
   const missionCount = collection.collection_missions?.length || 0;
   
   // Get active campaign progress if this is the active campaign
@@ -78,9 +79,16 @@ export function CampaignCard({
     return `${Math.floor(diffDays / 7)}w ago`;
   };
   
+  // Get missions with their details
+  const missions = useMemo(() => {
+    return collection.collection_missions
+      ?.sort((a, b) => a.order_index - b.order_index)
+      .map(cm => (cm as any).missions)
+      .filter(Boolean) || [];
+  }, [collection.collection_missions]);
+  
   // Calculate campaign stats
   const stats = useMemo(() => {
-    const missions = collection.collection_missions?.map(cm => (cm as any).missions) || [];
     const totalTime = missions.reduce((sum: number, m: any) => sum + (m?.estimated_minutes || 0), 0);
     const avgDifficulty = missions.length > 0 
       ? Math.round(missions.reduce((sum: number, m: any) => sum + (m?.difficulty || 0), 0) / missions.length)
@@ -107,15 +115,14 @@ export function CampaignCard({
       focusAreas: Array.from(focusSet).slice(0, 3),
       hasMoreEquipment: equipmentSet.size > 5
     };
-  }, [collection.collection_missions]);
+  }, [missions]);
 
   return (
     <motion.div
       initial={{ opacity: 0, x: -10 }}
       animate={{ opacity: 1, x: 0 }}
       transition={{ delay: index * 0.03 }}
-      onClick={() => navigate(`/campaign/${collection.id}`)}
-      className={`group bg-card border-2 rounded-lg p-4 cursor-pointer transition-all relative overflow-hidden ${
+      className={`group bg-card border-2 rounded-lg overflow-hidden transition-all relative ${
         isActive 
           ? 'border-accent bg-gradient-to-br from-card via-card to-accent/10 hover:box-glow-accent' 
           : 'border-border hover:border-primary'
@@ -126,7 +133,11 @@ export function CampaignCard({
         <div className="absolute inset-0 bg-gradient-to-r from-accent/0 via-accent/5 to-accent/0 animate-pulse" />
       )}
       
-      <div className="relative z-10">
+      {/* Main clickable area */}
+      <div 
+        className="relative z-10 p-4 cursor-pointer"
+        onClick={() => navigate(`/campaign/${collection.id}`)}
+      >
         {/* Header */}
         <div className="flex items-start justify-between gap-3 mb-3">
           <div className="flex items-center gap-3">
@@ -224,7 +235,7 @@ export function CampaignCard({
           </div>
         )}
 
-        {/* Equipment - expanded view */}
+        {/* Equipment - compact view */}
         {stats.equipment.length > 0 && (
           <div className="flex items-start gap-2 mb-3">
             <Dumbbell className="w-3 h-3 text-accent flex-shrink-0 mt-0.5" />
@@ -291,6 +302,88 @@ export function CampaignCard({
           </div>
         )}
       </div>
+      
+      {/* Expandable Mission Details */}
+      {missions.length > 0 && (
+        <>
+          <button
+            onClick={(e) => {
+              e.stopPropagation();
+              setIsExpanded(!isExpanded);
+            }}
+            className="w-full py-2 px-4 border-t border-border flex items-center justify-center gap-2 text-xs text-muted-foreground hover:text-foreground hover:bg-muted/30 transition-colors"
+          >
+            {isExpanded ? (
+              <>
+                <ChevronUp className="w-4 h-4" />
+                HIDE MISSION DETAILS
+              </>
+            ) : (
+              <>
+                <ChevronDown className="w-4 h-4" />
+                VIEW {missions.length} MISSION{missions.length !== 1 ? 'S' : ''} & EQUIPMENT
+              </>
+            )}
+          </button>
+          
+          <AnimatePresence>
+            {isExpanded && (
+              <motion.div
+                initial={{ height: 0, opacity: 0 }}
+                animate={{ height: 'auto', opacity: 1 }}
+                exit={{ height: 0, opacity: 0 }}
+                transition={{ duration: 0.2 }}
+                className="overflow-hidden"
+              >
+                <div className="p-4 pt-2 border-t border-border bg-muted/20 space-y-3">
+                  {/* Mission List */}
+                  <div className="space-y-2">
+                    <h4 className="text-xs font-display text-muted-foreground">// MISSION ROSTER</h4>
+                    {missions.map((mission: any, idx: number) => (
+                      <div 
+                        key={mission.id}
+                        className="flex items-center gap-3 p-2 bg-card/50 rounded-lg"
+                      >
+                        <div className="flex items-center justify-center w-6 h-6 rounded-full bg-primary/20 text-primary text-xs font-display">
+                          {idx + 1}
+                        </div>
+                        <div className="flex-1 min-w-0">
+                          <p className="text-sm font-display text-primary truncate">{mission.code_name}</p>
+                          <div className="flex items-center gap-2 text-[10px] text-muted-foreground">
+                            <span className="flex items-center gap-1">
+                              <Clock className="w-2.5 h-2.5" />
+                              {mission.estimated_minutes}min
+                            </span>
+                            <span className="flex items-center gap-1">
+                              <Zap className="w-2.5 h-2.5" />
+                              {mission.difficulty}/5
+                            </span>
+                            <span>{mission.mission_exercises?.length || 0} exercises</span>
+                          </div>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                  
+                  {/* Full Equipment List */}
+                  {stats.equipment.length > 0 && (
+                    <div>
+                      <h4 className="text-xs font-display text-muted-foreground mb-2">// REQUIRED EQUIPMENT</h4>
+                      <div className="flex gap-1.5 flex-wrap">
+                        {stats.equipment.map(eq => (
+                          <span key={eq} className="text-[10px] px-2 py-1 bg-accent/10 text-accent rounded border border-accent/20">
+                            {formatEquipment(eq)}
+                          </span>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+                </div>
+              </motion.div>
+            )}
+          </AnimatePresence>
+        </>
+      )}
     </motion.div>
   );
 }
