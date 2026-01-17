@@ -211,7 +211,8 @@ const Command = () => {
               <button
                 onClick={() => {
                   if (activeTab === 'campaigns') setCampaignDialogOpen(true);
-                  else navigate('/exercises');
+                  else if (activeTab === 'missions') navigate('/exercises?newMission=true');
+                  else if (activeTab === 'exercises') navigate('/exercises?newExercise=true');
                 }}
                 className="p-2 border border-primary text-primary rounded hover:bg-primary/10 transition-colors"
                 title={`Create new ${activeTab === 'campaigns' ? 'campaign' : activeTab === 'exercises' ? 'exercise' : 'mission'}`}
@@ -370,7 +371,7 @@ const Command = () => {
                 <Target className="w-10 h-10 mx-auto mb-3 text-muted-foreground/50" />
                 <p className="text-muted-foreground mb-3">No custom missions yet</p>
                 <button
-                  onClick={() => navigate('/exercises')}
+                  onClick={() => navigate('/exercises?newMission=true')}
                   className="text-sm text-secondary hover:text-glow-secondary font-display"
                 >
                   + CREATE YOUR FIRST MISSION
@@ -416,7 +417,7 @@ const Command = () => {
                 <Dumbbell className="w-10 h-10 mx-auto mb-3 text-muted-foreground/50" />
                 <p className="text-muted-foreground mb-3">No custom exercises yet</p>
                 <button
-                  onClick={() => navigate('/exercises')}
+                  onClick={() => navigate('/exercises?newExercise=true')}
                   className="text-sm text-primary hover:text-glow-primary font-display"
                 >
                   + CREATE YOUR FIRST EXERCISE
