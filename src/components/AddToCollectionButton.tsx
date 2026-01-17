@@ -52,6 +52,15 @@ export function AddToCollectionButton({ missionId, className = '' }: AddToCollec
     }
   };
 
+  const handleNewCollectionClick = (e: React.MouseEvent) => {
+    e.stopPropagation();
+    e.preventDefault();
+    // Use setTimeout to ensure dropdown closes before dialog opens
+    setTimeout(() => {
+      setCreateDialogOpen(true);
+    }, 0);
+  };
+
   return (
     <>
       <DropdownMenu>
@@ -68,6 +77,7 @@ export function AddToCollectionButton({ missionId, className = '' }: AddToCollec
           align="end" 
           className="bg-card border-border w-48"
           onClick={(e) => e.stopPropagation()}
+          onCloseAutoFocus={(e) => e.preventDefault()}
         >
           {myCollections.length === 0 ? (
             <div className="px-2 py-3 text-center">
@@ -93,7 +103,7 @@ export function AddToCollectionButton({ missionId, className = '' }: AddToCollec
           )}
           <DropdownMenuSeparator />
           <DropdownMenuItem
-            onClick={(e) => { e.stopPropagation(); setCreateDialogOpen(true); }}
+            onClick={handleNewCollectionClick}
             className="flex items-center gap-2 text-primary cursor-pointer"
           >
             <Plus className="w-4 h-4" />
