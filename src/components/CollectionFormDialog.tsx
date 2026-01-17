@@ -74,16 +74,16 @@ export function CollectionFormDialog({ open, onOpenChange, collectionId }: Colle
           id: collectionId,
           ...data,
         });
-        toast({ title: 'Collection updated', description: `${data.code_name} has been updated.` });
+        toast({ title: 'Campaign updated', description: `${data.code_name} has been updated.` });
       } else {
         await createCollection.mutateAsync(data);
-        toast({ title: 'Collection created', description: `${data.code_name} is ready to use.` });
+        toast({ title: 'Campaign created', description: `${data.code_name} is ready to use.` });
       }
       onOpenChange(false);
     } catch (error: any) {
       toast({ 
         title: 'Error', 
-        description: error.message || 'Failed to save collection',
+        description: error.message || 'Failed to save campaign',
         variant: 'destructive',
       });
     }
@@ -101,7 +101,7 @@ export function CollectionFormDialog({ open, onOpenChange, collectionId }: Colle
         <div className="flex items-center gap-2 mb-4">
           <Folder className="w-5 h-5 text-primary" />
           <h2 className="font-display text-xl text-primary">
-            {isEditing ? 'EDIT COLLECTION' : 'NEW COLLECTION'}
+            {isEditing ? 'EDIT CAMPAIGN' : 'NEW CAMPAIGN'}
           </h2>
         </div>
 
@@ -133,7 +133,7 @@ export function CollectionFormDialog({ open, onOpenChange, collectionId }: Colle
             <Textarea
               id="description"
               {...register('description')}
-              placeholder="What's this collection about?"
+              placeholder="What's this campaign about?"
               className="bg-background border-border mt-1 resize-none"
               rows={2}
             />

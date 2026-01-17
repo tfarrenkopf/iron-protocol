@@ -38,15 +38,15 @@ export function AddToCollectionButton({ missionId, className = '' }: AddToCollec
     try {
       if (isInCollection(collectionId)) {
         await removeFromCollection.mutateAsync({ collectionId, missionId });
-        toast({ title: 'Removed from collection', description: `Removed from ${collectionName}` });
+        toast({ title: 'Removed from campaign', description: `Removed from ${collectionName}` });
       } else {
         await addToCollection.mutateAsync({ collectionId, missionId });
-        toast({ title: 'Added to collection', description: `Added to ${collectionName}` });
+        toast({ title: 'Added to campaign', description: `Added to ${collectionName}` });
       }
     } catch (error: any) {
       toast({ 
         title: 'Error', 
-        description: error.message || 'Failed to update collection',
+        description: error.message || 'Failed to update campaign',
         variant: 'destructive',
       });
     }
@@ -68,7 +68,7 @@ export function AddToCollectionButton({ missionId, className = '' }: AddToCollec
           <button
             onClick={(e) => e.stopPropagation()}
             className={`p-1.5 bg-secondary/20 text-secondary rounded hover:bg-secondary/30 transition-colors ${className}`}
-            title="Add to collection"
+            title="Add to campaign"
           >
             <FolderPlus className="w-3.5 h-3.5" />
           </button>
@@ -81,7 +81,7 @@ export function AddToCollectionButton({ missionId, className = '' }: AddToCollec
         >
           {myCollections.length === 0 ? (
             <div className="px-2 py-3 text-center">
-              <p className="text-xs text-muted-foreground mb-2">No collections yet</p>
+              <p className="text-xs text-muted-foreground mb-2">No campaigns yet</p>
             </div>
           ) : (
             myCollections.map(collection => (
@@ -107,7 +107,7 @@ export function AddToCollectionButton({ missionId, className = '' }: AddToCollec
             className="flex items-center gap-2 text-primary cursor-pointer"
           >
             <Plus className="w-4 h-4" />
-            <span className="text-sm">New Collection</span>
+            <span className="text-sm">New Campaign</span>
           </DropdownMenuItem>
         </DropdownMenuContent>
       </DropdownMenu>
