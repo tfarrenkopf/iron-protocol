@@ -52,13 +52,13 @@ export function FightNowActions() {
       initial={{ opacity: 0, scale: 0.95 }}
       animate={{ opacity: 1, scale: 1 }}
       transition={{ delay: 0.1 }}
-      className="mb-6 space-y-3"
+      className="mb-8 space-y-4"
     >
       {/* Primary Action: Continue Campaign (if active and logged in) */}
       {hasActiveCampaign ? (
         <button
           onClick={handleContinueCampaign}
-          className={`w-full group relative border-2 rounded-lg p-5 text-left transition-all ${
+          className={`w-full group relative border-2 rounded-lg p-4 text-left transition-all ${
             isComplete 
               ? 'bg-gradient-to-r from-secondary/20 via-secondary/10 to-secondary/20 border-secondary hover:box-glow-secondary hover:from-secondary/30 hover:via-secondary/20 hover:to-secondary/30'
               : 'bg-gradient-to-r from-accent/20 via-accent/10 to-accent/20 border-accent hover:box-glow-accent hover:from-accent/30 hover:via-accent/20 hover:to-accent/30'
@@ -116,11 +116,11 @@ export function FightNowActions() {
           {isGuest ? (
             <button
               onClick={() => navigate('/command?tab=missions&source=public')}
-              className="w-full group relative bg-gradient-to-r from-primary/20 via-primary/10 to-primary/20 border-2 border-primary rounded-lg p-5 text-left transition-all hover:box-glow-primary hover:from-primary/30 hover:via-primary/20 hover:to-primary/30"
+              className="w-full group relative bg-gradient-to-r from-primary/20 via-primary/10 to-primary/20 border-2 border-primary rounded-lg p-4 text-left transition-all hover:box-glow-primary hover:from-primary/30 hover:via-primary/20 hover:to-primary/30"
             >
               <div className="flex items-center justify-between">
                 <div className="flex items-center gap-4">
-                  <div className="p-3 bg-primary/20 rounded-lg">
+                  <div className="p-2 bg-primary/20 rounded-lg">
                     <Crosshair className="w-8 h-8 text-primary" />
                   </div>
                   <div className="flex-1">
@@ -139,11 +139,11 @@ export function FightNowActions() {
           ) : (
             <button
               onClick={() => navigate('/command?tab=campaigns')}
-              className="w-full group relative bg-gradient-to-r from-accent/20 via-accent/10 to-accent/20 border-2 border-accent rounded-lg p-5 text-left transition-all hover:box-glow-accent hover:from-accent/30 hover:via-accent/20 hover:to-accent/30"
+              className="w-full group relative bg-gradient-to-r from-accent/20 via-accent/10 to-accent/20 border-2 border-accent rounded-lg p-4 text-left transition-all hover:box-glow-accent hover:from-accent/30 hover:via-accent/20 hover:to-accent/30"
             >
               <div className="flex items-center justify-between">
                 <div className="flex items-center gap-4">
-                  <div className="p-3 bg-accent/20 rounded-lg">
+                  <div className="p-2 bg-accent/20 rounded-lg">
                     <Flame className="w-8 h-8 text-accent" />
                   </div>
                   <div className="flex-1">
@@ -164,7 +164,7 @@ export function FightNowActions() {
       )}
 
       {/* Secondary Actions Grid */}
-      <div className="grid grid-cols-2 gap-3">
+      <div className="grid grid-cols-2 gap-4">
         {/* For guests: View Campaigns as secondary */}
         {isGuest ? (
           <button
