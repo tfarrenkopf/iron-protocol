@@ -1,7 +1,7 @@
 import { ReactNode, useMemo } from 'react';
 import { motion } from 'framer-motion';
 import { useNavigate } from 'react-router-dom';
-import { Zap, Clock, Play, CheckCircle2, Plus, ChevronUp, ChevronDown, Trash2, Dumbbell, Trophy } from 'lucide-react';
+import { Zap, Clock, Play, CheckCircle2, Plus, ChevronUp, ChevronDown, Trash2, Dumbbell, Trophy, Target } from 'lucide-react';
 import { Tables } from '@/integrations/supabase/types';
 import { PopularityBadge } from '@/components/SocialProof';
 import { getPopularityTier } from '@/hooks/useMissionStats';
@@ -127,16 +127,24 @@ export function MissionCard({
           </div>
         )}
 
-        {/* Completion indicator - Trophy for campaign missions */}
-        {isCompleted && !showOrder && (
-          <div className="flex-shrink-0 flex items-center">
-            {variant === 'campaign' ? (
+        {/* Mission icon */}
+        <div className={`p-2 rounded-lg flex-shrink-0 ${
+          isCompleted 
+            ? variant === 'campaign' 
+              ? 'bg-yellow-400/20' 
+              : 'bg-secondary/20'
+            : 'bg-primary/10 group-hover:bg-primary/20'
+        }`}>
+          {isCompleted ? (
+            variant === 'campaign' ? (
               <Trophy className="w-5 h-5 text-yellow-400" />
             ) : (
               <CheckCircle2 className="w-5 h-5 text-secondary" />
-            )}
-          </div>
-        )}
+            )
+          ) : (
+            <Target className="w-5 h-5 text-primary" />
+          )}
+        </div>
 
         {/* Main Content */}
         <div className="flex-1 min-w-0">
