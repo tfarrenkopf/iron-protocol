@@ -82,10 +82,17 @@ const ExerciseManager = () => {
   // Auto-open dialogs based on URL params
   useEffect(() => {
     const editMissionId = searchParams.get("editMission");
+    const editExerciseId = searchParams.get("editExercise");
     const newMission = searchParams.get("newMission");
     const newExercise = searchParams.get("newExercise");
     
-    if (editMissionId && myMissions.length > 0) {
+    if (editExerciseId && exercises && exercises.length > 0) {
+      const exerciseToEdit = exercises.find((e) => e.id === editExerciseId);
+      if (exerciseToEdit && exerciseToEdit.created_by === user?.id) {
+        handleEdit(exerciseToEdit);
+        setSearchParams({}, { replace: true });
+      }
+    } else if (editMissionId && myMissions.length > 0) {
       const missionToEdit = myMissions.find((m) => m.id === editMissionId);
       if (missionToEdit) {
         handleEditMission(missionToEdit);
@@ -105,7 +112,7 @@ const ExerciseManager = () => {
       resetForm();
       setSearchParams({}, { replace: true });
     }
-  }, [searchParams, myMissions]);
+  }, [searchParams, myMissions, exercises, user?.id]);
 
   const resetForm = () => {
     setFormData({
