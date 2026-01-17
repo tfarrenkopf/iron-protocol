@@ -423,8 +423,8 @@ const WorkoutSession = () => {
   
   const exercise = missionExercise.exercises;
   const totalSets = missionExercises.reduce((acc, e) => acc + e.target_sets, 0);
-  const completedSets = missionExercises.slice(0, safeExerciseIndex).reduce((acc, e) => acc + e.target_sets, 0) + currentSetIndex;
-  const progress = (completedSets / totalSets) * 100;
+  const completedSets = stats.setsCompleted;
+  const progress = totalSets > 0 ? Math.min(100, (completedSets / totalSets) * 100) : 0;
 
   const handleCompleteSet = () => {
     if (isCompleting) return; // Prevent double-tap

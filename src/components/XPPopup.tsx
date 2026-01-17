@@ -1,5 +1,5 @@
 import { motion, AnimatePresence } from 'framer-motion';
-import { useEffect, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { Trophy } from 'lucide-react';
 import { Achievement, getRarityColor, getRarityGlow } from '@/hooks/useAchievements';
 
@@ -25,73 +25,72 @@ interface XPPopupProps {
   onComplete?: () => void;
 }
 
-export const XPPopup = ({ 
-  show, 
-  xp, 
-  score, 
-  combo, 
-  damage = 0, 
+export const XPPopup = ({
+  show,
+  xp,
+  score,
+  combo,
+  damage = 0,
   totalWeight = 0,
   setsCompleted = 0,
   totalSets = 0,
   achievement,
   lorePhrase,
-  onComplete 
+  onComplete,
 }: XPPopupProps) => {
-  const [items, setItems] = useState<LootItem[]>([]);
   const [showContainer, setShowContainer] = useState(false);
 
-  useEffect(() => {
-    if (show) {
-      const lootItems: LootItem[] = [
-        {
-          id: 1,
-          label: 'XP GAINED',
-          value: `+${xp}`,
-          color: 'text-success',
-          delay: 0.1,
-        },
-        {
-          id: 2,
-          label: 'SCORE',
-          value: `+${score.toLocaleString()}`,
-          color: 'text-secondary',
-          delay: 0.25,
-        },
-        {
-          id: 3,
-          label: 'COMBO',
-          value: `${combo}x`,
-          color: 'text-accent',
-          delay: 0.4,
-        },
-      ];
+  const items = useMemo<LootItem[]>(() => {
+    const lootItems: LootItem[] = [
+      { id: 1, label: 'XP GAINED', value: `+${xp}`, color: 'text-success', delay: 0.1 },
+      { id: 2, label: 'SCORE', value: `+${score.toLocaleString()}`, color: 'text-secondary', delay: 0.25 },
+      { id: 3, label: 'COMBO', value: `${combo}x`, color: 'text-accent', delay: 0.4 },
+    ];
 
-      if (damage > 0) {
-        lootItems.push({
-          id: 4,
-          label: 'DAMAGE',
-          value: `${damage}`,
-          color: 'text-primary',
-          delay: 0.55,
-        });
-      }
-
-      setItems(lootItems);
-      setShowContainer(true);
-
-      // Longer display time if showing achievement
-      const displayTime = achievement ? 3500 : 2000;
-
-      const timer = setTimeout(() => {
-        setShowContainer(false);
-        setItems([]);
-        onComplete?.();
-      }, displayTime);
-
-      return () => clearTimeout(timer);
+    if (damage > 0) {
+      lootItems.push({ id: 4, label: 'DAMAGE', value: `${damage}`, color: 'text-primary', delay: 0.55 });
     }
-  }, [show, xp, score, combo, damage, achievement, onComplete]);
+
+    return lootItems;
+  }, [xp, score, combo, damage]);
+
+  // Important performance fix:
+  // Run the auto-dismiss timer ONLY when `show` toggles on (not on every stat update while spam-clicking).
+  useEffect(() => {
+    if (!show) {
+      setShowContainer(false);
+      return;
+    }
+
+    setShowContainer(true);
+
+    const displayTime = achievement ? 3500 : 2000;
+    const timer = window.setTimeout(() => {
+      setShowContainer(false);
+      onComplete?.();
+    }, displayTime);
+
+    return () => window.clearTimeout(timer);
+  }, [show, achievement, onComplete]);
+
+  // Determine border color based on achievement rarity or default
+  const getBorderStyle = () => {
+    if (achievement) {
+      const rarityColors: Record<string, string> = {
+        legendary: 'hsl(45 100% 50%)',
+        epic: 'hsl(280 100% 60%)',
+        rare: 'hsl(200 100% 50%)',
+        common: 'hsl(343 100% 59%)',
+      };
+      return {
+        borderColor: rarityColors[achievement.rarity] || rarityColors.common,
+        boxShadow: `0 0 30px ${rarityColors[achievement.rarity]}80, inset 0 0 20px ${rarityColors[achievement.rarity]}20`,
+      };
+    }
+    return {
+      boxShadow: '0 0 30px hsl(343 100% 59% / 0.5), inset 0 0 20px hsl(343 100% 59% / 0.1)',
+    };
+  };
 
   // Determine border color based on achievement rarity or default
   const getBorderStyle = () => {
