@@ -796,6 +796,36 @@ export type Database = {
           },
         ]
       }
+      user_time_tracking: {
+        Row: {
+          created_at: string
+          duration_seconds: number | null
+          id: string
+          session_end: string | null
+          session_start: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          duration_seconds?: number | null
+          id?: string
+          session_end?: string | null
+          session_start?: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          duration_seconds?: number | null
+          id?: string
+          session_end?: string | null
+          session_start?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       user_weight_history: {
         Row: {
           exercise_id: string
