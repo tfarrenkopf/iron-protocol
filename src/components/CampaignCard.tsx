@@ -143,10 +143,8 @@ export function CampaignCard({
     }
     
     if (isActive) {
-      // Already active - go to first mission
-      if (missions[0]) {
-        navigate(`/workout/${missions[0].id}?campaign=${collection.id}`);
-      }
+      // Already active - go to campaign detail page
+      navigate(`/campaign/${collection.id}`);
       return;
     }
     
@@ -318,41 +316,26 @@ export function CampaignCard({
             </div>
           )}
 
-          {/* Action Button */}
-          <div className="mt-3 flex gap-2">
+          {/* Action Button - Simplified: just SELECT CAMPAIGN */}
+          <div className="mt-3">
             <button
               onClick={handleActivateClick}
               disabled={isSettingActive}
-              className={`flex-1 flex items-center justify-center gap-2 py-2.5 rounded-lg font-display text-sm transition-colors disabled:opacity-50 ${
-                isActive 
-                  ? 'bg-accent text-accent-foreground hover:bg-accent/90'
-                  : 'bg-accent text-accent-foreground hover:bg-accent/90'
-              }`}
+              className="w-full flex items-center justify-center gap-2 py-2.5 rounded-lg font-display text-sm transition-colors disabled:opacity-50 bg-accent text-accent-foreground hover:bg-accent/90"
             >
               {isSettingActive ? (
                 'LOADING...'
               ) : isActive ? (
                 <>
                   <Crosshair className="w-4 h-4" />
-                  {isComplete ? 'REPLAY' : 'DEPLOY'}
+                  VIEW CAMPAIGN
                 </>
               ) : (
                 <>
                   <Play className="w-4 h-4" />
-                  {hasOtherActive ? 'SELECT CAMPAIGN' : 'ACTIVATE OP'}
+                  SELECT CAMPAIGN
                 </>
               )}
-            </button>
-            
-            {/* View Details button */}
-            <button
-              onClick={(e) => {
-                e.stopPropagation();
-                navigate(`/campaign/${collection.id}`);
-              }}
-              className="px-4 py-2.5 border-2 border-border rounded-lg text-muted-foreground hover:border-primary hover:text-primary transition-colors font-display text-sm"
-            >
-              INTEL
             </button>
           </div>
 

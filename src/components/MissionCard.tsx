@@ -7,11 +7,15 @@ import { PopularityBadge } from '@/components/SocialProof';
 import { getPopularityTier } from '@/hooks/useMissionStats';
 import { formatEquipment } from '@/data/muscleGroups';
 
+interface ExerciseInfo {
+  id: string;
+  name?: string;
+  equipment?: string[];
+}
+
 interface MissionExercise {
   id: string;
-  exercises?: {
-    equipment?: string[];
-  };
+  exercises?: ExerciseInfo;
 }
 
 interface Mission extends Tables<'missions'> {
@@ -79,6 +83,14 @@ export function MissionCard({
       me.exercises?.equipment?.forEach(eq => equipmentSet.add(eq));
     });
     return Array.from(equipmentSet).slice(0, 4); // Limit to 4 for display
+  }, [mission.mission_exercises]);
+
+  // Extract exercise names for picker variant
+  const exerciseNames = useMemo(() => {
+    return mission.mission_exercises
+      ?.map(me => me.exercises?.name)
+      .filter(Boolean)
+      .slice(0, 4) as string[];
   }, [mission.mission_exercises]);
 
   return (
@@ -220,6 +232,17 @@ export function MissionCard({
                   </span>
                 )}
               </div>
+            </div>
+          )}
+
+          {/* Exercise names (for picker variant) */}
+          {variant === 'picker' && exerciseNames && exerciseNames.length > 0 && (
+            <div className="flex items-center gap-2 mt-2">
+              <Target className="w-3 h-3 text-muted-foreground flex-shrink-0" />
+              <p className="text-[10px] text-muted-foreground truncate">
+                {exerciseNames.join(', ')}
+                {(mission.mission_exercises?.length || 0) > 4 && ` +${(mission.mission_exercises?.length || 0) - 4} more`}
+              </p>
             </div>
           )}
 

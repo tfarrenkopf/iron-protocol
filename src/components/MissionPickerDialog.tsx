@@ -1,11 +1,11 @@
 import { useState, useMemo } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Search, X, Filter, Clock, Zap, ChevronDown } from 'lucide-react';
+import { Search, X, Filter, Clock, Zap, ChevronDown, Dumbbell } from 'lucide-react';
 import { Dialog, DialogContent } from '@/components/ui/dialog';
 import { Input } from '@/components/ui/input';
 import { useMissions } from '@/hooks/useMissions';
 import { MissionCard } from '@/components/MissionCard';
-import { FOCUS_AREAS } from '@/data/muscleGroups';
+import { FOCUS_AREAS, formatEquipment, EQUIPMENT_OPTIONS } from '@/data/muscleGroups';
 
 const DURATION_FILTERS = [
   { label: 'All', value: '' },
@@ -30,6 +30,7 @@ export function MissionPickerDialog({
   const [search, setSearch] = useState('');
   const [focusFilter, setFocusFilter] = useState('');
   const [durationFilter, setDurationFilter] = useState('');
+  const [equipmentFilter, setEquipmentFilter] = useState('');
   const [showFilters, setShowFilters] = useState(false);
   
   const { data: missions, isLoading } = useMissions({ showOnlyPublic: true });
@@ -38,12 +39,14 @@ export function MissionPickerDialog({
     if (!missions) return [];
     
     return missions.filter(m => {
-      // Search filter
+      // Search filter - include exercise names
+      const exerciseNames = m.mission_exercises?.map(me => me.exercises?.name?.toLowerCase() || '').join(' ') || '';
       const matchesSearch = !search || 
         m.name.toLowerCase().includes(search.toLowerCase()) ||
         m.code_name.toLowerCase().includes(search.toLowerCase()) ||
         m.description?.toLowerCase().includes(search.toLowerCase()) ||
-        m.focus_areas?.some(f => f.toLowerCase().includes(search.toLowerCase()));
+        m.focus_areas?.some(f => f.toLowerCase().includes(search.toLowerCase())) ||
+        exerciseNames.includes(search.toLowerCase());
       
       // Focus area filter
       const matchesFocus = !focusFilter || m.focus_areas?.includes(focusFilter);
@@ -58,18 +61,26 @@ export function MissionPickerDialog({
         }
       }
       
-      return matchesSearch && matchesFocus && matchesDuration;
+      // Equipment filter
+      let matchesEquipment = true;
+      if (equipmentFilter) {
+        const missionEquipment = m.mission_exercises?.flatMap(me => me.exercises?.equipment || []) || [];
+        matchesEquipment = missionEquipment.includes(equipmentFilter as any);
+      }
+      
+      return matchesSearch && matchesFocus && matchesDuration && matchesEquipment;
     });
-  }, [missions, search, focusFilter, durationFilter]);
+  }, [missions, search, focusFilter, durationFilter, equipmentFilter]);
 
   const isAlreadyAdded = (missionId: string) => existingMissionIds.includes(missionId);
 
-  const activeFilterCount = [focusFilter, durationFilter].filter(Boolean).length;
+  const activeFilterCount = [focusFilter, durationFilter, equipmentFilter].filter(Boolean).length;
 
   const handleClose = () => {
     setSearch('');
     setFocusFilter('');
     setDurationFilter('');
+    setEquipmentFilter('');
     setShowFilters(false);
     onOpenChange(false);
   };
@@ -158,7 +169,7 @@ export function MissionPickerDialog({
                 exit={{ height: 0, opacity: 0 }}
                 className="overflow-hidden border-t border-border"
               >
-                <div className="p-4 space-y-3 bg-card/50">
+                <div className="p-4 space-y-4 bg-card/50">
                   <div>
                     <label className="text-xs text-muted-foreground font-display tracking-wider mb-2 block">
                       FOCUS AREA
@@ -180,9 +191,30 @@ export function MissionPickerDialog({
                     </div>
                   </div>
                   
-                  {(focusFilter || durationFilter) && (
+                  <div>
+                    <label className="text-xs text-muted-foreground font-display tracking-wider mb-2 block">
+                      EQUIPMENT
+                    </label>
+                    <div className="flex flex-wrap gap-2 max-h-32 overflow-y-auto">
+                      {EQUIPMENT_OPTIONS.map((equip) => (
+                        <button
+                          key={equip}
+                          onClick={() => setEquipmentFilter(equipmentFilter === equip ? '' : equip)}
+                          className={`px-3 py-1.5 rounded text-sm transition-colors ${
+                            equipmentFilter === equip
+                              ? 'bg-secondary text-secondary-foreground'
+                              : 'bg-muted hover:bg-muted/80'
+                          }`}
+                        >
+                          {formatEquipment(equip)}
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+                  
+                  {(focusFilter || durationFilter || equipmentFilter) && (
                     <button
-                      onClick={() => { setFocusFilter(''); setDurationFilter(''); }}
+                      onClick={() => { setFocusFilter(''); setDurationFilter(''); setEquipmentFilter(''); }}
                       className="text-xs text-destructive hover:underline"
                     >
                       Clear all filters

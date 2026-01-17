@@ -207,7 +207,9 @@ const RivalInvite = () => {
               <Swords className="w-12 h-12 text-primary mx-auto mb-3" />
             </motion.div>
             <h1 className="font-display text-2xl text-primary mb-1">RIVAL MODE</h1>
-            <p className="text-sm text-muted-foreground">You've been challenged!</p>
+            <p className="text-sm text-muted-foreground">
+              You've been challenged by <span className="text-secondary font-display">{rivalProfile.display_name || 'Anonymous Warrior'}</span>!
+            </p>
           </div>
 
           {/* Rival Profile */}
