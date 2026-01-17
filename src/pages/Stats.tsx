@@ -12,6 +12,7 @@ import { MilestoneList } from '@/components/MilestoneProgress';
 import { useAchievements, useUserAchievements } from '@/hooks/useAchievements';
 import { AchievementList } from '@/components/AchievementList';
 import { GlobalNav } from '@/components/GlobalNav';
+import { AppFooter } from '@/components/AppFooter';
 
 // Section IDs for navigation
 const SECTIONS = [
@@ -459,6 +460,9 @@ const Stats = () => {
             </div>
           )}
         </motion.section>
+
+        {/* Footer */}
+        <AppFooter />
       </div>
     </div>
   );
