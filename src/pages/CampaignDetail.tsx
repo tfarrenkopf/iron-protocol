@@ -277,26 +277,32 @@ const CampaignDetail = () => {
   const missions = collection?.collection_missions?.map(cm => cm.missions) || [];
   const missionIds = collection?.collection_missions?.map(cm => cm.mission_id) || [];
 
-  // Fetch which missions the user has completed using react-query for automatic refetch
+  // Fetch which missions the user has completed (ACTIVE run only)
   const { data: completedMissionsData } = useQuery({
-    queryKey: ['campaign-completed-missions', collectionId, user?.id, missions.length],
+    queryKey: ['campaign-completed-missions', collectionId, user?.id, missions.length, isActiveCampaign, (progress as any)?.current_run_started_at],
     queryFn: async () => {
       if (!user || missions.length === 0) return new Set<string>();
-      
+      if (!isActiveCampaign) return new Set<string>();
+
+      const runStartedAt = (progress as any)?.current_run_started_at;
+      if (!runStartedAt) return new Set<string>();
+
       const missionIdList = missions.filter(m => m).map(m => m!.id);
-      
-      const { data } = await supabase
+
+      const { data, error } = await supabase
         .from('workout_sessions')
         .select('mission_id')
         .eq('user_id', user.id)
         .eq('status', 'COMPLETED')
+        .gte('started_at', runStartedAt)
         .in('mission_id', missionIdList);
-      
+
+      if (error) throw error;
       return new Set(data?.map(s => s.mission_id) || []);
     },
-    enabled: !!user && missions.length > 0,
+    enabled: !!user && missions.length > 0 && isActiveCampaign,
     refetchOnWindowFocus: true,
-    staleTime: 0, // Always refetch on mount
+    staleTime: 0,
   });
 
   const completedMissionIds = completedMissionsData || new Set<string>();

@@ -878,6 +878,7 @@ export type Database = {
           campaign_id: string
           completed_at: string | null
           created_at: string
+          current_run_started_at: string
           id: string
           missions_completed_count: number
           total_completions: number
@@ -890,6 +891,7 @@ export type Database = {
           campaign_id: string
           completed_at?: string | null
           created_at?: string
+          current_run_started_at?: string
           id?: string
           missions_completed_count?: number
           total_completions?: number
@@ -902,6 +904,7 @@ export type Database = {
           campaign_id?: string
           completed_at?: string | null
           created_at?: string
+          current_run_started_at?: string
           id?: string
           missions_completed_count?: number
           total_completions?: number

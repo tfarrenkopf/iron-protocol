@@ -11,6 +11,7 @@ export interface CampaignProgress {
   completed_at: string | null;
   best_completion_time_seconds: number | null;
   total_completions: number;
+  current_run_started_at: string;
   created_at: string;
   updated_at: string;
 }
@@ -126,14 +127,25 @@ export function useUpdateCampaignProgress() {
 
       const totalMissions = campaignMissions?.length || 0;
 
-      // 2. Get user's completed missions for this campaign
+      // 2. Get current run start (so replays don't count historical sessions)
+      const { data: existingProgress } = await supabase
+        .from('user_campaign_progress')
+        .select('*')
+        .eq('campaign_id', campaignId)
+        .eq('user_id', user.id)
+        .maybeSingle();
+
+      const runStartedAt = (existingProgress as any)?.current_run_started_at || new Date().toISOString();
+
+      // 3. Get user's completed missions for this campaign in the CURRENT run
       const missionIds = campaignMissions?.map(cm => cm.mission_id) || [];
-      
+
       const { data: completedSessions, error: sessionsError } = await supabase
         .from('workout_sessions')
         .select('mission_id')
         .eq('user_id', user.id)
         .eq('status', 'COMPLETED')
+        .gte('started_at', runStartedAt)
         .in('mission_id', missionIds);
 
       if (sessionsError) throw sessionsError;
@@ -143,17 +155,10 @@ export function useUpdateCampaignProgress() {
       completedMissionIds.add(missionId);
       const completedCount = completedMissionIds.size;
 
-      // 3. Check if campaign is now complete
+      // 4. Check if campaign is now complete
       const isComplete = completedCount >= totalMissions && totalMissions > 0;
 
-      // 4. Get or create progress record
-      const { data: existingProgress } = await supabase
-        .from('user_campaign_progress')
-        .select('*')
-        .eq('campaign_id', campaignId)
-        .eq('user_id', user.id)
-        .maybeSingle();
-
+      // 5. Update/create progress record
       if (existingProgress) {
         // Update existing progress
         const updates: any = {
