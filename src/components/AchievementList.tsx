@@ -163,15 +163,19 @@ export function AchievementSummary({ achievements, userAchievements }: Achieveme
       
       {recentUnlocks.length > 0 && (
         <div className="flex gap-2">
-          {recentUnlocks.map(ua => (
-            <div
-              key={ua.id}
-              className="text-xl"
-              title={ua.achievement.name}
-            >
-              {ua.achievement.icon}
-            </div>
-          ))}
+          {recentUnlocks.map(ua => {
+            const achievement = achievements.find(a => a.id === ua.achievementId);
+            if (!achievement) return null;
+            return (
+              <div
+                key={ua.id}
+                className="text-xl"
+                title={achievement.name}
+              >
+                {achievement.icon || '🏆'}
+              </div>
+            );
+          })}
         </div>
       )}
     </div>
