@@ -88,7 +88,8 @@ export function CampaignMissionList({
             totalItems={orderedIds.length}
             onMoveUp={() => moveMission(index, 'up')}
             onMoveDown={() => moveMission(index, 'down')}
-            onRemove={() => onRemoveMission({ id: mission.id, name: mission.code_name })}
+            // Only allow removal if owner AND not system/active
+            onRemove={isOwner && !isSystem ? () => onRemoveMission({ id: mission.id, name: mission.code_name }) : undefined}
           />
         );
       })}

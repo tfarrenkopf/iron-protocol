@@ -43,12 +43,8 @@ export function FightNowActions() {
   }, [missions]);
 
   const handleContinueCampaign = () => {
-    if (nextMission) {
-      navigate(`/workout/${nextMission.id}?campaign=${campaign?.id}`);
-    } else if (missions[0]) {
-      // Campaign complete, replay from start
-      navigate(`/workout/${missions[0].id}?campaign=${campaign?.id}`);
-    }
+    // Navigate to campaign detail page instead of directly to workout
+    navigate(`/campaign/${campaign?.id}`);
   };
 
   return (

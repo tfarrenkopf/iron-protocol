@@ -286,7 +286,7 @@ const CampaignDetail = () => {
               className="w-full py-4 bg-accent text-accent-foreground font-display text-xl rounded-lg hover:box-glow-accent transition-all flex items-center justify-center gap-3"
             >
               <Rocket className="w-6 h-6" />
-              {completedMissionIds.size >= missions.length ? 'REPLAY FROM START' : 'LAUNCH MISSION'}
+              {completedMissionIds.size >= missions.length ? 'VICTORY LAP' : 'DEPLOY NOW'}
             </button>
 
             {isActiveCampaign && isOwner && !collection.is_system && (
@@ -391,8 +391,9 @@ const CampaignDetail = () => {
           transition={{ delay: 0.25 }}
         >
           <div className="flex items-center justify-between mb-3">
-            <h2 className="font-display text-sm text-secondary tracking-wider">
-              {isActiveCampaign ? '🏁 RACE STAGES' : 'MISSIONS IN THIS CAMPAIGN'}
+            <h2 className="font-display text-sm text-secondary tracking-wider flex items-center gap-2">
+              <Trophy className="w-4 h-4" />
+              {isActiveCampaign ? 'MISSION QUEUE' : 'MISSIONS'}
             </h2>
             {canEdit && (
               <button
