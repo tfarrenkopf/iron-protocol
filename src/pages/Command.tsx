@@ -13,6 +13,7 @@ import { ExerciseCard } from '@/components/ExerciseCard';
 import { FOCUS_AREAS, getMusclesForFocusArea, formatEquipment, EQUIPMENT_OPTIONS } from '@/data/muscleGroups';
 import { CollectionFilter } from '@/components/CollectionFilter';
 import { useActiveCampaign } from '@/hooks/useActiveCampaign';
+import { ActiveCampaignHero } from '@/components/ActiveCampaignHero';
 import { TodayMissionsWidget } from '@/components/TodayMissionsWidget';
 import { CampaignCard } from '@/components/CampaignCard';
 import { SourceToggle } from '@/components/SourceToggle';
@@ -694,6 +695,13 @@ const Command = () => {
               </div>
             </motion.div>
           </>
+        )}
+
+        {/* Active Campaign Widget - Show on all tabs */}
+        {activeCampaignId && user && (
+          <div className="mb-6">
+            <ActiveCampaignHero />
+          </div>
         )}
 
         {/* Tab Content */}
