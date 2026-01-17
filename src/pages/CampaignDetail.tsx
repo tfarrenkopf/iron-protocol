@@ -2,7 +2,7 @@ import { useState, useMemo } from 'react';
 import { motion } from 'framer-motion';
 import { useNavigate, useParams } from 'react-router-dom';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
-import { Clock, Pencil, Trash2, Lock, Globe, Users, Flame, Plus, Trophy, Timer, Rocket, Play, Zap, RefreshCw, X, Target } from 'lucide-react';
+import { Clock, Pencil, Trash2, Lock, Globe, Users, Flame, Plus, Trophy, Timer, Rocket, Zap, RefreshCw, X, Target } from 'lucide-react';
 import { GlobalNav } from '@/components/GlobalNav';
 import { useCollection, useDeleteCollection, useRemoveMissionFromCollection, useAddMissionToCollection } from '@/hooks/useCollections';
 import { useCampaignProgress, useCampaignCompletions, useCampaignLeaderboard, CampaignProgress } from '@/hooks/useCampaignProgress';
@@ -98,7 +98,7 @@ function ActiveCampaignControl({
           {/* Quick stats */}
           <div className="flex items-center gap-3 text-xs text-muted-foreground">
             <span className="flex items-center gap-1">
-              <Target className="w-3 h-3 text-primary" />
+              <Target className="w-3 h-3 text-section-missions" />
               {missions.length} missions
             </span>
             <span className="flex items-center gap-1">
@@ -542,7 +542,7 @@ const CampaignDetail = () => {
             {/* Compact inline stats */}
             <div className="flex items-center gap-4 text-xs text-muted-foreground flex-wrap">
               <span className="flex items-center gap-1">
-                <Target className="w-3 h-3 text-primary" />
+                <Target className="w-3 h-3 text-section-missions" />
                 {missions.length} missions
               </span>
               <span className="flex items-center gap-1">
@@ -573,8 +573,8 @@ const CampaignDetail = () => {
           className="mb-6"
         >
           <div className="flex items-center justify-between mb-3">
-            <h2 className="font-display text-sm text-secondary tracking-wider flex items-center gap-2">
-              <Trophy className="w-4 h-4" />
+            <h2 className="font-display text-sm text-section-missions tracking-wider flex items-center gap-2">
+              <Target className="w-4 h-4" />
               {isActiveCampaign ? 'MISSION QUEUE' : 'MISSIONS'} ({completedMissionIds.size}/{missions.length})
             </h2>
             {canEdit && (
@@ -587,17 +587,39 @@ const CampaignDetail = () => {
             )}
           </div>
           
-          {/* Empty state with clear CTA for adding missions */}
-          {missions.length === 0 && canEdit ? (
-            <div className="text-center py-12 border-2 border-dashed border-primary/30 rounded-lg bg-primary/5">
-              <Plus className="w-10 h-10 mx-auto mb-3 text-primary/50" />
-              <p className="text-sm text-muted-foreground mb-3">This campaign has no missions yet</p>
-              <button
-                onClick={() => setMissionPickerOpen(true)}
-                className="px-4 py-2 bg-primary text-primary-foreground font-display text-sm rounded hover:box-glow-primary transition-all"
-              >
-                ADD MISSIONS
-              </button>
+          {/* Empty state with consistent styling to mission list */}
+          {missions.length === 0 ? (
+            <div className="bg-card border border-border rounded-lg overflow-hidden">
+              {/* Header matching mission card style */}
+              <div className="p-4 border-b border-border bg-muted/20">
+                <div className="flex items-center gap-3">
+                  <div className="p-2 rounded-lg bg-section-campaigns/10">
+                    <Flame className="w-5 h-5 text-section-campaigns" />
+                  </div>
+                  <div>
+                    <p className="font-display text-sm text-foreground">NO MISSIONS ASSIGNED</p>
+                    <p className="text-xs text-muted-foreground">Add missions to build your campaign roster</p>
+                  </div>
+                </div>
+              </div>
+              
+              {/* Empty content area */}
+              <div className="p-6 text-center">
+                <Target className="w-10 h-10 mx-auto mb-3 text-section-missions/30" />
+                <p className="text-sm text-muted-foreground mb-4">
+                  {canEdit 
+                    ? 'Select missions from the arsenal to add to this campaign.'
+                    : 'This campaign has no missions yet.'}
+                </p>
+                {canEdit && (
+                  <button
+                    onClick={() => setMissionPickerOpen(true)}
+                    className="px-4 py-2 bg-section-campaigns text-white font-display text-sm rounded hover:box-glow-campaigns transition-all flex items-center gap-2 mx-auto"
+                  >
+                    <Plus className="w-4 h-4" /> ADD MISSIONS
+                  </button>
+                )}
+              </div>
             </div>
           ) : (
             <CampaignMissionList
@@ -621,8 +643,8 @@ const CampaignDetail = () => {
             transition={{ delay: 0.2 }}
             className="mb-6"
           >
-            <h2 className="font-display text-sm text-secondary mb-3 tracking-wider flex items-center gap-2">
-              <Trophy className="w-4 h-4" /> CAMPAIGN STATS
+            <h2 className="font-display text-sm text-section-campaigns mb-3 tracking-wider flex items-center gap-2">
+              <Flame className="w-4 h-4" /> CAMPAIGN STATS
             </h2>
             <div className="bg-card border border-border rounded-lg overflow-hidden">
               {/* Leaderboard section */}
