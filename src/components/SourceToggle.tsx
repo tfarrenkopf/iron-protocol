@@ -1,6 +1,7 @@
 import { Globe, User } from 'lucide-react';
 
 type Source = 'public' | 'personal';
+type Section = 'missions' | 'exercises' | 'campaigns';
 
 interface SourceToggleProps {
   value: Source;
@@ -8,15 +9,34 @@ interface SourceToggleProps {
   publicLabel?: string;
   personalLabel?: string;
   disabled?: boolean;
+  section?: Section;
 }
+
+const sectionColors: Record<Section, { active: string; icon: string }> = {
+  missions: { 
+    active: 'bg-section-missions text-white', 
+    icon: 'text-section-missions' 
+  },
+  exercises: { 
+    active: 'bg-section-command text-background', 
+    icon: 'text-section-command' 
+  },
+  campaigns: { 
+    active: 'bg-section-campaigns text-white', 
+    icon: 'text-section-campaigns' 
+  },
+};
 
 export function SourceToggle({ 
   value, 
   onChange, 
   publicLabel = 'PUBLIC', 
   personalLabel = 'PERSONAL',
-  disabled = false 
+  disabled = false,
+  section = 'missions'
 }: SourceToggleProps) {
+  const colors = sectionColors[section];
+  
   return (
     <div className="inline-flex bg-muted/30 rounded-lg p-0.5 border border-border">
       <button
@@ -24,7 +44,7 @@ export function SourceToggle({
         disabled={disabled}
         className={`flex items-center gap-1.5 px-3 py-1.5 rounded-md text-xs font-display transition-all ${
           value === 'public'
-            ? 'bg-primary text-primary-foreground'
+            ? colors.active
             : 'text-muted-foreground hover:text-foreground'
         } ${disabled ? 'opacity-50 cursor-not-allowed' : ''}`}
       >
@@ -36,7 +56,7 @@ export function SourceToggle({
         disabled={disabled}
         className={`flex items-center gap-1.5 px-3 py-1.5 rounded-md text-xs font-display transition-all ${
           value === 'personal'
-            ? 'bg-secondary text-secondary-foreground'
+            ? colors.active
             : 'text-muted-foreground hover:text-foreground'
         } ${disabled ? 'opacity-50 cursor-not-allowed' : ''}`}
       >
