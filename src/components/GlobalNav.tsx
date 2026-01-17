@@ -1,7 +1,8 @@
 import { useNavigate, useLocation } from "react-router-dom";
 import { motion } from "framer-motion";
-import { Home, Crosshair, Timer, Radio, ArrowLeft } from "lucide-react";
+import { Home, Crosshair, Timer, Radio, ArrowLeft, Users } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { useIsHandler } from "@/hooks/useHandlerMode";
 
 interface GlobalNavProps {
   /** Optional title to display in center */
@@ -16,13 +17,6 @@ interface GlobalNavProps {
   className?: string;
 }
 
-const NAV_ITEMS = [
-  { path: "/", icon: Home, label: "HOME", color: "text-primary" },
-  { path: "/command", icon: Crosshair, label: "CMD", color: "text-secondary" },
-  { path: "/hiit", icon: Timer, label: "HIIT", color: "text-accent" },
-  { path: "/intel", icon: Radio, label: "INTEL", color: "text-primary" },
-];
-
 export function GlobalNav({ 
   title, 
   subtitle, 
@@ -32,6 +26,16 @@ export function GlobalNav({
 }: GlobalNavProps) {
   const navigate = useNavigate();
   const location = useLocation();
+  const { data: isHandler } = useIsHandler();
+
+  const navItems = [
+    { path: "/", icon: Home, label: "HOME", color: "text-primary" },
+    { path: "/command", icon: Crosshair, label: "CMD", color: "text-secondary" },
+    { path: "/hiit", icon: Timer, label: "HIIT", color: "text-accent" },
+    { path: "/intel", icon: Radio, label: "INTEL", color: "text-primary" },
+    // Handler icon only shows if user has handler role
+    ...(isHandler ? [{ path: "/handler", icon: Users, label: "HANDLER", color: "text-warning" }] : []),
+  ];
 
   return (
     <motion.header
@@ -56,10 +60,11 @@ export function GlobalNav({
 
         {/* Quick nav icons */}
         <nav className="flex items-center gap-1">
-          {NAV_ITEMS.map((item) => {
+          {navItems.map((item) => {
             const Icon = item.icon;
             const isActive = location.pathname === item.path || 
-              (item.path === "/command" && location.pathname.startsWith("/command"));
+              (item.path === "/command" && location.pathname.startsWith("/command")) ||
+              (item.path === "/handler" && location.pathname.startsWith("/handler"));
             
             return (
               <button
