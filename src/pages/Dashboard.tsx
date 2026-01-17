@@ -1,7 +1,7 @@
 import { useMemo } from "react";
 import { motion } from "framer-motion";
 import { useNavigate } from "react-router-dom";
-import { Dumbbell, Timer, Trophy, User, LogOut, Plus, ChevronRight, Users, Crosshair, Folder, Radio } from "lucide-react";
+import { Crosshair, Timer, Radio, User, LogOut, ChevronRight, Users, Play } from "lucide-react";
 import { useMissions } from "@/hooks/useMissions";
 import { useAuth } from "@/hooks/useAuth";
 import { useProfile } from "@/hooks/useProfile";
@@ -23,18 +23,16 @@ const Dashboard = () => {
   const { data: profile } = useProfile();
   const { data: missions } = useMissions({ showOnlyPublic: true });
 
-  // Story 13.1: Select 3 random missions (1 short, 1 medium, 1 long)
+  // Select 3 random missions (1 short, 1 medium, 1 long)
   const featuredMissions = useMemo(() => {
     if (!missions || missions.length === 0) return [];
 
-    // Categorize by duration
     const shortMissions = missions.filter((m) => m.estimated_minutes < 20);
     const mediumMissions = missions.filter((m) => m.estimated_minutes >= 20 && m.estimated_minutes < 40);
     const longMissions = missions.filter((m) => m.estimated_minutes >= 40);
 
     const selected: typeof missions = [];
 
-    // Pick one from each category if available
     const short = getRandomItem(shortMissions);
     const medium = getRandomItem(mediumMissions);
     const long = getRandomItem(longMissions);
@@ -43,7 +41,6 @@ const Dashboard = () => {
     if (medium) selected.push(medium);
     if (long) selected.push(long);
 
-    // If we don't have 3, fill with random missions we haven't picked
     const selectedIds = new Set(selected.map((m) => m.id));
     const remaining = missions.filter((m) => !selectedIds.has(m.id));
 
@@ -52,9 +49,9 @@ const Dashboard = () => {
       selected.push(remaining.splice(randomIndex, 1)[0]);
     }
 
-    // Sort by duration for consistent display (short → medium → long)
     return selected.sort((a, b) => a.estimated_minutes - b.estimated_minutes);
   }, [missions]);
+  
   const { data: isHandler } = useIsHandler();
 
   const handleSignOut = async () => {
@@ -82,7 +79,7 @@ const Dashboard = () => {
       </div>
 
       <div className="relative z-10 container mx-auto px-4 py-8 max-w-4xl">
-        {/* Guest Mode Banner - Top Position */}
+        {/* Guest Mode Banner */}
         {isAnonymous && (
           <motion.div
             initial={{ opacity: 0, y: -10 }}
@@ -92,8 +89,7 @@ const Dashboard = () => {
             <div>
               <p className="text-sm text-warning font-display">⚠️ GUEST MODE ACTIVE</p>
               <p className="text-xs text-muted-foreground mt-1">
-                Your progress won't be saved. Create an account to track your gains, create your own missions and
-                exercises, and appear on the leaderboard.
+                Your progress won't be saved. Create an account to track your gains and appear on the leaderboard.
               </p>
             </div>
             <button
@@ -128,90 +124,100 @@ const Dashboard = () => {
                 <LogOut className="w-4 h-4" />
               </button>
             </div>
-
-            <button
-              onClick={() => navigate("/exercises")}
-              className="flex items-center gap-2 px-3 py-2 text-sm text-muted-foreground hover:text-secondary transition-colors"
-            >
-              <Plus className="w-4 h-4" />
-              EDIT ARSENAL
-            </button>
           </motion.div>
         )}
 
         {/* Header */}
-        <motion.header initial={{ opacity: 0, y: -20 }} animate={{ opacity: 1, y: 0 }} className="text-center mb-12">
+        <motion.header initial={{ opacity: 0, y: -20 }} animate={{ opacity: 1, y: 0 }} className="text-center mb-10">
           <h1 className="font-display text-6xl md:text-8xl text-primary text-glow-primary tracking-wider mb-2">
             IRON PROTOCOL
           </h1>
           <p className="font-body text-muted-foreground text-sm tracking-widest uppercase">
             Complete Missions • Defeat Enemies • Get Stronger
           </p>
-          <p className="text-xs text-muted-foreground/60 mt-2 max-w-md mx-auto">
-            Choose a mission below to start your workout. Complete sets to earn XP and climb the ranks.
-          </p>
         </motion.header>
 
-        {/* Main Actions - Story 12.3: Core actions appear FIRST for quick access */}
+        {/* Primary Action - FIGHT NOW */}
+        <motion.div
+          initial={{ opacity: 0, scale: 0.95 }}
+          animate={{ opacity: 1, scale: 1 }}
+          transition={{ delay: 0.1 }}
+          className="mb-6"
+        >
+          <button
+            onClick={() => navigate("/command")}
+            className="w-full group relative bg-gradient-to-r from-primary/20 via-primary/10 to-primary/20 border-2 border-primary rounded-lg p-6 text-center transition-all hover:box-glow-primary hover:from-primary/30 hover:via-primary/20 hover:to-primary/30"
+          >
+            <div className="flex items-center justify-center gap-4">
+              <Play className="w-10 h-10 text-primary" />
+              <div>
+                <h2 className="font-display text-3xl text-primary text-glow-primary">FIGHT NOW</h2>
+                <p className="text-sm text-muted-foreground mt-1">Select a mission and begin combat</p>
+              </div>
+            </div>
+          </button>
+        </motion.div>
+
+        {/* Secondary Actions Row */}
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.1 }}
-          className={`grid gap-4 mb-8 ${isHandler ? "grid-cols-2 sm:grid-cols-4" : "grid-cols-3"}`}
+          transition={{ delay: 0.2 }}
+          className={`grid gap-3 mb-8 ${isHandler ? "grid-cols-2 sm:grid-cols-4" : "grid-cols-3"}`}
         >
           <button
-            onClick={() => navigate("/missions")}
-            className="group relative bg-card border-2 border-primary rounded p-6 text-left transition-all hover:box-glow-primary hover:border-primary"
+            onClick={() => navigate("/command")}
+            className="group relative bg-card border-2 border-secondary rounded p-4 text-left transition-all hover:box-glow-secondary hover:border-secondary"
           >
-            <div className="absolute inset-0 bg-primary/5 group-hover:bg-primary/10 transition-colors rounded" />
-            <Dumbbell className="w-8 h-8 text-primary mb-3 relative z-10" />
-            <h2 className="font-display text-lg sm:text-xl text-primary relative z-10">MISSIONS</h2>
-            <p className="text-xs text-muted-foreground mt-1 relative z-10">Strength</p>
+            <div className="absolute inset-0 bg-secondary/5 group-hover:bg-secondary/10 transition-colors rounded" />
+            <Crosshair className="w-6 h-6 text-secondary mb-2 relative z-10" />
+            <h2 className="font-display text-base text-secondary relative z-10">COMMAND</h2>
+            <p className="text-[10px] text-muted-foreground mt-0.5 relative z-10">Arsenal</p>
           </button>
 
           <button
             onClick={() => navigate("/hiit")}
-            className="group relative bg-card border-2 border-secondary rounded p-6 text-left transition-all hover:box-glow-secondary hover:border-secondary"
-          >
-            <div className="absolute inset-0 bg-secondary/5 group-hover:bg-secondary/10 transition-colors rounded" />
-            <Timer className="w-8 h-8 text-secondary mb-3 relative z-10" />
-            <h2 className="font-display text-lg sm:text-xl text-secondary relative z-10">HIIT</h2>
-            <p className="text-xs text-muted-foreground mt-1 relative z-10">Timer</p>
-          </button>
-
-          <button
-            onClick={() => navigate("/stats")}
-            className="group relative bg-card border-2 border-accent rounded p-6 text-left transition-all hover:border-accent"
+            className="group relative bg-card border-2 border-accent rounded p-4 text-left transition-all"
             style={{ boxShadow: "none" }}
             onMouseEnter={(e) => (e.currentTarget.style.boxShadow = "0 0 20px hsl(20 100% 60% / 0.6)")}
             onMouseLeave={(e) => (e.currentTarget.style.boxShadow = "none")}
           >
             <div className="absolute inset-0 bg-accent/5 group-hover:bg-accent/10 transition-colors rounded" />
-            <Trophy className="w-8 h-8 text-accent mb-3 relative z-10" />
-            <h2 className="font-display text-lg sm:text-xl text-accent relative z-10">STATS</h2>
-            <p className="text-xs text-muted-foreground mt-1 relative z-10">Rankings</p>
+            <Timer className="w-6 h-6 text-accent mb-2 relative z-10" />
+            <h2 className="font-display text-base text-accent relative z-10">HIIT</h2>
+            <p className="text-[10px] text-muted-foreground mt-0.5 relative z-10">Timer</p>
+          </button>
+
+          <button
+            onClick={() => navigate("/intel")}
+            className="group relative bg-card border-2 border-primary rounded p-4 text-left transition-all hover:box-glow-primary hover:border-primary"
+          >
+            <div className="absolute inset-0 bg-primary/5 group-hover:bg-primary/10 transition-colors rounded" />
+            <Radio className="w-6 h-6 text-primary mb-2 relative z-10" />
+            <h2 className="font-display text-base text-primary relative z-10">INTEL</h2>
+            <p className="text-[10px] text-muted-foreground mt-0.5 relative z-10">Stats & Feed</p>
           </button>
 
           {isHandler && (
             <button
               onClick={() => navigate("/handler")}
-              className="group relative bg-card border-2 border-warning rounded p-6 text-left transition-all hover:border-warning"
+              className="group relative bg-card border-2 border-warning rounded p-4 text-left transition-all hover:border-warning"
               style={{ boxShadow: "none" }}
               onMouseEnter={(e) => (e.currentTarget.style.boxShadow = "0 0 20px hsl(var(--warning) / 0.6)")}
               onMouseLeave={(e) => (e.currentTarget.style.boxShadow = "none")}
             >
               <div className="absolute inset-0 bg-warning/5 group-hover:bg-warning/10 transition-colors rounded" />
-              <Users className="w-8 h-8 text-warning mb-3 relative z-10" />
-              <h2 className="font-display text-lg sm:text-xl text-warning relative z-10">HANDLER</h2>
-              <p className="text-xs text-muted-foreground mt-1 relative z-10">Squads</p>
+              <Users className="w-6 h-6 text-warning mb-2 relative z-10" />
+              <h2 className="font-display text-base text-warning relative z-10">HANDLER</h2>
+              <p className="text-[10px] text-muted-foreground mt-0.5 relative z-10">Squads</p>
             </button>
           )}
         </motion.div>
 
-        {/* Weekly Summary - Under action buttons (show for all users) */}
+        {/* Weekly Summary */}
         <WeeklySummary />
 
-        {/* Incoming Orders - Only show when logged in */}
+        {/* Incoming Orders */}
         {!isAnonymous && <IncomingOrders />}
 
         {/* Rival Mode Widget */}
@@ -226,46 +232,7 @@ const Dashboard = () => {
           </motion.div>
         )}
 
-        {/* Quick Links Row */}
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.35 }}
-          className="grid grid-cols-2 gap-3 mb-8"
-        >
-          <button
-            onClick={() => navigate("/intel")}
-            className="p-4 bg-card border border-secondary/50 rounded flex items-center justify-between hover:border-secondary hover:box-glow-secondary transition-all"
-          >
-            <div className="flex items-center gap-3">
-              <Radio className="w-5 h-5 text-secondary" />
-              <div className="text-left">
-                <div className="font-display text-sm text-secondary">INTEL CENTER</div>
-                <div className="text-[10px] text-muted-foreground">Feed & Reports</div>
-              </div>
-            </div>
-            <ChevronRight className="w-4 h-4 text-secondary" />
-          </button>
-
-          <button
-            onClick={() => navigate("/collections")}
-            className="p-4 bg-card border border-accent/50 rounded flex items-center justify-between hover:border-accent transition-all"
-            style={{ boxShadow: "none" }}
-            onMouseEnter={(e) => (e.currentTarget.style.boxShadow = "0 0 15px hsl(20 100% 60% / 0.4)")}
-            onMouseLeave={(e) => (e.currentTarget.style.boxShadow = "none")}
-          >
-            <div className="flex items-center gap-3">
-              <Folder className="w-5 h-5 text-accent" />
-              <div className="text-left">
-                <div className="font-display text-sm text-accent">CAMPAIGNS</div>
-                <div className="text-[10px] text-muted-foreground">Organize</div>
-              </div>
-            </div>
-            <ChevronRight className="w-4 h-4 text-accent" />
-          </button>
-        </motion.div>
-
-        {/* Featured Missions - Story 13.1: Random selection by duration */}
+        {/* Featured Missions */}
         <motion.section initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.4 }}>
           <div className="flex items-center justify-between mb-4">
             <h3 className="font-display text-xl text-muted-foreground tracking-wider">// TODAY'S MISSIONS</h3>
@@ -287,7 +254,6 @@ const Dashboard = () => {
                       <span className="font-display text-lg text-primary group-hover:text-glow-primary transition-all">
                         {mission.code_name}
                       </span>
-                      {/* Duration badge */}
                       <span
                         className={`text-xs px-1.5 py-0.5 rounded font-display ${
                           mission.estimated_minutes < 20
@@ -317,26 +283,26 @@ const Dashboard = () => {
             ))}
           </div>
 
-          {/* Story 13.2: Prominent Full Arsenal Button */}
+          {/* Full Arsenal Button */}
           <motion.button
             initial={{ opacity: 0, y: 10 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.7 }}
-            onClick={() => navigate("/missions")}
-            className="w-full group bg-card border-2 border-primary/50 rounded-lg p-4 flex items-center justify-between hover:border-primary hover:box-glow-primary transition-all"
+            onClick={() => navigate("/command")}
+            className="w-full group bg-card border-2 border-secondary/50 rounded-lg p-4 flex items-center justify-between hover:border-secondary hover:box-glow-secondary transition-all"
           >
             <div className="flex items-center gap-3">
-              <Crosshair className="w-6 h-6 text-primary" />
+              <Crosshair className="w-6 h-6 text-secondary" />
               <div className="text-left">
-                <div className="font-display text-lg text-primary group-hover:text-glow-primary transition-all">
-                  FULL ARSENAL
+                <div className="font-display text-lg text-secondary group-hover:text-glow-secondary transition-all">
+                  ACCESS COMMAND
                 </div>
                 <div className="text-xs text-muted-foreground">
-                  {missions?.length || 0}+ missions available • All difficulties
+                  {missions?.length || 0}+ missions • All campaigns • Your arsenal
                 </div>
               </div>
             </div>
-            <ChevronRight className="w-5 h-5 text-primary group-hover:translate-x-1 transition-transform" />
+            <ChevronRight className="w-5 h-5 text-secondary group-hover:translate-x-1 transition-transform" />
           </motion.button>
         </motion.section>
 
