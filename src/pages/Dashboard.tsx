@@ -107,19 +107,21 @@ const Dashboard = () => {
           <motion.div
             initial={{ opacity: 0, y: -10 }}
             animate={{ opacity: 1, y: 0 }}
-            className="flex items-center justify-between mb-6"
+            className="flex items-center justify-end mb-4"
           >
-            <div className="flex items-center gap-3">
+            <div className="flex items-center gap-2 opacity-70 hover:opacity-100 transition-opacity">
               <button
                 onClick={() => navigate("/profile")}
-                className="flex items-center gap-2 px-3 py-2 bg-card border border-border rounded hover:border-primary transition-colors"
+                className="flex items-center gap-2 px-2.5 py-2 bg-card/50 backdrop-blur-sm border border-border rounded hover:border-primary transition-colors"
               >
                 <User className="w-4 h-4 text-primary" />
-                <span className="text-sm font-display text-primary">{profile?.display_name || "AGENT"}</span>
+                <span className="hidden sm:inline text-xs font-display text-primary max-w-[10rem] truncate">
+                  {profile?.display_name || "AGENT"}
+                </span>
               </button>
               <button
                 onClick={handleSignOut}
-                className="p-2 border border-border rounded hover:border-destructive hover:text-destructive transition-colors"
+                className="tap-target p-2 bg-card/50 backdrop-blur-sm border border-border rounded hover:border-destructive hover:text-destructive transition-colors"
                 title="Sign out"
               >
                 <LogOut className="w-4 h-4" />
