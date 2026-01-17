@@ -27,22 +27,54 @@ export function useActiveCampaign() {
     mutationFn: async (campaignId: string | null) => {
       if (!user) throw new Error('Must be logged in');
 
-      // When activating a campaign, reset progress to start fresh
+      // When activating a campaign, start a fresh "run" so previous completions don't count.
       if (campaignId) {
-        // Reset any existing progress for this campaign
-        const { error: progressError } = await supabase
-          .from('user_campaign_progress')
-          .update({ 
-            missions_completed_count: 0,
-            completed_at: null,
-            updated_at: new Date().toISOString()
-          })
-          .eq('campaign_id', campaignId)
-          .eq('user_id', user.id);
+        const nowIso = new Date().toISOString();
 
-        // It's okay if no rows were updated (no existing progress)
-        if (progressError) {
-          console.warn('Could not reset progress:', progressError);
+        // Check if a progress row exists
+        const { data: existingProgress, error: existingError } = await supabase
+          .from('user_campaign_progress')
+          .select('id')
+          .eq('campaign_id', campaignId)
+          .eq('user_id', user.id)
+          .maybeSingle();
+
+        if (existingError) throw existingError;
+
+        if (existingProgress?.id) {
+          const { error: resetError } = await supabase
+            .from('user_campaign_progress')
+            .update({
+              missions_completed_count: 0,
+              completed_at: null,
+              current_run_started_at: nowIso,
+              updated_at: nowIso,
+            })
+            .eq('id', existingProgress.id);
+
+          if (resetError) throw resetError;
+        } else {
+          // Create a progress row for this campaign so we can track the run window
+          const { count, error: countError } = await supabase
+            .from('collection_missions')
+            .select('*', { count: 'exact', head: true })
+            .eq('collection_id', campaignId);
+
+          if (countError) throw countError;
+
+          const { error: insertError } = await supabase
+            .from('user_campaign_progress')
+            .insert({
+              user_id: user.id,
+              campaign_id: campaignId,
+              missions_completed_count: 0,
+              total_missions_count: count || 0,
+              completed_at: null,
+              current_run_started_at: nowIso,
+              updated_at: nowIso,
+            });
+
+          if (insertError) throw insertError;
         }
       }
 
@@ -57,7 +89,6 @@ export function useActiveCampaign() {
     onSuccess: (campaignId) => {
       queryClient.invalidateQueries({ queryKey: ['active-campaign', user?.id] });
       queryClient.invalidateQueries({ queryKey: ['profile'] });
-      // Also invalidate campaign-specific queries to ensure fresh data
       if (campaignId) {
         queryClient.invalidateQueries({ queryKey: ['campaign-progress', campaignId] });
         queryClient.invalidateQueries({ queryKey: ['campaign-completed-missions', campaignId] });
@@ -172,11 +203,14 @@ export function useActiveCampaignDetails() {
     enabled: !!activeCampaignId && !!user,
   });
 
-  // Get completed mission IDs for this campaign
+  // Get completed mission IDs for this campaign (only for the CURRENT run)
   const { data: completedMissionIds } = useQuery({
-    queryKey: ['active-campaign-completed-missions', activeCampaignId, user?.id],
+    queryKey: ['active-campaign-completed-missions', activeCampaignId, user?.id, progress?.current_run_started_at],
     queryFn: async () => {
       if (!activeCampaignId || !user || !campaign) return new Set<string>();
+
+      const runStartedAt = (progress as any)?.current_run_started_at;
+      if (!runStartedAt) return new Set<string>();
 
       const missionIds = campaign.collection_missions?.map((cm: any) => cm.mission_id) || [];
       if (missionIds.length === 0) return new Set<string>();
@@ -186,12 +220,13 @@ export function useActiveCampaignDetails() {
         .select('mission_id')
         .eq('user_id', user.id)
         .eq('status', 'COMPLETED')
+        .gte('started_at', runStartedAt)
         .in('mission_id', missionIds);
 
       if (error) throw error;
       return new Set(data?.map(s => s.mission_id) || []);
     },
-    enabled: !!activeCampaignId && !!user && !!campaign,
+    enabled: !!activeCampaignId && !!user && !!campaign && !!(progress as any)?.current_run_started_at,
   });
 
   return {
