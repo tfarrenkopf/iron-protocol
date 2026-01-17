@@ -66,6 +66,7 @@ const HIITTimer = () => {
   const [showExplosion, setShowExplosion] = useState(false);
   const [killFeedItems, setKillFeedItems] = useState<KillFeedItem[]>([]);
   const [showExitDialog, setShowExitDialog] = useState(false);
+  const [showResetDialog, setShowResetDialog] = useState(false);
   const [showCustomCreator, setShowCustomCreator] = useState(false);
   const [customWork, setCustomWork] = useState(30);
   const [customRest, setCustomRest] = useState(15);
@@ -147,9 +148,9 @@ const HIITTimer = () => {
     }
   }, [timerPhase, playWorkStart, playRestStart, playComplete, addKillFeedItem]);
 
-  // Countdown tick sound
+  // Countdown tick sound - now 5 second countdown
   useEffect(() => {
-    if (timerPhase === 'COUNTDOWN' && timeRemaining <= 3 && timeRemaining > 0) {
+    if (timerPhase === 'COUNTDOWN' && timeRemaining <= 5 && timeRemaining > 0) {
       playCountdownTick();
     }
   }, [timerPhase, timeRemaining, playCountdownTick]);
@@ -530,10 +531,10 @@ const HIITTimer = () => {
             <ArrowLeft className="w-5 h-5" />
           </button>
           <button 
-            onClick={handleReset}
+            onClick={() => setShowResetDialog(true)}
             className="p-3 bg-background/30 backdrop-blur rounded-full border border-foreground/20 flex items-center gap-1"
-            aria-label="Return to protocol selection"
-            title="Return to protocol selection"
+            aria-label="Reset timer"
+            title="Reset timer"
           >
             <RotateCcw className="w-4 h-4" />
             <span className="text-xs font-display hidden sm:inline">RESET</span>
@@ -664,6 +665,38 @@ const HIITTimer = () => {
               className="bg-destructive text-destructive-foreground font-display hover:bg-destructive/90"
             >
               ABORT
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+
+      {/* Reset Confirmation Dialog */}
+      <AlertDialog open={showResetDialog} onOpenChange={setShowResetDialog}>
+        <AlertDialogContent className="bg-card border-border">
+          <AlertDialogHeader>
+            <AlertDialogTitle className="font-display text-section-hiit">RESET TIMER?</AlertDialogTitle>
+            <AlertDialogDescription className="text-muted-foreground">
+              This will restart the current protocol from the beginning. 
+              Your progress ({currentRound > 1 ? currentRound - 1 : 0} round{currentRound > 2 ? 's' : ''}) will be lost.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel className="font-display">CANCEL</AlertDialogCancel>
+            <AlertDialogAction 
+              onClick={() => {
+                if (selectedConfig) {
+                  // Restart the same protocol
+                  startHIIT(selectedConfig);
+                  setIsPaused(false);
+                  setKillFeedItems([]);
+                  prevPhaseRef.current = 'IDLE';
+                  prevRoundRef.current = 0;
+                }
+                setShowResetDialog(false);
+              }}
+              className="bg-section-hiit text-white font-display hover:bg-section-hiit/90"
+            >
+              RESET
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>

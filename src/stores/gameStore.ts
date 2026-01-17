@@ -197,7 +197,7 @@ export const useGameStore = create<GameState>((set, get) => ({
       hiitConfig: config,
       timerPhase: 'COUNTDOWN',
       currentRound: 1,
-      timeRemaining: 3, // 3 second countdown
+      timeRemaining: 5, // 5 second countdown
     });
   },
   
@@ -208,7 +208,7 @@ export const useGameStore = create<GameState>((set, get) => ({
     let time = 0;
     if (phase === 'WORK') time = hiitConfig.workDurationSec;
     if (phase === 'REST') time = hiitConfig.restDurationSec;
-    if (phase === 'COUNTDOWN') time = 3;
+    if (phase === 'COUNTDOWN') time = 5;
     
     set({ timerPhase: phase, timeRemaining: time });
   },
