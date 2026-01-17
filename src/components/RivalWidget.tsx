@@ -1,15 +1,10 @@
 import { useState } from 'react';
 import { motion } from 'framer-motion';
-import { Swords, Share2, UserPlus, Trophy, TrendingUp, Trash2, Crown, Loader2 } from 'lucide-react';
-import { useRivals, useRivalWeeklyStats, useAddRival, useRemoveRival } from '@/hooks/useRivals';
+import { Swords, Share2, Trophy, TrendingUp, Trash2, Crown, Loader2 } from 'lucide-react';
+import { useRivals, useRivalWeeklyStats, useRemoveRival } from '@/hooks/useRivals';
 import { useAuth } from '@/hooks/useAuth';
 import { useProfile } from '@/hooks/useProfile';
 import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import {
-  Dialog,
-  DialogContent,
-} from '@/components/ui/dialog';
 import {
   AlertDialog,
   AlertDialogAction,
@@ -27,11 +22,8 @@ export function RivalWidget() {
   const { data: profile } = useProfile();
   const { data: rivals, isLoading: rivalsLoading } = useRivals();
   const { data: weeklyStats, isLoading: statsLoading } = useRivalWeeklyStats();
-  const addRival = useAddRival();
   const removeRival = useRemoveRival();
   
-  const [showAddDialog, setShowAddDialog] = useState(false);
-  const [rivalCode, setRivalCode] = useState('');
   const [removeDialogOpen, setRemoveDialogOpen] = useState(false);
   const [rivalToRemove, setRivalToRemove] = useState<{ id: string; name: string } | null>(null);
 
@@ -46,56 +38,44 @@ export function RivalWidget() {
     }
 
     const shareUrl = `${window.location.origin}/rival/${profile.rival_code}`;
-    const shareText = `Challenge me in RIVAL MODE on Iron Protocol! ⚔️💪`;
+    const smsBody = `⚔️ YOU'VE BEEN MARKED. Accept the challenge or stay weak. ${shareUrl}`;
+    const shareText = `⚔️ YOU'VE BEEN MARKED. Accept the challenge or stay weak.`;
 
-    // Try native share first (mobile)
+    // Check if mobile
     const isMobile = /iPhone|iPad|iPod|Android/i.test(navigator.userAgent);
     
-    if (isMobile && navigator.share) {
+    if (isMobile) {
+      // Try SMS first on mobile
+      const smsUrl = `sms:?body=${encodeURIComponent(smsBody)}`;
+      window.location.href = smsUrl;
+      return;
+    }
+    
+    // Desktop: try native share, then clipboard
+    if (navigator.share) {
       try {
         await navigator.share({
-          title: 'Iron Protocol - Rival Mode',
+          title: 'RIVAL MODE',
           text: shareText,
           url: shareUrl,
         });
-        return; // Success - exit early
+        return;
       } catch (err: any) {
-        // User cancelled or share failed - fall through to clipboard
-        if (err?.name === 'AbortError') return; // User cancelled intentionally
+        if (err?.name === 'AbortError') return;
       }
     }
     
     // Fallback: copy to clipboard
     try {
-      await navigator.clipboard.writeText(shareUrl);
+      await navigator.clipboard.writeText(`${shareText} ${shareUrl}`);
       toast({ 
-        title: 'Link copied! 📋', 
-        description: 'Send this to your rival to start competing.' 
+        title: 'LINK COPIED ⚔️', 
+        description: 'Send it to your target.' 
       });
     } catch {
-      // Final fallback: show the link in a toast
       toast({ 
         title: 'Share this link:', 
         description: shareUrl,
-      });
-    }
-  };
-
-  const handleAddRival = async () => {
-    if (!rivalCode.trim()) return;
-    try {
-      const rival = await addRival.mutateAsync(rivalCode.trim());
-      toast({
-        title: 'Rival added! ⚔️',
-        description: `${rival.display_name || 'New rival'} has joined the competition!`,
-      });
-      setRivalCode('');
-      setShowAddDialog(false);
-    } catch (error: any) {
-      toast({
-        title: 'Error',
-        description: error.message,
-        variant: 'destructive',
       });
     }
   };
@@ -132,22 +112,13 @@ export function RivalWidget() {
             <Swords className="w-5 h-5 text-primary" />
             <h3 className="font-display text-lg text-primary">RIVAL MODE</h3>
           </div>
-          <div className="flex gap-2">
-            <button
-              onClick={shareRivalLink}
-              className="p-1.5 hover:bg-primary/10 rounded transition-colors"
-              title="Share your rival code"
-            >
-              <Share2 className="w-4 h-4 text-primary" />
-            </button>
-            <button
-              onClick={() => setShowAddDialog(true)}
-              className="p-1.5 hover:bg-secondary/10 rounded transition-colors"
-              title="Add rival by code"
-            >
-              <UserPlus className="w-4 h-4 text-secondary" />
-            </button>
-          </div>
+          <button
+            onClick={shareRivalLink}
+            className="p-1.5 hover:bg-primary/10 rounded transition-colors"
+            title="Challenge a rival"
+          >
+            <Share2 className="w-4 h-4 text-primary" />
+          </button>
         </div>
 
         {rivalsLoading ? (
@@ -159,28 +130,17 @@ export function RivalWidget() {
             <Swords className="w-10 h-10 mx-auto mb-2 text-muted-foreground/50" />
             <p className="text-sm text-muted-foreground mb-2">No rivals yet</p>
             <p className="text-xs text-muted-foreground/70 mb-4 max-w-xs mx-auto">
-              Challenge a friend by sharing your code, or enter their code to compete head-to-head!
+              Send a challenge link to compete head-to-head with a friend.
             </p>
-            <div className="flex gap-2 justify-center">
-              <Button
-                size="sm"
-                variant="outline"
-                onClick={shareRivalLink}
-                className="text-xs"
-              >
-                <Share2 className="w-3 h-3 mr-1" />
-                Share My Code
-              </Button>
-              <Button
-                size="sm"
-                variant="outline"
-                onClick={() => setShowAddDialog(true)}
-                className="text-xs"
-              >
-                <UserPlus className="w-3 h-3 mr-1" />
-                Enter Friend's Code
-              </Button>
-            </div>
+            <Button
+              size="sm"
+              variant="outline"
+              onClick={shareRivalLink}
+              className="text-xs"
+            >
+              <Share2 className="w-3 h-3 mr-1" />
+              SEND CHALLENGE
+            </Button>
           </div>
         ) : (
           <div className="space-y-3">
@@ -257,62 +217,21 @@ export function RivalWidget() {
               </div>
             )}
 
-            {/* Your code */}
+            {/* Share button at bottom */}
             <div className="mt-4 pt-3 border-t border-border">
-              <p className="text-[10px] text-muted-foreground mb-1">YOUR RIVAL CODE</p>
-              <div className="flex items-center gap-2">
-                <code className="flex-1 text-sm font-mono bg-background px-2 py-1 rounded border border-border text-primary">
-                  {profile?.rival_code || '--------'}
-                </code>
-                <Button size="sm" variant="ghost" onClick={shareRivalLink}>
-                  <Share2 className="w-4 h-4" />
-                </Button>
-              </div>
+              <Button
+                size="sm"
+                variant="outline"
+                onClick={shareRivalLink}
+                className="w-full text-xs"
+              >
+                <Share2 className="w-3 h-3 mr-1" />
+                CHALLENGE ANOTHER
+              </Button>
             </div>
           </div>
         )}
       </motion.div>
-
-      {/* Add Rival Dialog */}
-      <Dialog open={showAddDialog} onOpenChange={setShowAddDialog}>
-        <DialogContent className="bg-card border-border max-w-sm">
-          <div className="flex items-center gap-2 mb-4">
-            <UserPlus className="w-5 h-5 text-primary" />
-            <h2 className="font-display text-xl text-primary">ADD RIVAL</h2>
-          </div>
-          <div className="space-y-4">
-            <div>
-              <label className="text-xs text-muted-foreground tracking-wider block mb-1">FRIEND'S RIVAL CODE</label>
-              <Input
-                value={rivalCode}
-                onChange={(e) => setRivalCode(e.target.value.toLowerCase())}
-                placeholder="e.g., a1b2c3d4"
-                className="bg-background border-border font-mono"
-                maxLength={8}
-              />
-              <p className="text-xs text-muted-foreground mt-2">
-                Ask your friend to share their code from the Rival Mode widget on their dashboard.
-              </p>
-            </div>
-            <div className="flex gap-2">
-              <Button
-                variant="outline"
-                onClick={() => setShowAddDialog(false)}
-                className="flex-1"
-              >
-                Cancel
-              </Button>
-              <Button
-                onClick={handleAddRival}
-                disabled={rivalCode.length < 8 || addRival.isPending}
-                className="flex-1 bg-primary text-primary-foreground"
-              >
-                {addRival.isPending ? <Loader2 className="w-4 h-4 animate-spin" /> : 'Add Rival'}
-              </Button>
-            </div>
-          </div>
-        </DialogContent>
-      </Dialog>
 
       {/* Remove Confirmation */}
       <AlertDialog open={removeDialogOpen} onOpenChange={setRemoveDialogOpen}>
