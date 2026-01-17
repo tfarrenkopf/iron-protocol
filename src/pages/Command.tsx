@@ -281,14 +281,15 @@ const Command = () => {
     { id: 'exercises', label: 'EXERCISES', icon: Dumbbell },
   ];
   
+  // Create button config - always available based on active tab (for logged in users)
   const getCreateButtonConfig = () => {
-    if (activeTab === 'missions' && source === 'personal') {
+    if (activeTab === 'missions') {
       return { label: 'New Mission', onClick: () => navigate('/exercises?newMission=true&returnTo=command') };
     }
-    if (activeTab === 'campaigns' && campaignSource === 'personal') {
+    if (activeTab === 'campaigns') {
       return { label: 'New Campaign', onClick: () => setCampaignDialogOpen(true) };
     }
-    if (activeTab === 'exercises' && source === 'personal') {
+    if (activeTab === 'exercises') {
       return { label: 'New Exercise', onClick: () => navigate('/exercises?newExercise=true&returnTo=command') };
     }
     return null;
@@ -307,65 +308,83 @@ const Command = () => {
           subtitle="MISSION CONTROL & ARSENAL"
           showBack={true}
           section="command"
-          actions={
-            <>
-              {/* Filter button - show for all tabs */}
-              <button
-                onClick={() => setShowFilters(!showFilters)}
-                className={`p-2 border rounded transition-colors ${
-                  hasFilters 
-                    ? 'border-secondary text-secondary bg-secondary/10' 
-                    : 'border-section-command/30 text-muted-foreground hover:border-section-command hover:text-section-command'
-                }`}
-                aria-label="Toggle filters"
-              >
-                <Filter className="w-4 h-4" />
-              </button>
-              {user && createConfig && (
-                <button
-                  onClick={createConfig.onClick}
-                  className="p-2 border border-section-command/30 text-muted-foreground rounded hover:border-section-command hover:text-section-command hover:bg-section-command/10 transition-colors"
-                  title={createConfig.label}
-                  aria-label={createConfig.label}
-                >
-                  <Plus className="w-4 h-4" />
-                </button>
-              )}
-            </>
-          }
         />
 
-        {/* Tab Navigation - each tab has its own section color */}
-        <div className="flex gap-1 mb-4 overflow-x-auto scrollbar-hide">
-          {tabs.map((tab) => {
-            const Icon = tab.icon;
-            const isActive = activeTab === tab.id;
-            // Hide exercises tab for guests
-            if (tab.id === 'exercises' && !user) return null;
-            
-            // Section-specific colors for each tab
-            const tabColors = {
-              campaigns: { active: 'bg-section-campaigns text-white border-section-campaigns', inactive: 'hover:border-section-campaigns/50' },
-              missions: { active: 'bg-section-missions text-white border-section-missions', inactive: 'hover:border-section-missions/50' },
-              exercises: { active: 'bg-section-command text-white border-section-command', inactive: 'hover:border-section-command/50' },
-            };
-            const colors = tabColors[tab.id];
-            
-            return (
+        {/* Tab Navigation with Filter & Create Actions */}
+        <div className="flex items-center justify-between gap-2 mb-4">
+          {/* Tabs */}
+          <div className="flex gap-1 overflow-x-auto scrollbar-hide">
+            {tabs.map((tab) => {
+              const Icon = tab.icon;
+              const isActive = activeTab === tab.id;
+              // Hide exercises tab for guests
+              if (tab.id === 'exercises' && !user) return null;
+              
+              // Section-specific colors for each tab
+              const tabColors = {
+                campaigns: { active: 'bg-section-campaigns text-white border-section-campaigns', inactive: 'hover:border-section-campaigns/50' },
+                missions: { active: 'bg-section-missions text-white border-section-missions', inactive: 'hover:border-section-missions/50' },
+                exercises: { active: 'bg-section-command text-white border-section-command', inactive: 'hover:border-section-command/50' },
+              };
+              const colors = tabColors[tab.id];
+              
+              return (
+                <button
+                  key={tab.id}
+                  onClick={() => setActiveTab(tab.id)}
+                  className={`flex items-center gap-1.5 px-4 py-2.5 rounded-lg font-display text-sm whitespace-nowrap transition-all border-2 ${
+                    isActive
+                      ? colors.active
+                      : `border-border text-muted-foreground hover:text-foreground ${colors.inactive}`
+                  }`}
+                >
+                  <Icon className="w-4 h-4" />
+                  {tab.label}
+                </button>
+              );
+            })}
+          </div>
+          
+          {/* Action Buttons - aligned right */}
+          <div className="flex items-center gap-2 flex-shrink-0">
+            {/* Filter button */}
+            <button
+              onClick={() => setShowFilters(!showFilters)}
+              className={`p-2 border rounded-lg transition-colors ${
+                hasFilters 
+                  ? activeTab === 'campaigns' 
+                    ? 'border-section-campaigns text-section-campaigns bg-section-campaigns/10'
+                    : activeTab === 'missions'
+                    ? 'border-section-missions text-section-missions bg-section-missions/10'
+                    : 'border-section-command text-section-command bg-section-command/10'
+                  : activeTab === 'campaigns'
+                  ? 'border-border text-muted-foreground hover:border-section-campaigns hover:text-section-campaigns'
+                  : activeTab === 'missions'
+                  ? 'border-border text-muted-foreground hover:border-section-missions hover:text-section-missions'
+                  : 'border-border text-muted-foreground hover:border-section-command hover:text-section-command'
+              }`}
+              aria-label="Toggle filters"
+            >
+              <Filter className="w-4 h-4" />
+            </button>
+            {/* Create button - always visible for logged in users */}
+            {user && createConfig && (
               <button
-                key={tab.id}
-                onClick={() => setActiveTab(tab.id)}
-                className={`flex items-center gap-1.5 px-4 py-2.5 rounded-lg font-display text-sm whitespace-nowrap transition-all border-2 ${
-                  isActive
-                    ? colors.active
-                    : `border-border text-muted-foreground hover:text-foreground ${colors.inactive}`
+                onClick={createConfig.onClick}
+                className={`p-2 border rounded-lg transition-colors ${
+                  activeTab === 'campaigns'
+                    ? 'border-section-campaigns text-section-campaigns hover:bg-section-campaigns/10'
+                    : activeTab === 'missions'
+                    ? 'border-section-missions text-section-missions hover:bg-section-missions/10'
+                    : 'border-section-command text-section-command hover:bg-section-command/10'
                 }`}
+                title={createConfig.label}
+                aria-label={createConfig.label}
               >
-                <Icon className="w-4 h-4" />
-                {tab.label}
+                <Plus className="w-4 h-4" />
               </button>
-            );
-          })}
+            )}
+          </div>
         </div>
 
         {/* Source Toggle (for missions tab) */}
