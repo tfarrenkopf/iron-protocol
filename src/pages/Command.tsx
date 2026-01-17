@@ -1,19 +1,20 @@
 import { useState, useEffect, useMemo } from 'react';
 import { motion } from 'framer-motion';
 import { useNavigate, useSearchParams } from 'react-router-dom';
-import { ArrowLeft, Globe, Dumbbell, Target, Folder, Filter, X, Clock, Plus, Pencil, Trash2, RefreshCw, AlertCircle } from 'lucide-react';
+import { ArrowLeft, Target, Dumbbell, Flame, Filter, X, Clock, Plus, Pencil, Trash2, RefreshCw, AlertCircle, Crown } from 'lucide-react';
 import { useMissions, useDeleteMission } from '@/hooks/useMissions';
 import { useCollections, useDeleteCollection, CollectionWithMissions } from '@/hooks/useCollections';
-import { useExercises, useDeleteExercise, Exercise } from '@/hooks/useExercises';
+import { useExercises, useDeleteExercise } from '@/hooks/useExercises';
 import { useAuth } from '@/hooks/useAuth';
-// GuestIndicator removed - using minimal header
 import { MissionCard } from '@/components/MissionCard';
 import { AddToCollectionButton } from '@/components/AddToCollectionButton';
 import { CollectionFormDialog } from '@/components/CollectionFormDialog';
 import { FOCUS_AREAS, getMusclesForFocusArea, formatEquipment } from '@/data/muscleGroups';
 import { CollectionFilter } from '@/components/CollectionFilter';
-import { ActiveCampaignHero, StartCampaignButton } from '@/components/ActiveCampaignHero';
 import { useActiveCampaign } from '@/hooks/useActiveCampaign';
+import { TodayMissionsWidget } from '@/components/TodayMissionsWidget';
+import { CampaignCard } from '@/components/CampaignCard';
+import { SourceToggle } from '@/components/SourceToggle';
 import {
   AlertDialog,
   AlertDialogAction,
@@ -25,7 +26,8 @@ import {
   AlertDialogTitle,
 } from '@/components/ui/alert-dialog';
 
-type TabType = 'global' | 'missions' | 'exercises' | 'campaigns';
+type TabType = 'missions' | 'exercises' | 'campaigns';
+type Source = 'public' | 'personal';
 
 const DURATION_FILTERS = [
   { label: 'Quick', value: 'short', max: 20 },
@@ -38,10 +40,15 @@ const Command = () => {
   const [searchParams, setSearchParams] = useSearchParams();
   const { user, isAnonymous } = useAuth();
   
-  // Tab state
+  // Tab state - map legacy 'global' to 'missions'
   const urlTab = searchParams.get('tab');
-  const initialTab = (urlTab === 'browse' ? 'global' : urlTab as TabType) || 'global';
+  const initialTab = (urlTab === 'browse' || urlTab === 'global') ? 'missions' : (urlTab as TabType) || 'missions';
   const [activeTab, setActiveTab] = useState<TabType>(initialTab);
+  
+  // Source toggle state (public vs personal)
+  const urlSource = searchParams.get('source');
+  const [source, setSource] = useState<Source>((urlSource as Source) || 'public');
+  
   const { activeCampaignId } = useActiveCampaign();
   
   // Filter states
@@ -73,11 +80,40 @@ const Command = () => {
   const deleteExercise = useDeleteExercise();
   
   // Filtered data
+  const publicMissions = missions?.filter(m => m.is_public) || [];
   const myMissions = missions?.filter(m => m.created_by === user?.id) || [];
   const myExercises = exercises?.filter(e => e.created_by === user?.id) || [];
   const myCollections = collections?.filter(c => !c.is_system && c.created_by === user?.id) || [];
   const systemCollections = collections?.filter(c => c.is_system) || [];
   const publicCollections = collections?.filter(c => !c.is_system && c.visibility === 'public' && c.created_by !== user?.id) || [];
+  
+  // Active campaign at top
+  const activeCampaign = collections?.find(c => c.id === activeCampaignId);
+  
+  // Sort campaigns with active first
+  const sortedCampaigns = useMemo(() => {
+    const all: { collection: CollectionWithMissions; section: 'active' | 'system' | 'mine' | 'community' }[] = [];
+    
+    if (activeCampaign) {
+      all.push({ collection: activeCampaign, section: 'active' });
+    }
+    
+    systemCollections.forEach(c => {
+      if (c.id !== activeCampaignId) all.push({ collection: c, section: 'system' });
+    });
+    
+    if (user) {
+      myCollections.forEach(c => {
+        if (c.id !== activeCampaignId) all.push({ collection: c, section: 'mine' });
+      });
+    }
+    
+    publicCollections.forEach(c => {
+      if (c.id !== activeCampaignId) all.push({ collection: c, section: 'community' });
+    });
+    
+    return all;
+  }, [activeCampaign, systemCollections, myCollections, publicCollections, activeCampaignId, user]);
   
   const availableMuscles = getMusclesForFocusArea(focusFilter || null);
   
@@ -85,6 +121,7 @@ const Command = () => {
   useEffect(() => {
     const params = new URLSearchParams(searchParams);
     params.set('tab', activeTab);
+    params.set('source', source);
     if (focusFilter) params.set('focus', focusFilter);
     else params.delete('focus');
     if (muscleFilter) params.set('muscle', muscleFilter);
@@ -96,7 +133,7 @@ const Command = () => {
     if (collectionFilter) params.set('collection', collectionFilter);
     else params.delete('collection');
     setSearchParams(params, { replace: true });
-  }, [activeTab, focusFilter, muscleFilter, equipmentFilter, durationFilter, collectionFilter]);
+  }, [activeTab, source, focusFilter, muscleFilter, equipmentFilter, durationFilter, collectionFilter]);
   
   // Clear muscle filter if not available
   useEffect(() => {
@@ -113,8 +150,11 @@ const Command = () => {
     return new Set(selectedCollection.collection_missions?.map(cm => cm.mission_id) || []);
   }, [collectionFilter, collections]);
   
+  // Get displayed missions based on source
+  const displayMissions = source === 'public' ? publicMissions : myMissions;
+  
   // Apply all filters to missions
-  let filteredMissions = missions;
+  let filteredMissions = displayMissions;
   if (collectionMissionIds && filteredMissions) {
     filteredMissions = filteredMissions.filter(m => collectionMissionIds.has(m.id));
   }
@@ -167,19 +207,33 @@ const Command = () => {
     navigate(`/exercises?editMission=${missionId}`);
   };
   
-  const tabs: { id: TabType; label: string; icon: typeof Globe; description?: string }[] = [
-    { id: 'global', label: 'GLOBAL MISSIONS', icon: Globe, description: 'Public mission library' },
-    { id: 'missions', label: 'MY MISSIONS', icon: Target, description: 'Your custom creations' },
-    { id: 'exercises', label: 'MY EXERCISES', icon: Dumbbell, description: 'Custom exercise pool' },
-    { id: 'campaigns', label: 'CAMPAIGNS', icon: Folder, description: 'Curated mission sets' },
+  const tabs: { id: TabType; label: string; icon: typeof Target }[] = [
+    { id: 'missions', label: 'MISSIONS', icon: Target },
+    { id: 'campaigns', label: 'CAMPAIGNS', icon: Flame },
+    { id: 'exercises', label: 'EXERCISES', icon: Dumbbell },
   ];
   
+  const getCreateButtonConfig = () => {
+    if (activeTab === 'missions' && source === 'personal') {
+      return { label: 'New Mission', onClick: () => navigate('/exercises?newMission=true') };
+    }
+    if (activeTab === 'campaigns') {
+      return { label: 'New Campaign', onClick: () => setCampaignDialogOpen(true) };
+    }
+    if (activeTab === 'exercises') {
+      return { label: 'New Exercise', onClick: () => navigate('/exercises?newExercise=true') };
+    }
+    return null;
+  };
+  
+  const createConfig = getCreateButtonConfig();
+
   return (
     <div className="min-h-screen bg-background relative">
       <div className="fixed inset-0 pointer-events-none scanlines opacity-20" />
       
       <div className="relative z-10 container mx-auto px-4 py-6 max-w-2xl">
-        {/* Minimal Header */}
+        {/* Header */}
         <motion.header 
           initial={{ opacity: 0, y: -20 }}
           animate={{ opacity: 1, y: 0 }}
@@ -195,7 +249,7 @@ const Command = () => {
           <h1 className="font-display text-2xl text-primary">COMMAND</h1>
           
           <div className="flex gap-2">
-            {activeTab === 'global' && (
+            {activeTab === 'missions' && (
               <button
                 onClick={() => setShowFilters(!showFilters)}
                 className={`p-2 border rounded transition-colors ${
@@ -205,15 +259,11 @@ const Command = () => {
                 <Filter className="w-5 h-5" />
               </button>
             )}
-            {user && (activeTab === 'campaigns' || activeTab === 'missions' || activeTab === 'exercises') && (
+            {user && createConfig && (
               <button
-                onClick={() => {
-                  if (activeTab === 'campaigns') setCampaignDialogOpen(true);
-                  else if (activeTab === 'missions') navigate('/exercises?newMission=true');
-                  else if (activeTab === 'exercises') navigate('/exercises?newExercise=true');
-                }}
+                onClick={createConfig.onClick}
                 className="p-2 border border-primary text-primary rounded hover:bg-primary/10 transition-colors"
-                title={`Create new ${activeTab === 'campaigns' ? 'campaign' : activeTab === 'exercises' ? 'exercise' : 'mission'}`}
+                title={createConfig.label}
               >
                 <Plus className="w-5 h-5" />
               </button>
@@ -221,35 +271,50 @@ const Command = () => {
           </div>
         </motion.header>
 
-        {/* Active Campaign Hero - Prominent at top */}
-        {user && activeCampaignId && <ActiveCampaignHero />}
-
-        {/* Tab Navigation - Cleaner */}
+        {/* Tab Navigation */}
         <div className="flex gap-1 mb-4 overflow-x-auto scrollbar-hide">
           {tabs.map((tab) => {
             const Icon = tab.icon;
             const isActive = activeTab === tab.id;
-            // Hide "my" tabs for guests
-            if ((tab.id === 'missions' || tab.id === 'exercises') && !user) return null;
+            // Hide exercises tab for guests
+            if (tab.id === 'exercises' && !user) return null;
             return (
               <button
                 key={tab.id}
                 onClick={() => setActiveTab(tab.id)}
-                className={`flex items-center gap-1.5 px-3 py-2 rounded font-display text-xs whitespace-nowrap transition-all border ${
+                className={`flex items-center gap-1.5 px-4 py-2.5 rounded-lg font-display text-sm whitespace-nowrap transition-all border-2 ${
                   isActive
-                    ? 'bg-primary text-primary-foreground border-primary'
+                    ? tab.id === 'campaigns' 
+                      ? 'bg-accent text-accent-foreground border-accent'
+                      : 'bg-primary text-primary-foreground border-primary'
                     : 'border-border text-muted-foreground hover:text-foreground hover:border-primary/50'
                 }`}
               >
-                <Icon className="w-3.5 h-3.5" />
+                <Icon className="w-4 h-4" />
                 {tab.label}
               </button>
             );
           })}
         </div>
 
-        {/* Filters (Browse tab only) */}
-        {activeTab === 'global' && showFilters && (
+        {/* Source Toggle (for missions tab) */}
+        {activeTab === 'missions' && user && (
+          <motion.div 
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            className="mb-4"
+          >
+            <SourceToggle 
+              value={source} 
+              onChange={setSource}
+              publicLabel="GLOBAL"
+              personalLabel="MY MISSIONS"
+            />
+          </motion.div>
+        )}
+
+        {/* Filters (Missions tab only) */}
+        {activeTab === 'missions' && showFilters && (
           <motion.div
             initial={{ opacity: 0, height: 0 }}
             animate={{ opacity: 1, height: 'auto' }}
@@ -330,8 +395,8 @@ const Command = () => {
 
         {/* Tab Content */}
         <div className="min-h-[400px]">
-          {/* Global Missions Tab */}
-          {activeTab === 'global' && (
+          {/* Missions Tab */}
+          {activeTab === 'missions' && (
             missionsLoading ? (
               <div className="text-center py-12">
                 <div className="font-display text-2xl text-primary animate-neon-pulse">LOADING...</div>
@@ -347,67 +412,70 @@ const Command = () => {
                   <RefreshCw className="w-4 h-4" /> RETRY
                 </button>
               </div>
-            ) : filteredMissions?.length === 0 ? (
-              <div className="text-center py-12">
-                <p className="text-muted-foreground">No missions found. {hasFilters && 'Try clearing filters.'}</p>
-              </div>
             ) : (
-              <div className="space-y-4">
-                {filteredMissions?.map((mission, i) => (
-                  <MissionCard
-                    key={mission.id}
-                    mission={mission}
-                    index={i}
-                    topRightSlot={user ? <AddToCollectionButton missionId={mission.id} /> : undefined}
-                  />
-                ))}
-              </div>
+              <>
+                {/* Today's Picks (public source only) */}
+                {source === 'public' && <TodayMissionsWidget missions={publicMissions} />}
+                
+                {/* Mission list */}
+                {filteredMissions?.length === 0 ? (
+                  <div className="text-center py-12 border border-dashed border-border rounded-lg">
+                    <Target className="w-10 h-10 mx-auto mb-3 text-muted-foreground/50" />
+                    <p className="text-muted-foreground mb-3">
+                      {source === 'personal' 
+                        ? 'No custom missions yet' 
+                        : hasFilters 
+                          ? 'No missions found. Try clearing filters.' 
+                          : 'No missions available'
+                      }
+                    </p>
+                    {source === 'personal' && user && (
+                      <button
+                        onClick={() => navigate('/exercises?newMission=true')}
+                        className="text-sm text-secondary hover:text-glow-secondary font-display"
+                      >
+                        + CREATE YOUR FIRST MISSION
+                      </button>
+                    )}
+                  </div>
+                ) : (
+                  <div className="space-y-4">
+                    {filteredMissions?.map((mission, i) => (
+                      <MissionCard
+                        key={mission.id}
+                        mission={mission}
+                        index={i}
+                        topRightSlot={
+                          source === 'personal' && mission.created_by === user?.id ? (
+                            <>
+                              <button
+                                onClick={(e) => handleEditMission(e, mission.id)}
+                                className="p-1.5 bg-secondary/20 text-secondary rounded hover:bg-secondary/30 transition-colors"
+                                title="Edit mission"
+                              >
+                                <Pencil className="w-3.5 h-3.5" />
+                              </button>
+                              <button
+                                onClick={(e) => { e.stopPropagation(); handleDeleteClick(mission.id, mission.code_name, 'mission'); }}
+                                className="p-1.5 bg-destructive/20 text-destructive rounded hover:bg-destructive/30 transition-colors"
+                                title="Delete mission"
+                              >
+                                <Trash2 className="w-3.5 h-3.5" />
+                              </button>
+                            </>
+                          ) : user ? (
+                            <AddToCollectionButton missionId={mission.id} />
+                          ) : undefined
+                        }
+                      />
+                    ))}
+                  </div>
+                )}
+              </>
             )
           )}
 
-          {/* My Missions Tab */}
-          {activeTab === 'missions' && user && (
-            myMissions.length === 0 ? (
-              <div className="text-center py-12 border border-dashed border-border rounded-lg">
-                <Target className="w-10 h-10 mx-auto mb-3 text-muted-foreground/50" />
-                <p className="text-muted-foreground mb-3">No custom missions yet</p>
-                <button
-                  onClick={() => navigate('/exercises?newMission=true')}
-                  className="text-sm text-secondary hover:text-glow-secondary font-display"
-                >
-                  + CREATE YOUR FIRST MISSION
-                </button>
-              </div>
-            ) : (
-              <div className="space-y-4">
-                {myMissions.map((mission, i) => (
-                  <MissionCard
-                    key={mission.id}
-                    mission={mission}
-                    index={i}
-                    topRightSlot={
-                      <>
-                        <button
-                          onClick={(e) => handleEditMission(e, mission.id)}
-                          className="p-1.5 bg-secondary/20 text-secondary rounded hover:bg-secondary/30 transition-colors"
-                        >
-                          <Pencil className="w-3.5 h-3.5" />
-                        </button>
-                        <button
-                          onClick={(e) => { e.stopPropagation(); handleDeleteClick(mission.id, mission.code_name, 'mission'); }}
-                          className="p-1.5 bg-destructive/20 text-destructive rounded hover:bg-destructive/30 transition-colors"
-                        >
-                          <Trash2 className="w-3.5 h-3.5" />
-                        </button>
-                      </>
-                    }
-                  />
-                ))}
-              </div>
-            )
-          )}
-
-          {/* My Exercises Tab */}
+          {/* Exercises Tab */}
           {activeTab === 'exercises' && user && (
             exercisesLoading ? (
               <div className="text-center py-12">
@@ -432,7 +500,7 @@ const Command = () => {
                     initial={{ opacity: 0, x: -10 }}
                     animate={{ opacity: 1, x: 0 }}
                     transition={{ delay: i * 0.03 }}
-                    className="bg-card border border-border rounded-lg p-3 hover:border-primary/50 transition-colors"
+                    className="bg-card border border-border rounded-lg p-3 hover:border-primary/50 transition-colors group"
                   >
                     <div className="flex items-start justify-between">
                       <div className="flex-1">
@@ -440,21 +508,23 @@ const Command = () => {
                         <div className="text-xs text-muted-foreground mt-1 space-y-0.5">
                           <p><span className="text-secondary">Equipment:</span> {exercise.equipment?.map(e => formatEquipment(e)).join(', ') || 'None'}</p>
                           <p><span className="text-secondary">Primary:</span> {exercise.primary_muscle_group}</p>
-                          {exercise.secondary_muscle_groups?.length > 0 && (
+                          {exercise.secondary_muscle_groups && exercise.secondary_muscle_groups.length > 0 && (
                             <p><span className="text-secondary">Secondary:</span> {exercise.secondary_muscle_groups.join(', ')}</p>
                           )}
                         </div>
                       </div>
-                      <div className="flex gap-1">
+                      <div className="flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
                         <button
                           onClick={() => navigate(`/exercises?editExercise=${exercise.id}`)}
                           className="p-1.5 hover:bg-secondary/20 rounded transition-colors"
+                          title="Edit exercise"
                         >
                           <Pencil className="w-3.5 h-3.5 text-secondary" />
                         </button>
                         <button
                           onClick={() => handleDeleteClick(exercise.id, exercise.name, 'exercise')}
                           className="p-1.5 hover:bg-destructive/20 rounded transition-colors"
+                          title="Delete exercise"
                         >
                           <Trash2 className="w-3.5 h-3.5 text-destructive" />
                         </button>
@@ -472,15 +542,56 @@ const Command = () => {
               <div className="text-center py-12">
                 <div className="font-display text-lg text-primary animate-neon-pulse">LOADING...</div>
               </div>
+            ) : sortedCampaigns.length === 0 ? (
+              <div className="text-center py-12 border border-dashed border-border rounded-lg">
+                <Flame className="w-10 h-10 mx-auto mb-3 text-muted-foreground/50" />
+                <p className="text-muted-foreground mb-3">No campaigns available</p>
+                {user && (
+                  <button
+                    onClick={() => setCampaignDialogOpen(true)}
+                    className="text-sm text-accent hover:text-glow-accent font-display"
+                  >
+                    + CREATE YOUR FIRST CAMPAIGN
+                  </button>
+                )}
+              </div>
             ) : (
-              <div className="space-y-6">
+              <div className="space-y-3">
+                {/* Active Campaign Section */}
+                {activeCampaign && (
+                  <div className="mb-6">
+                    <div className="flex items-center gap-2 mb-3">
+                      <Flame className="w-4 h-4 text-accent" />
+                      <span className="font-display text-sm text-accent tracking-wider">ACTIVE CAMPAIGN</span>
+                    </div>
+                    <CampaignCard 
+                      collection={activeCampaign} 
+                      isActive 
+                      isOwner={activeCampaign.created_by === user?.id}
+                      isSystem={activeCampaign.is_system}
+                      onEdit={setEditCampaignId}
+                      onDelete={(id, name) => handleDeleteClick(id, name, 'campaign')}
+                    />
+                  </div>
+                )}
+
                 {/* Official Campaigns */}
-                {systemCollections.length > 0 && (
-                  <section>
-                    <h3 className="font-display text-sm text-secondary mb-3 tracking-wider">OFFICIAL CAMPAIGNS</h3>
-                    <div className="space-y-2">
-                      {systemCollections.map((c) => (
-                        <CampaignRow key={c.id} collection={c} isSystem onDelete={handleDeleteClick} onEdit={setEditCampaignId} />
+                {systemCollections.filter(c => c.id !== activeCampaignId).length > 0 && (
+                  <section className="mb-4">
+                    <div className="flex items-center gap-2 mb-3">
+                      <Crown className="w-4 h-4 text-secondary" />
+                      <span className="font-display text-sm text-secondary tracking-wider">OFFICIAL</span>
+                    </div>
+                    <div className="space-y-3">
+                      {systemCollections.filter(c => c.id !== activeCampaignId).map((c, i) => (
+                        <CampaignCard 
+                          key={c.id} 
+                          collection={c} 
+                          index={i}
+                          isSystem 
+                          onEdit={setEditCampaignId}
+                          onDelete={(id, name) => handleDeleteClick(id, name, 'campaign')}
+                        />
                       ))}
                     </div>
                   </section>
@@ -488,23 +599,32 @@ const Command = () => {
 
                 {/* My Campaigns */}
                 {user && (
-                  <section>
-                    <h3 className="font-display text-sm text-secondary mb-3 tracking-wider">MY CAMPAIGNS</h3>
-                    {myCollections.length === 0 ? (
-                      <div className="text-center py-8 border border-dashed border-border rounded-lg">
-                        <Folder className="w-10 h-10 mx-auto mb-2 text-muted-foreground/50" />
-                        <p className="text-sm text-muted-foreground mb-3">No campaigns yet</p>
+                  <section className="mb-4">
+                    <div className="flex items-center gap-2 mb-3">
+                      <Target className="w-4 h-4 text-primary" />
+                      <span className="font-display text-sm text-primary tracking-wider">MY CAMPAIGNS</span>
+                    </div>
+                    {myCollections.filter(c => c.id !== activeCampaignId).length === 0 ? (
+                      <div className="text-center py-6 border border-dashed border-border rounded-lg">
+                        <p className="text-sm text-muted-foreground mb-2">No custom campaigns yet</p>
                         <button
                           onClick={() => setCampaignDialogOpen(true)}
-                          className="text-xs text-secondary hover:text-glow-secondary font-display"
+                          className="text-xs text-accent hover:text-glow-accent font-display"
                         >
-                          + CREATE YOUR FIRST CAMPAIGN
+                          + CREATE CAMPAIGN
                         </button>
                       </div>
                     ) : (
-                      <div className="space-y-2">
-                        {myCollections.map((c) => (
-                          <CampaignRow key={c.id} collection={c} isOwner onDelete={handleDeleteClick} onEdit={setEditCampaignId} />
+                      <div className="space-y-3">
+                        {myCollections.filter(c => c.id !== activeCampaignId).map((c, i) => (
+                          <CampaignCard 
+                            key={c.id} 
+                            collection={c} 
+                            index={i}
+                            isOwner 
+                            onEdit={setEditCampaignId}
+                            onDelete={(id, name) => handleDeleteClick(id, name, 'campaign')}
+                          />
                         ))}
                       </div>
                     )}
@@ -512,12 +632,21 @@ const Command = () => {
                 )}
 
                 {/* Community Campaigns */}
-                {publicCollections.length > 0 && (
+                {publicCollections.filter(c => c.id !== activeCampaignId).length > 0 && (
                   <section>
-                    <h3 className="font-display text-sm text-secondary mb-3 tracking-wider">COMMUNITY CAMPAIGNS</h3>
-                    <div className="space-y-2">
-                      {publicCollections.map((c) => (
-                        <CampaignRow key={c.id} collection={c} onDelete={handleDeleteClick} onEdit={setEditCampaignId} />
+                    <div className="flex items-center gap-2 mb-3">
+                      <Target className="w-4 h-4 text-muted-foreground" />
+                      <span className="font-display text-sm text-muted-foreground tracking-wider">COMMUNITY</span>
+                    </div>
+                    <div className="space-y-3">
+                      {publicCollections.filter(c => c.id !== activeCampaignId).map((c, i) => (
+                        <CampaignCard 
+                          key={c.id} 
+                          collection={c} 
+                          index={i}
+                          onEdit={setEditCampaignId}
+                          onDelete={(id, name) => handleDeleteClick(id, name, 'campaign')}
+                        />
                       ))}
                     </div>
                   </section>
@@ -532,15 +661,19 @@ const Command = () => {
       <AlertDialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
         <AlertDialogContent className="bg-card border-destructive/50">
           <AlertDialogHeader>
-            <AlertDialogTitle className="font-display text-destructive">DELETE {itemToDelete?.type.toUpperCase()}</AlertDialogTitle>
-            <AlertDialogDescription>
-              Are you sure you want to delete "{itemToDelete?.name}"? This cannot be undone.
+            <AlertDialogTitle className="font-display text-destructive flex items-center gap-2">
+              <AlertCircle className="w-5 h-5" />
+              DELETE {itemToDelete?.type.toUpperCase()}
+            </AlertDialogTitle>
+            <AlertDialogDescription className="space-y-2">
+              <p>Are you sure you want to delete <strong>"{itemToDelete?.name}"</strong>?</p>
+              <p className="text-destructive/80 text-sm">⚠️ This action cannot be undone. All associated data will be permanently removed.</p>
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
             <AlertDialogCancel className="border-border">Cancel</AlertDialogCancel>
             <AlertDialogAction onClick={confirmDelete} className="bg-destructive text-destructive-foreground hover:bg-destructive/90">
-              Delete
+              Delete Permanently
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>
@@ -560,66 +693,6 @@ const Command = () => {
         />
       )}
     </div>
-  );
-};
-
-// Campaign row component
-interface CampaignRowProps {
-  collection: CollectionWithMissions;
-  isSystem?: boolean;
-  isOwner?: boolean;
-  onDelete: (id: string, name: string, type: 'campaign') => void;
-  onEdit: (id: string) => void;
-}
-
-const CampaignRow = ({ collection, isSystem, isOwner, onDelete, onEdit }: CampaignRowProps) => {
-  const navigate = useNavigate();
-  const missionCount = collection.collection_missions?.length || 0;
-  
-  return (
-    <motion.div
-      initial={{ opacity: 0, x: -10 }}
-      animate={{ opacity: 1, x: 0 }}
-      onClick={() => navigate(`/campaign/${collection.id}`)}
-      className="bg-card border border-border rounded-lg p-3 hover:border-primary/50 transition-colors cursor-pointer group"
-    >
-      <div className="flex items-center justify-between">
-        <div className="flex items-center gap-3">
-          <Folder className="w-5 h-5 text-secondary" />
-          <div>
-            <div className="flex items-center gap-2">
-              <span className="font-display text-primary">{collection.code_name}</span>
-              {isSystem && (
-                <span className="text-[10px] px-1.5 py-0.5 bg-secondary/20 text-secondary rounded">OFFICIAL</span>
-              )}
-            </div>
-            <p className="text-xs text-muted-foreground">{missionCount} mission{missionCount !== 1 ? 's' : ''}</p>
-          </div>
-        </div>
-        
-        <div className="flex items-center gap-1">
-          {/* Start button - always visible */}
-          <StartCampaignButton campaignId={collection.id} size="small" />
-          
-          {isOwner && !isSystem && (
-            <div className="flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
-              <button
-                onClick={(e) => { e.stopPropagation(); onEdit(collection.id); }}
-                className="p-1.5 hover:bg-secondary/20 rounded transition-colors"
-              >
-                <Pencil className="w-3.5 h-3.5 text-secondary" />
-              </button>
-              <button
-                onClick={(e) => { e.stopPropagation(); onDelete(collection.id, collection.code_name, 'campaign'); }}
-                className="p-1.5 hover:bg-destructive/20 rounded transition-colors"
-              >
-                <Trash2 className="w-3.5 h-3.5 text-destructive" />
-              </button>
-            </div>
-          )}
-        </div>
-      </div>
-    </motion.div>
   );
 };
 

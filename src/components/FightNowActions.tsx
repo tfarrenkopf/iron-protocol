@@ -1,7 +1,9 @@
 import { motion } from 'framer-motion';
 import { useNavigate } from 'react-router-dom';
-import { Target, Folder, Crosshair, ChevronRight, Zap, Play } from 'lucide-react';
+import { Target, Flame, ChevronRight, Zap, Play, Clock, Dumbbell } from 'lucide-react';
 import { useActiveCampaign, useActiveCampaignDetails } from '@/hooks/useActiveCampaign';
+import { useMemo } from 'react';
+import { formatEquipment } from '@/data/muscleGroups';
 
 export function FightNowActions() {
   const navigate = useNavigate();
@@ -18,6 +20,23 @@ export function FightNowActions() {
   const totalMissions = missions.length;
   const completedCount = completedMissionIds.size;
   const isComplete = completedCount >= totalMissions && totalMissions > 0;
+
+  // Calculate campaign equipment
+  const campaignEquipment = useMemo(() => {
+    if (!campaign?.collection_missions) return [];
+    const equipmentSet = new Set<string>();
+    campaign.collection_missions.forEach((cm: any) => {
+      cm.missions?.mission_exercises?.forEach((me: any) => {
+        me.exercises?.equipment?.forEach((eq: string) => equipmentSet.add(eq));
+      });
+    });
+    return Array.from(equipmentSet).slice(0, 3);
+  }, [campaign]);
+
+  // Calculate total time
+  const totalTime = useMemo(() => {
+    return missions.reduce((sum: number, m: any) => sum + (m?.estimated_minutes || 0), 0);
+  }, [missions]);
 
   const handleContinueCampaign = () => {
     if (nextMission) {
@@ -46,20 +65,44 @@ export function FightNowActions() {
               <div className="p-2 bg-accent/20 rounded-lg">
                 <Zap className="w-8 h-8 text-accent" />
               </div>
-              <div>
+              <div className="flex-1">
                 <div className="text-xs text-accent/70 font-display tracking-wider mb-0.5">
                   {isComplete ? 'REPLAY CAMPAIGN' : 'CONTINUE CAMPAIGN'}
                 </div>
                 <h2 className="font-display text-xl text-accent">{campaign?.code_name}</h2>
-                <p className="text-xs text-muted-foreground mt-0.5">
-                  {isComplete 
-                    ? `${totalMissions} missions completed • Start new run`
-                    : `${completedCount}/${totalMissions} complete • ${nextMission?.code_name || 'Next mission'}`
-                  }
-                </p>
+                <div className="flex items-center gap-3 text-xs text-muted-foreground mt-1">
+                  <span className="flex items-center gap-1">
+                    <Play className="w-3 h-3" />
+                    {completedCount}/{totalMissions}
+                  </span>
+                  <span className="flex items-center gap-1">
+                    <Clock className="w-3 h-3" />
+                    ~{totalTime}min
+                  </span>
+                </div>
+                {/* Equipment preview */}
+                {campaignEquipment.length > 0 && (
+                  <div className="flex items-center gap-1.5 mt-2">
+                    <Dumbbell className="w-3 h-3 text-accent/60" />
+                    <div className="flex gap-1">
+                      {campaignEquipment.map(eq => (
+                        <span key={eq} className="text-[9px] px-1.5 py-0.5 bg-accent/10 text-accent/80 rounded">
+                          {formatEquipment(eq)}
+                        </span>
+                      ))}
+                    </div>
+                  </div>
+                )}
               </div>
             </div>
-            <ChevronRight className="w-6 h-6 text-accent group-hover:translate-x-1 transition-transform" />
+            <ChevronRight className="w-6 h-6 text-accent group-hover:translate-x-1 transition-transform flex-shrink-0" />
+          </div>
+          {/* Progress bar */}
+          <div className="mt-3 h-1 bg-accent/20 rounded-full overflow-hidden">
+            <div 
+              className="h-full bg-accent rounded-full transition-all"
+              style={{ width: `${totalMissions > 0 ? (completedCount / totalMissions) * 100 : 0}%` }}
+            />
           </div>
         </button>
       )}
@@ -69,14 +112,14 @@ export function FightNowActions() {
         {/* Select Campaign */}
         <button
           onClick={() => navigate('/command?tab=campaigns')}
-          className="group relative bg-card border-2 border-secondary/50 rounded-lg p-4 text-left transition-all hover:border-secondary hover:box-glow-secondary"
+          className="group relative bg-card border-2 border-accent/50 rounded-lg p-4 text-left transition-all hover:border-accent hover:box-glow-accent"
         >
           <div className="flex items-center gap-3">
-            <div className="p-2 bg-secondary/10 rounded-lg group-hover:bg-secondary/20 transition-colors">
-              <Folder className="w-6 h-6 text-secondary" />
+            <div className="p-2 bg-accent/10 rounded-lg group-hover:bg-accent/20 transition-colors">
+              <Flame className="w-6 h-6 text-accent" />
             </div>
             <div className="flex-1 min-w-0">
-              <h3 className="font-display text-base text-secondary">
+              <h3 className="font-display text-base text-accent">
                 {hasActiveCampaign ? 'SWITCH' : 'SELECT'}
               </h3>
               <p className="text-[10px] text-muted-foreground">Campaign</p>
@@ -86,7 +129,7 @@ export function FightNowActions() {
 
         {/* Select Mission */}
         <button
-          onClick={() => navigate('/command?tab=global')}
+          onClick={() => navigate('/command?tab=missions&source=public')}
           className="group relative bg-card border-2 border-primary/50 rounded-lg p-4 text-left transition-all hover:border-primary hover:box-glow-primary"
         >
           <div className="flex items-center gap-3">
