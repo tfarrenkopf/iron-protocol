@@ -1,3 +1,4 @@
+import { ReactNode } from 'react';
 import { motion } from 'framer-motion';
 import { useNavigate } from 'react-router-dom';
 import { Zap, Clock, Play, CheckCircle2, Plus, ChevronUp, ChevronDown, Trash2 } from 'lucide-react';
@@ -18,6 +19,8 @@ interface MissionCardProps {
   showOrder?: boolean;
   orderIndex?: number;
   totalItems?: number;
+  /** Custom controls to render in the top-right corner */
+  topRightSlot?: ReactNode;
   onAdd?: () => void;
   onRemove?: () => void;
   onMoveUp?: () => void;
@@ -34,6 +37,7 @@ export function MissionCard({
   showOrder = false,
   orderIndex = 0,
   totalItems = 0,
+  topRightSlot,
   onAdd,
   onRemove,
   onMoveUp,
@@ -75,6 +79,13 @@ export function MissionCard({
       {/* Glow effect on hover */}
       <div className="absolute inset-0 bg-gradient-to-r from-primary/0 via-primary/5 to-primary/0 opacity-0 group-hover:opacity-100 transition-opacity" />
       
+      {/* Custom top-right slot for page-specific controls */}
+      {topRightSlot && (
+        <div className="absolute top-3 right-3 flex items-center gap-1.5 z-20">
+          {topRightSlot}
+        </div>
+      )}
+      
       <div className="relative z-10 flex gap-3">
         {/* Reorder Controls (for campaign variant) */}
         {showOrder && (
@@ -108,10 +119,10 @@ export function MissionCard({
 
         {/* Main Content */}
         <div className="flex-1 min-w-0">
-          {/* Header row */}
-          <div className="flex items-start justify-between gap-2 mb-2">
+          {/* Header row - add padding-right when topRightSlot is present */}
+          <div className={`flex items-start justify-between gap-2 mb-2 ${topRightSlot ? 'pr-20' : ''}`}>
             <div className="flex-1 min-w-0">
-              <h3 className="font-display text-lg text-primary group-hover:text-glow-primary transition-all truncate">
+              <h3 className="font-display text-lg text-primary group-hover:text-glow-primary transition-all">
                 {mission.code_name}
               </h3>
               {mission.description && (
@@ -119,22 +130,24 @@ export function MissionCard({
               )}
             </div>
             
-            {/* Right side badges */}
-            <div className="flex items-center gap-1.5 flex-shrink-0">
-              {/* Popularity badge for public missions */}
-              {mission.is_public && (mission.popularity_score || 0) > 0 && 
-                getPopularityTier(mission.popularity_score || 0) && (
-                <PopularityBadge score={mission.popularity_score || 0} />
-              )}
-              
-              {/* Difficulty badge */}
-              <div className="flex items-center gap-1 bg-muted px-2 py-1 rounded">
-                <Zap className={`w-3 h-3 ${getDifficultyColor(mission.difficulty)}`} />
-                <span className={`text-xs font-display ${getDifficultyColor(mission.difficulty)}`}>
-                  {mission.difficulty}
-                </span>
+            {/* Right side badges - only show when no topRightSlot */}
+            {!topRightSlot && (
+              <div className="flex items-center gap-1.5 flex-shrink-0">
+                {/* Popularity badge for public missions */}
+                {mission.is_public && (mission.popularity_score || 0) > 0 && 
+                  getPopularityTier(mission.popularity_score || 0) && (
+                  <PopularityBadge score={mission.popularity_score || 0} />
+                )}
+                
+                {/* Difficulty badge */}
+                <div className="flex items-center gap-1 bg-muted px-2 py-1 rounded">
+                  <Zap className={`w-3 h-3 ${getDifficultyColor(mission.difficulty)}`} />
+                  <span className={`text-xs font-display ${getDifficultyColor(mission.difficulty)}`}>
+                    {mission.difficulty}
+                  </span>
+                </div>
               </div>
-            </div>
+            )}
           </div>
           
           {/* Meta row */}
