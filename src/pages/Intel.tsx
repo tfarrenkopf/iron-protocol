@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import { useNavigate } from 'react-router-dom';
 import { 
@@ -16,7 +16,10 @@ import {
   Shield,
   TrendingUp,
   RefreshCw,
-  Activity
+  Activity,
+  Star,
+  Award,
+  Weight
 } from 'lucide-react';
 import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
@@ -31,6 +34,15 @@ import {
   formatLargeNumber,
   getFocusAreaLabel 
 } from '@/hooks/useWarReport';
+import { useProfile, useLeaderboard } from '@/hooks/useProfile';
+import { useWeightHistory } from '@/hooks/useWeightHistory';
+import { useMuscleGroupStats } from '@/hooks/useMuscleGroupStats';
+import { useAuth } from '@/hooks/useAuth';
+import BodyDiagram from '@/components/BodyDiagram';
+import { useUserMilestones } from '@/hooks/useMilestones';
+import { MilestoneList } from '@/components/MilestoneProgress';
+import { useAchievements, useUserAchievements } from '@/hooks/useAchievements';
+import { AchievementList } from '@/components/AchievementList';
 
 // ==================== TYPES ====================
 
@@ -677,27 +689,41 @@ const Intel = () => {
             <ArrowLeft className="w-5 h-5" />
           </button>
           <div>
-            <h1 className="font-display text-3xl text-primary">INTEL CENTER</h1>
-            <p className="text-xs text-muted-foreground tracking-wider">COMBAT FEED & CAMPAIGN DATA</p>
+            <h1 className="font-display text-3xl text-primary text-glow-primary">INTEL CENTER</h1>
+            <p className="text-xs text-muted-foreground tracking-wider">STATS • FEED • CAMPAIGNS • RANKINGS</p>
           </div>
         </div>
 
         {/* Tabs */}
         <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-          <TabsList className="grid w-full grid-cols-2 mb-6 bg-card border border-border">
+          <TabsList className="grid w-full grid-cols-4 mb-6 bg-card border border-border">
             <TabsTrigger 
               value="feed" 
-              className="font-display data-[state=active]:bg-primary data-[state=active]:text-primary-foreground"
+              className="font-display text-xs data-[state=active]:bg-primary data-[state=active]:text-primary-foreground"
             >
-              <Swords className="w-4 h-4 mr-2" />
-              LIVE FEED
+              <Swords className="w-3.5 h-3.5 mr-1" />
+              FEED
             </TabsTrigger>
             <TabsTrigger 
               value="campaigns" 
-              className="font-display data-[state=active]:bg-primary data-[state=active]:text-primary-foreground"
+              className="font-display text-xs data-[state=active]:bg-primary data-[state=active]:text-primary-foreground"
             >
-              <BarChart3 className="w-4 h-4 mr-2" />
+              <BarChart3 className="w-3.5 h-3.5 mr-1" />
               CAMPAIGNS
+            </TabsTrigger>
+            <TabsTrigger 
+              value="rankings" 
+              className="font-display text-xs data-[state=active]:bg-primary data-[state=active]:text-primary-foreground"
+            >
+              <Trophy className="w-3.5 h-3.5 mr-1" />
+              RANKINGS
+            </TabsTrigger>
+            <TabsTrigger 
+              value="stats" 
+              className="font-display text-xs data-[state=active]:bg-primary data-[state=active]:text-primary-foreground"
+            >
+              <Target className="w-3.5 h-3.5 mr-1" />
+              MY STATS
             </TabsTrigger>
           </TabsList>
 
@@ -708,6 +734,14 @@ const Intel = () => {
           <TabsContent value="campaigns">
             <CampaignIntelTab />
           </TabsContent>
+
+          <TabsContent value="rankings">
+            <RankingsTab />
+          </TabsContent>
+
+          <TabsContent value="stats">
+            <MyStatsTab />
+          </TabsContent>
         </Tabs>
 
         {/* Footer */}
@@ -715,11 +749,126 @@ const Intel = () => {
           <p className="font-display text-xs text-muted-foreground">
             INTEL CENTER :: ALPHA SYSTEM
           </p>
-          <p className="text-xs text-muted-foreground/50 mt-1">
-            Updated in real-time • No player identifiers stored
-          </p>
         </div>
       </div>
+    </div>
+  );
+};
+
+// Rankings Tab (from Stats page)
+const RankingsTab = () => {
+  const { data: profile } = useProfile();
+  const { data: leaderboard, isLoading } = useLeaderboard();
+
+  const getRankIcon = (rank: number) => {
+    switch (rank) {
+      case 1: return <Crown className="w-5 h-5 text-warning" />;
+      case 2: return <Medal className="w-5 h-5 text-muted-foreground" />;
+      case 3: return <Medal className="w-5 h-5 text-accent" />;
+      default: return <span className="w-5 h-5 flex items-center justify-center text-muted-foreground font-display">{rank}</span>;
+    }
+  };
+
+  if (isLoading) {
+    return <div className="text-center py-12"><div className="font-display text-lg text-primary animate-neon-pulse">LOADING...</div></div>;
+  }
+
+  if (!leaderboard || leaderboard.length === 0) {
+    return (
+      <div className="bg-card border border-border rounded-lg p-6 text-center">
+        <Trophy className="w-8 h-8 mx-auto mb-3 text-muted-foreground" />
+        <p className="text-muted-foreground text-sm">No rankings yet. Be the first!</p>
+      </div>
+    );
+  }
+
+  return (
+    <div className="bg-card border border-border rounded-lg overflow-hidden">
+      <div className="grid grid-cols-4 gap-2 p-3 border-b border-border text-xs text-muted-foreground font-display">
+        <span>RANK</span><span>OPERATOR</span><span className="text-right">SCORE</span><span className="text-right">LVL</span>
+      </div>
+      {leaderboard.map((entry, i) => {
+        const entryLevel = Math.max(1, Math.floor(Math.sqrt((entry.total_xp || 0) / 100)) + 1);
+        const isCurrentUser = profile && entry.display_name === profile.display_name;
+        return (
+          <div key={entry.rank || i} className={`grid grid-cols-4 gap-2 p-3 items-center ${isCurrentUser ? 'bg-primary/10 border-l-2 border-primary' : 'border-b border-border/50 last:border-b-0'}`}>
+            <div>{getRankIcon(entry.rank || i + 1)}</div>
+            <div className={`font-display text-sm ${isCurrentUser ? 'text-primary' : 'text-foreground'} truncate`}>{entry.display_name || 'ANONYMOUS'}</div>
+            <div className="text-right font-display text-secondary">{(entry.total_score || 0).toLocaleString()}</div>
+            <div className="text-right font-display text-accent">{entryLevel}</div>
+          </div>
+        );
+      })}
+    </div>
+  );
+};
+
+// My Stats Tab (from Stats page)
+const MyStatsTab = () => {
+  const navigate = useNavigate();
+  const { isAnonymous } = useAuth();
+  const { data: profile } = useProfile();
+  const { data: weightHistory } = useWeightHistory();
+  const { data: muscleStats } = useMuscleGroupStats();
+  const { data: userMilestones } = useUserMilestones();
+  const { data: achievements } = useAchievements();
+  const { data: userAchievements } = useUserAchievements();
+
+  const xp = profile?.total_xp || 0;
+  const level = Math.max(1, Math.floor(Math.sqrt(xp / 100)) + 1);
+  const weightEntries = Object.entries(weightHistory || {}).map(([exerciseId, data]) => ({ exerciseId, ...data }));
+
+  if (isAnonymous) {
+    return (
+      <div className="bg-card border border-warning/30 rounded-lg p-6 text-center">
+        <Trophy className="w-8 h-8 mx-auto mb-3 text-warning" />
+        <p className="text-warning font-display mb-2">SIGN IN FOR YOUR STATS</p>
+        <p className="text-sm text-muted-foreground mb-4">Track your progress, achievements, and personal records.</p>
+        <button onClick={() => navigate("/auth")} className="px-4 py-2 bg-primary text-primary-foreground font-display rounded hover:box-glow-primary">SIGN IN</button>
+      </div>
+    );
+  }
+
+  return (
+    <div className="space-y-6">
+      {/* Quick Stats */}
+      <div className="grid grid-cols-4 gap-2">
+        {[
+          { label: 'SCORE', value: (profile?.total_score || 0).toLocaleString(), color: 'text-primary' },
+          { label: 'LEVEL', value: level, color: 'text-secondary' },
+          { label: 'SETS', value: profile?.total_sets || 0, color: 'text-accent' },
+          { label: 'COMBO', value: `${profile?.max_combo || 0}x`, color: 'text-warning' },
+        ].map((stat) => (
+          <div key={stat.label} className="bg-card border border-border rounded p-2 text-center">
+            <div className={`font-display text-lg ${stat.color}`}>{stat.value}</div>
+            <div className="text-[10px] text-muted-foreground">{stat.label}</div>
+          </div>
+        ))}
+      </div>
+
+      {/* Body Diagram */}
+      {muscleStats && muscleStats.length > 0 && (
+        <div className="bg-card border border-border rounded-lg p-4">
+          <h3 className="font-display text-sm text-muted-foreground mb-3">// COMBAT ANALYSIS</h3>
+          <BodyDiagram muscleStats={muscleStats} />
+        </div>
+      )}
+
+      {/* Achievements */}
+      {achievements && achievements.length > 0 && (
+        <div>
+          <h3 className="font-display text-sm text-muted-foreground mb-3">// ACHIEVEMENTS</h3>
+          <AchievementList achievements={achievements as any} userAchievements={userAchievements as any} />
+        </div>
+      )}
+
+      {/* Milestones */}
+      {userMilestones && userMilestones.length > 0 && (
+        <div>
+          <h3 className="font-display text-sm text-muted-foreground mb-3">// MILESTONES</h3>
+          <MilestoneList userMilestones={userMilestones} />
+        </div>
+      )}
     </div>
   );
 };
