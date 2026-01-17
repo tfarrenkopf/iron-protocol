@@ -50,6 +50,7 @@ const ExerciseManager = () => {
 
   // Filter user's custom missions
   const myMissions = missions?.filter((m) => m.created_by === user?.id) || [];
+  const [returnTo, setReturnTo] = useState<string | null>(null);
   const [showForm, setShowForm] = useState(false);
   const [showMissionForm, setShowMissionForm] = useState(false);
   const [expandedMission, setExpandedMission] = useState<string | null>(null);
@@ -85,6 +86,8 @@ const ExerciseManager = () => {
     const editExerciseId = searchParams.get("editExercise");
     const newMission = searchParams.get("newMission");
     const newExercise = searchParams.get("newExercise");
+    const returnToParam = searchParams.get("returnTo");
+    if (returnToParam) setReturnTo(returnToParam);
     
     if (editExerciseId && exercises && exercises.length > 0) {
       const exerciseToEdit = exercises.find((e) => e.id === editExerciseId);
@@ -141,6 +144,14 @@ const ExerciseManager = () => {
     setEditingMission(null);
     setMissionError(null);
     setSelectedExerciseId("");
+  };
+
+  const navigateBackFromEditor = (type: "mission" | "exercise") => {
+    if (returnTo === "command") {
+      navigate(type === "mission" ? "/command?tab=missions&source=personal" : "/command?tab=exercises&source=personal");
+    } else if (returnTo === "missions") {
+      navigate("/missions");
+    }
   };
 
   const handleEdit = (exercise: Exercise) => {
@@ -703,6 +714,7 @@ const ExerciseManager = () => {
                       onClick={() => {
                         setShowForm(false);
                         resetForm();
+                        navigateBackFromEditor("exercise");
                       }}
                       className="p-2 hover:text-destructive transition-colors"
                     >
@@ -847,6 +859,7 @@ const ExerciseManager = () => {
                         onClick={() => {
                           setShowForm(false);
                           resetForm();
+                          navigateBackFromEditor("exercise");
                         }}
                         className="flex-1 py-3 bg-muted text-muted-foreground font-display rounded hover:bg-muted/80 transition-colors"
                       >
@@ -887,12 +900,7 @@ const ExerciseManager = () => {
                       onClick={() => {
                         setShowMissionForm(false);
                         resetMissionForm();
-                        const returnTo = searchParams.get("returnTo");
-                        if (returnTo === "command") {
-                          navigate("/command?tab=missions&source=personal");
-                        } else if (returnTo === "missions") {
-                          navigate("/missions");
-                        }
+                        navigateBackFromEditor("mission");
                       }}
                       className="p-2 hover:text-destructive transition-colors"
                     >
@@ -1074,12 +1082,7 @@ const ExerciseManager = () => {
                         onClick={() => {
                           setShowMissionForm(false);
                           resetMissionForm();
-                          const returnTo = searchParams.get("returnTo");
-                          if (returnTo === "command") {
-                            navigate("/command?tab=missions&source=personal");
-                          } else if (returnTo === "missions") {
-                            navigate("/missions");
-                          }
+                          navigateBackFromEditor("mission");
                         }}
                         className="flex-1 py-3 bg-muted text-muted-foreground font-display rounded hover:bg-muted/80 transition-colors"
                       >
