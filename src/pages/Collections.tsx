@@ -136,7 +136,7 @@ const Collections = () => {
     <div className="min-h-screen bg-background relative">
       <div className="fixed inset-0 pointer-events-none scanlines opacity-20" />
       
-      <div className="relative z-10 container mx-auto px-4 py-6 max-w-2xl">
+      <div className="relative z-10 container mx-auto px-4 py-6 max-w-3xl">
         {/* Header */}
         <div className="flex items-center justify-between mb-6">
           <GlobalNav 

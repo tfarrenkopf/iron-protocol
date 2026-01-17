@@ -149,7 +149,7 @@ const JoinSquad = () => {
     <div className="min-h-screen bg-background relative flex items-center justify-center">
       <div className="fixed inset-0 pointer-events-none scanlines opacity-20" />
       
-      <div className="relative z-10 container mx-auto px-4 max-w-md">
+      <div className="relative z-10 container mx-auto px-4 max-w-sm">
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}

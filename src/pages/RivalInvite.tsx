@@ -196,7 +196,7 @@ const RivalInvite = () => {
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
-          className="bg-card border border-primary/50 rounded-lg p-6 max-w-md w-full"
+          className="bg-card border border-primary/50 rounded-lg p-6 max-w-sm w-full"
         >
           {/* Header */}
           <div className="text-center mb-6">
