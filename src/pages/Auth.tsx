@@ -171,7 +171,7 @@ const AuthPage = () => {
       {/* Scanlines overlay */}
       <div className="fixed inset-0 pointer-events-none scanlines opacity-30" />
       
-      <div className="relative z-10 container mx-auto px-4 py-8 max-w-md">
+      <div className="relative z-10 container mx-auto px-4 py-8 max-w-3xl">
         {/* Header */}
         <motion.header 
           initial={{ opacity: 0, y: -20 }}

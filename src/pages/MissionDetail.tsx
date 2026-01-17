@@ -68,7 +68,7 @@ const MissionDetail = () => {
       {/* Scanlines */}
       <div className="fixed inset-0 pointer-events-none scanlines opacity-20" />
       
-      <div className="relative z-10 container mx-auto px-4 py-6 max-w-2xl">
+      <div className="relative z-10 container mx-auto px-4 py-6 max-w-3xl">
         {/* Header */}
         <GlobalNav 
           backTo={(() => {
@@ -329,7 +329,7 @@ const MissionDetail = () => {
           transition={{ delay: 0.3 }}
           className="fixed bottom-0 left-0 right-0 p-4 bg-gradient-to-t from-background via-background to-transparent"
         >
-          <div className="container mx-auto max-w-2xl space-y-2">
+          <div className="container mx-auto max-w-3xl space-y-2">
             {isAnonymous && (
               <ConversionNudge 
                 message="Progress won't be saved in guest mode" 

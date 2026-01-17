@@ -20,9 +20,9 @@ interface PageLayoutProps {
 }
 
 const WIDTH_CLASSES = {
-  narrow: "max-w-2xl",
-  standard: "max-w-3xl", 
-  wide: "max-w-4xl",
+  narrow: "max-w-sm",      // Modals/invite pages (JoinSquad, RivalInvite)
+  standard: "max-w-3xl",   // All primary pages (Dashboard, Command, Intel, Profile, etc.)
+  wide: "max-w-4xl",       // Reserved for special full-width layouts
 } as const;
 
 export function PageLayout({ 
