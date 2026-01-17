@@ -887,6 +887,12 @@ const ExerciseManager = () => {
                       onClick={() => {
                         setShowMissionForm(false);
                         resetMissionForm();
+                        const returnTo = searchParams.get("returnTo");
+                        if (returnTo === "command") {
+                          navigate("/command?tab=missions&source=personal");
+                        } else if (returnTo === "missions") {
+                          navigate("/missions");
+                        }
                       }}
                       className="p-2 hover:text-destructive transition-colors"
                     >
@@ -1068,6 +1074,12 @@ const ExerciseManager = () => {
                         onClick={() => {
                           setShowMissionForm(false);
                           resetMissionForm();
+                          const returnTo = searchParams.get("returnTo");
+                          if (returnTo === "command") {
+                            navigate("/command?tab=missions&source=personal");
+                          } else if (returnTo === "missions") {
+                            navigate("/missions");
+                          }
                         }}
                         className="flex-1 py-3 bg-muted text-muted-foreground font-display rounded hover:bg-muted/80 transition-colors"
                       >
