@@ -1,6 +1,7 @@
-import { useState, useMemo, useEffect } from 'react';
+import { useState, useMemo } from 'react';
 import { motion } from 'framer-motion';
 import { useNavigate, useParams } from 'react-router-dom';
+import { useQuery } from '@tanstack/react-query';
 import { ArrowLeft, Clock, Pencil, Trash2, Lock, Globe, Users, Flame, Plus, Trophy, Timer, Rocket, Play, Zap, RefreshCw, X } from 'lucide-react';
 import { useCollection, useDeleteCollection, useRemoveMissionFromCollection, useAddMissionToCollection } from '@/hooks/useCollections';
 import { useCampaignProgress, useCampaignCompletions, useCampaignLeaderboard, CampaignProgress } from '@/hooks/useCampaignProgress';
@@ -60,6 +61,7 @@ function ActiveCampaignControl({
   const handleForfeit = () => {
     forfeitCampaign(collection.id);
     setShowForfeitDialog(false);
+    navigate('/command?tab=campaigns');
   };
 
   return (
@@ -251,37 +253,41 @@ const CampaignDetail = () => {
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [missionPickerOpen, setMissionPickerOpen] = useState(false);
   const [missionToRemove, setMissionToRemove] = useState<{ id: string; name: string } | null>(null);
-  const [completedMissionIds, setCompletedMissionIds] = useState<Set<string>>(new Set());
 
   const isOwner = user && collection?.created_by === user.id;
   // Can only edit if owner AND not currently active
   const canEdit = isOwner && !collection?.is_system && !isActiveCampaign;
   const missions = collection?.collection_missions?.map(cm => cm.missions) || [];
   const missionIds = collection?.collection_missions?.map(cm => cm.mission_id) || [];
+
+  // Fetch which missions the user has completed using react-query for automatic refetch
+  const { data: completedMissionsData } = useQuery({
+    queryKey: ['campaign-completed-missions', collectionId, user?.id, missions.length],
+    queryFn: async () => {
+      if (!user || missions.length === 0) return new Set<string>();
+      
+      const missionIdList = missions.filter(m => m).map(m => m!.id);
+      
+      const { data } = await supabase
+        .from('workout_sessions')
+        .select('mission_id')
+        .eq('user_id', user.id)
+        .eq('status', 'COMPLETED')
+        .in('mission_id', missionIdList);
+      
+      return new Set(data?.map(s => s.mission_id) || []);
+    },
+    enabled: !!user && missions.length > 0,
+    refetchOnWindowFocus: true,
+    staleTime: 0, // Always refetch on mount
+  });
+
+  const completedMissionIds = completedMissionsData || new Set<string>();
   
   // Find next uncompleted mission for quick launch
   const nextMission = useMemo(() => {
     return missions.find((m: any) => m && !completedMissionIds.has(m.id));
   }, [missions, completedMissionIds]);
-
-  // Fetch which missions the user has completed
-  useEffect(() => {
-    if (!user || missions.length === 0) return;
-    
-    const missionIdList = missions.filter(m => m).map(m => m!.id);
-    
-    supabase
-      .from('workout_sessions')
-      .select('mission_id')
-      .eq('user_id', user.id)
-      .eq('status', 'COMPLETED')
-      .in('mission_id', missionIdList)
-      .then(({ data }) => {
-        if (data) {
-          setCompletedMissionIds(new Set(data.map(s => s.mission_id)));
-        }
-      });
-  }, [user, missions.length]);
 
   const progressPercent = missions.length > 0 
     ? Math.round((completedMissionIds.size / missions.length) * 100)
@@ -466,11 +472,46 @@ const CampaignDetail = () => {
           </motion.div>
         )}
 
-        {/* Description */}
+        {/* Missions List - MOVED UP: now directly below deploy button */}
+        <motion.section
+          initial={{ opacity: 0, y: 10 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.1 }}
+          className="mb-6"
+        >
+          <div className="flex items-center justify-between mb-3">
+            <h2 className="font-display text-sm text-secondary tracking-wider flex items-center gap-2">
+              <Trophy className="w-4 h-4" />
+              {isActiveCampaign ? 'MISSION QUEUE' : 'MISSIONS'} ({completedMissionIds.size}/{missions.length})
+            </h2>
+            {canEdit && (
+              <button
+                onClick={() => setMissionPickerOpen(true)}
+                className="flex items-center gap-1 text-xs text-primary hover:text-glow-primary font-display"
+              >
+                <Plus className="w-3 h-3" /> ADD
+              </button>
+            )}
+          </div>
+          
+          <CampaignMissionList
+            collectionId={collectionId!}
+            missions={missions}
+            missionIds={missionIds}
+            completedMissionIds={completedMissionIds}
+            isOwner={!!canEdit}
+            isSystem={collection.is_system || isActiveCampaign}
+            onRemoveMission={setMissionToRemove}
+            onAddMission={() => setMissionPickerOpen(true)}
+          />
+        </motion.section>
+
+        {/* Description / Briefing */}
         {collection.description && (
           <motion.div
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
+            transition={{ delay: 0.15 }}
             className="mb-6 p-4 bg-card border border-border rounded-lg"
           >
             <p className="text-[10px] text-muted-foreground uppercase tracking-wider mb-1">BRIEFING</p>
@@ -478,20 +519,11 @@ const CampaignDetail = () => {
           </motion.div>
         )}
 
-        {/* Progress Section - Only show for logged in users */}
-        {user && missions.length > 0 && (
-          <CampaignProgressCard
-            progress={progress || null}
-            completedCount={completedMissionIds.size}
-            totalMissions={missions.length}
-          />
-        )}
-
-        {/* Stats */}
+        {/* Stats - compact */}
         <motion.div
           initial={{ opacity: 0, y: 10 }}
           animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.15 }}
+          transition={{ delay: 0.2 }}
           className="grid grid-cols-2 gap-3 mb-6"
         >
           <div className="p-3 bg-card border border-border rounded-lg text-center">
@@ -506,12 +538,21 @@ const CampaignDetail = () => {
           </div>
         </motion.div>
 
+        {/* Progress Section - Only show for logged in users */}
+        {user && missions.length > 0 && progress && (
+          <CampaignProgressCard
+            progress={progress || null}
+            completedCount={completedMissionIds.size}
+            totalMissions={missions.length}
+          />
+        )}
+
         {/* Leaderboard - Show if there are completions */}
         {leaderboard && leaderboard.length > 0 && (
           <motion.section
             initial={{ opacity: 0, y: 10 }}
             animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.2 }}
+            transition={{ delay: 0.25 }}
             className="mb-6"
           >
             <h2 className="font-display text-sm text-secondary mb-3 tracking-wider flex items-center gap-2">
@@ -541,39 +582,6 @@ const CampaignDetail = () => {
             </div>
           </motion.section>
         )}
-
-        {/* Missions List */}
-        <motion.section
-          initial={{ opacity: 0, y: 10 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.25 }}
-        >
-          <div className="flex items-center justify-between mb-3">
-            <h2 className="font-display text-sm text-secondary tracking-wider flex items-center gap-2">
-              <Trophy className="w-4 h-4" />
-              {isActiveCampaign ? 'MISSION QUEUE' : 'MISSIONS'}
-            </h2>
-            {canEdit && (
-              <button
-                onClick={() => setMissionPickerOpen(true)}
-                className="flex items-center gap-1 text-xs text-primary hover:text-glow-primary font-display"
-              >
-                <Plus className="w-3 h-3" /> ADD
-              </button>
-            )}
-          </div>
-          
-          <CampaignMissionList
-            collectionId={collectionId!}
-            missions={missions}
-            missionIds={missionIds}
-            completedMissionIds={completedMissionIds}
-            isOwner={!!canEdit}
-            isSystem={collection.is_system || isActiveCampaign}
-            onRemoveMission={setMissionToRemove}
-            onAddMission={() => setMissionPickerOpen(true)}
-          />
-        </motion.section>
 
         {/* Completion History */}
         {completions && completions.length > 0 && (

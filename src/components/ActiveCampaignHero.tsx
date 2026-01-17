@@ -69,6 +69,7 @@ export function ActiveCampaignHero({ className = '' }: ActiveCampaignHeroProps) 
   const handleForfeit = () => {
     forfeitCampaign(campaign?.id || '');
     setShowForfeitDialog(false);
+    navigate('/command?tab=campaigns');
   };
 
   const handleStartNext = (e: React.MouseEvent) => {

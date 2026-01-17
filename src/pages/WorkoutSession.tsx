@@ -2,6 +2,7 @@ import { useState, useEffect, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useParams, useNavigate, useSearchParams } from 'react-router-dom';
 import { X, Plus, Minus, Check, ChevronRight, Info, Scroll, AlertTriangle } from 'lucide-react';
+import { useQueryClient } from '@tanstack/react-query';
 import { useGameStore } from '@/stores/gameStore';
 import { useMission } from '@/hooks/useMissions';
 import { useWeightHistory } from '@/hooks/useWeightHistory';
@@ -16,12 +17,14 @@ import { useCheckAchievements, Achievement } from '@/hooks/useAchievements';
 import { GuestIndicator, MomentOfLossPrompt, ConversionNudge } from '@/components/AnonymousConversion';
 import { getWeightedRandomLorePhrase } from '@/data/lorePhrases';
 import { useBatchPersist } from '@/hooks/useBatchPersist';
+import { useUpdateCampaignProgress } from '@/hooks/useCampaignProgress';
 
 const WorkoutSession = () => {
   const { missionId } = useParams();
   const [searchParams] = useSearchParams();
   const campaignId = searchParams.get('campaignId');
   const navigate = useNavigate();
+  const queryClient = useQueryClient();
   const { user, isAnonymous } = useAuth();
   const { data: mission, isLoading: missionLoading } = useMission(missionId);
   const { data: weightHistory } = useWeightHistory();
@@ -30,6 +33,7 @@ const WorkoutSession = () => {
   const createWorkoutSession = useCreateWorkoutSession();
   const batchPersist = useBatchPersist();
   const { checkAndUnlock } = useCheckAchievements();
+  const updateCampaignProgress = useUpdateCampaignProgress();
 
   const { 
     currentSession, 
@@ -194,6 +198,23 @@ const WorkoutSession = () => {
           durationSeconds,
         }).catch(() => {}),
         
+        // Update campaign progress if this is a campaign mission
+        campaignId ? updateCampaignProgress.mutateAsync({
+          campaignId,
+          missionId: mission.id,
+          sessionData: {
+            score: stats.score,
+            weight: stats.totalWeight,
+            duration_seconds: durationSeconds,
+          },
+        }).then(() => {
+          // Invalidate all campaign-related queries to ensure fresh data
+          queryClient.invalidateQueries({ queryKey: ['collection', campaignId] });
+          queryClient.invalidateQueries({ queryKey: ['campaign-progress', campaignId] });
+          queryClient.invalidateQueries({ queryKey: ['active-campaign-details'] });
+          queryClient.invalidateQueries({ queryKey: ['active-campaign-completed-missions'] });
+        }).catch(() => {}) : Promise.resolve(),
+        
         // Batch persist weight history and PRs (replaces per-set calls)
         batchPersist.mutateAsync({
           sets: batchSets,
@@ -225,11 +246,10 @@ const WorkoutSession = () => {
         })(),
       ]);
       
-      if (mission.outro_lore) {
-        setShowLore('outro');
-      }
+      // Skip separate outro lore screen - go directly to combined summary
+      // The outro lore will be shown in the completion screen
     }
-  }, [currentSession?.status, user, statsSaved, mission, stats, updateProfileStats, createWorkoutSession, batchPersist, checkAndUnlock, profile]);
+  }, [currentSession?.status, user, statsSaved, mission, stats, updateProfileStats, createWorkoutSession, batchPersist, checkAndUnlock, profile, campaignId, updateCampaignProgress, queryClient]);
 
   // Show moment of loss prompt for anonymous users after mission complete
   // MUST be before any conditional returns to satisfy React hooks rules
@@ -286,38 +306,7 @@ const WorkoutSession = () => {
 
   const missionExercises = mission.mission_exercises || [];
 
-  // Show outro lore
-  if (showLore === 'outro' && mission.outro_lore) {
-    return (
-      <motion.div 
-        initial={{ opacity: 0 }}
-        animate={{ opacity: 1 }}
-        className="min-h-screen bg-background flex flex-col items-center justify-center p-6"
-      >
-        <div className="fixed inset-0 pointer-events-none scanlines opacity-30" />
-        <motion.div
-          initial={{ scale: 0.9, opacity: 0 }}
-          animate={{ scale: 1, opacity: 1 }}
-          transition={{ delay: 0.2 }}
-          className="max-w-lg text-center relative z-10"
-        >
-          <h1 className="font-display text-5xl md:text-6xl text-success text-glow-primary mb-4">
-            MISSION COMPLETE
-          </h1>
-          <p className="text-muted-foreground leading-relaxed mb-8 text-lg">
-            {mission.outro_lore}
-          </p>
-          <button
-            onClick={() => setShowLore(null)}
-            className="px-8 py-4 bg-success text-success-foreground font-display text-xl rounded transition-all hover:opacity-90"
-          >
-            VIEW RESULTS
-          </button>
-        </motion.div>
-      </motion.div>
-    );
-  }
-
+  // COMBINED COMPLETION SCREEN - shows outro lore + stats together
   if (currentSession?.status === 'COMPLETED') {
     return (
       <motion.div 
@@ -336,43 +325,51 @@ const WorkoutSession = () => {
           initial={{ scale: 0.8, opacity: 0 }}
           animate={{ scale: 1, opacity: 1 }}
           transition={{ delay: 0.2 }}
-          className="text-center"
+          className="text-center max-w-lg"
         >
-          <h1 className="font-display text-6xl md:text-8xl text-primary text-glow-primary mb-4">
+          <h1 className="font-display text-5xl md:text-7xl text-primary text-glow-primary mb-2">
             MISSION COMPLETE
           </h1>
-          <p className="font-display text-4xl text-secondary mb-8">{mission.code_name}</p>
+          <p className="font-display text-2xl text-secondary mb-4">{mission.code_name}</p>
           
-          <div className="grid grid-cols-2 gap-6 max-w-md mx-auto mb-6">
-            <div className={`bg-card border rounded-lg p-4 ${isAnonymous ? 'border-warning/30' : 'border-border'}`}>
-              <div className="font-display text-4xl text-accent">{stats.score.toLocaleString()}</div>
-              <div className="text-xs text-muted-foreground">SCORE</div>
+          {/* Outro lore - shown inline if available */}
+          {mission.outro_lore && (
+            <p className="text-muted-foreground leading-relaxed mb-6 text-sm italic">
+              "{mission.outro_lore}"
+            </p>
+          )}
+          
+          {/* Stats grid - compact */}
+          <div className="grid grid-cols-4 gap-3 mb-4">
+            <div className={`bg-card border rounded-lg p-3 ${isAnonymous ? 'border-warning/30' : 'border-border'}`}>
+              <div className="font-display text-2xl text-accent">{stats.score.toLocaleString()}</div>
+              <div className="text-[10px] text-muted-foreground">SCORE</div>
             </div>
-            <div className={`bg-card border rounded-lg p-4 ${isAnonymous ? 'border-warning/30' : 'border-border'}`}>
-              <div className="font-display text-4xl text-secondary">{stats.maxCombo}x</div>
-              <div className="text-xs text-muted-foreground">MAX COMBO</div>
+            <div className={`bg-card border rounded-lg p-3 ${isAnonymous ? 'border-warning/30' : 'border-border'}`}>
+              <div className="font-display text-2xl text-secondary">{stats.maxCombo}x</div>
+              <div className="text-[10px] text-muted-foreground">COMBO</div>
             </div>
-            <div className={`bg-card border rounded-lg p-4 ${isAnonymous ? 'border-warning/30' : 'border-border'}`}>
-              <div className="font-display text-4xl text-primary">{stats.setsCompleted}</div>
-              <div className="text-xs text-muted-foreground">SETS</div>
+            <div className={`bg-card border rounded-lg p-3 ${isAnonymous ? 'border-warning/30' : 'border-border'}`}>
+              <div className="font-display text-2xl text-primary">{stats.setsCompleted}</div>
+              <div className="text-[10px] text-muted-foreground">SETS</div>
             </div>
-            <div className={`bg-card border rounded-lg p-4 ${isAnonymous ? 'border-warning/30' : 'border-border'}`}>
-              <div className="font-display text-4xl text-success">{stats.xp}</div>
-              <div className="text-xs text-muted-foreground">XP EARNED</div>
+            <div className={`bg-card border rounded-lg p-3 ${isAnonymous ? 'border-warning/30' : 'border-border'}`}>
+              <div className="font-display text-2xl text-success">+{stats.xp}</div>
+              <div className="text-[10px] text-muted-foreground">XP</div>
             </div>
           </div>
           
           {/* Total Weight Lifted */}
-          <div className={`bg-card border-2 rounded-lg p-4 max-w-md mx-auto mb-6 ${isAnonymous ? 'border-warning/50' : 'border-accent'}`}>
-            <div className="font-display text-5xl text-accent">{stats.totalWeight.toLocaleString()}</div>
-            <div className="text-sm text-muted-foreground">TOTAL LBS LIFTED</div>
+          <div className={`bg-card border-2 rounded-lg p-4 mb-6 ${isAnonymous ? 'border-warning/50' : 'border-accent'}`}>
+            <div className="font-display text-4xl text-accent">{stats.totalWeight.toLocaleString()}</div>
+            <div className="text-xs text-muted-foreground">TOTAL LBS LIFTED</div>
           </div>
 
           {/* Anonymous conversion nudge */}
           {isAnonymous && (
             <ConversionNudge 
               message="This progress won't be saved" 
-              className="max-w-md mx-auto mb-6"
+              className="mb-6"
             />
           )}
 
@@ -385,9 +382,9 @@ const WorkoutSession = () => {
                 navigate('/');
               }
             }}
-            className="px-8 py-4 bg-primary text-primary-foreground font-display text-xl rounded hover:box-glow-primary transition-all"
+            className="w-full py-4 bg-primary text-primary-foreground font-display text-xl rounded hover:box-glow-primary transition-all"
           >
-            CONTINUE
+            {campaignId ? 'RETURN TO CAMPAIGN' : 'CONTINUE'}
           </button>
         </motion.div>
 
