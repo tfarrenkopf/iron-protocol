@@ -168,9 +168,17 @@
     box-shadow: var(--glow-secondary);
   }
 
-  /* Section-specific glow effects */
+  /* Section-specific glow effects - COMPLETE SET */
   .box-glow-command {
     box-shadow: 0 0 20px hsl(var(--section-command) / 0.6), 0 0 40px hsl(var(--section-command) / 0.3);
+  }
+
+  .box-glow-campaigns {
+    box-shadow: 0 0 20px hsl(var(--section-campaigns) / 0.6), 0 0 40px hsl(var(--section-campaigns) / 0.3);
+  }
+
+  .box-glow-missions {
+    box-shadow: 0 0 20px hsl(var(--section-missions) / 0.6), 0 0 40px hsl(var(--section-missions) / 0.3);
   }
 
   .box-glow-intel {
@@ -181,8 +189,20 @@
     box-shadow: 0 0 20px hsl(var(--section-hiit) / 0.6), 0 0 40px hsl(var(--section-hiit) / 0.3);
   }
 
+  .box-glow-rivals {
+    box-shadow: 0 0 20px hsl(var(--section-rivals) / 0.6), 0 0 40px hsl(var(--section-rivals) / 0.3);
+  }
+
   .text-glow-command {
     text-shadow: 0 0 10px hsl(var(--section-command)), 0 0 20px hsl(var(--section-command) / 0.8), 0 0 40px hsl(var(--section-command) / 0.5);
+  }
+
+  .text-glow-campaigns {
+    text-shadow: 0 0 10px hsl(var(--section-campaigns)), 0 0 20px hsl(var(--section-campaigns) / 0.8), 0 0 40px hsl(var(--section-campaigns) / 0.5);
+  }
+
+  .text-glow-missions {
+    text-shadow: 0 0 10px hsl(var(--section-missions)), 0 0 20px hsl(var(--section-missions) / 0.8), 0 0 40px hsl(var(--section-missions) / 0.5);
   }
 
   .text-glow-intel {
@@ -191,6 +211,10 @@
 
   .text-glow-hiit {
     text-shadow: 0 0 10px hsl(var(--section-hiit)), 0 0 20px hsl(var(--section-hiit) / 0.8), 0 0 40px hsl(var(--section-hiit) / 0.5);
+  }
+
+  .text-glow-rivals {
+    text-shadow: 0 0 10px hsl(var(--section-rivals)), 0 0 20px hsl(var(--section-rivals) / 0.8), 0 0 40px hsl(var(--section-rivals) / 0.5);
   }
 
   /* Glitch animation */
