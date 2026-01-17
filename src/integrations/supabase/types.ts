@@ -650,6 +650,42 @@ export type Database = {
           },
         ]
       }
+      rivalries: {
+        Row: {
+          created_at: string
+          id: string
+          rival_id: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          rival_id: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          rival_id?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "rivalries_rival_id_fkey"
+            columns: ["rival_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "rivalries_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       squad_members: {
         Row: {
           id: string
@@ -1115,6 +1151,27 @@ export type Database = {
             referencedRelation: "missions"
             referencedColumns: ["id"]
           },
+          {
+            foreignKeyName: "workout_sessions_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      rival_weekly_stats: {
+        Row: {
+          display_name: string | null
+          rival_code: string | null
+          user_id: string | null
+          weekly_max_combo: number | null
+          weekly_score: number | null
+          weekly_sessions: number | null
+          weekly_sets: number | null
+          weekly_weight: number | null
+        }
+        Relationships: [
           {
             foreignKeyName: "workout_sessions_user_id_fkey"
             columns: ["user_id"]
