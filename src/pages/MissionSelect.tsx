@@ -1,13 +1,15 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import { motion } from 'framer-motion';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import { ArrowLeft, Zap, Plus, Filter, X, RefreshCw, AlertCircle, Clock, Pencil, Trash2 } from 'lucide-react';
 import { useMissions, useDeleteMission } from '@/hooks/useMissions';
+import { useCollections } from '@/hooks/useCollections';
 import { useAuth } from '@/hooks/useAuth';
 import { PopularityBadge } from '@/components/SocialProof';
 import { getPopularityTier } from '@/hooks/useMissionStats';
 import { GuestIndicator } from '@/components/AnonymousConversion';
 import { FOCUS_AREAS, getMusclesForFocusArea, EQUIPMENT_OPTIONS, formatEquipment } from '@/data/muscleGroups';
+import { CollectionFilter } from '@/components/CollectionFilter';
 import {
   AlertDialog,
   AlertDialogAction,
@@ -38,8 +40,12 @@ const MissionSelect = () => {
   const [showOnlyPublic, setShowOnlyPublic] = useState(searchParams.get('public') === 'true');
   const [showOnlyMine, setShowOnlyMine] = useState(searchParams.get('mine') === 'true');
   const [durationFilter, setDurationFilter] = useState<string>(searchParams.get('duration') || '');
+  const [collectionFilter, setCollectionFilter] = useState<string>(searchParams.get('collection') || '');
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [missionToDelete, setMissionToDelete] = useState<{ id: string; name: string } | null>(null);
+  
+  // Fetch collections for filtering
+  const { data: collections } = useCollections();
 
   // Get available muscles based on selected focus area
   const availableMuscles = getMusclesForFocusArea(focusFilter || null);
@@ -53,8 +59,9 @@ const MissionSelect = () => {
     if (showOnlyPublic) params.set('public', 'true');
     if (showOnlyMine) params.set('mine', 'true');
     if (durationFilter) params.set('duration', durationFilter);
+    if (collectionFilter) params.set('collection', collectionFilter);
     setSearchParams(params, { replace: true });
-  }, [focusFilter, muscleFilter, equipmentFilter, showOnlyPublic, showOnlyMine, durationFilter]);
+  }, [focusFilter, muscleFilter, equipmentFilter, showOnlyPublic, showOnlyMine, durationFilter, collectionFilter]);
 
   // Clear muscle filter if it's not in the available muscles for the new focus area
   useEffect(() => {
@@ -100,14 +107,28 @@ const MissionSelect = () => {
     setShowOnlyPublic(false);
     setShowOnlyMine(false);
     setDurationFilter('');
+    setCollectionFilter('');
   };
 
-  const hasFilters = focusFilter || muscleFilter || equipmentFilter || showOnlyPublic || showOnlyMine || durationFilter;
+  const hasFilters = focusFilter || muscleFilter || equipmentFilter || showOnlyPublic || showOnlyMine || durationFilter || collectionFilter;
 
-  // Filter missions for "My Missions" and duration options
+  // Get mission IDs from selected collection
+  const collectionMissionIds = useMemo(() => {
+    if (!collectionFilter || !collections) return null;
+    const selectedCollection = collections.find(c => c.id === collectionFilter);
+    if (!selectedCollection) return null;
+    return new Set(selectedCollection.collection_missions?.map(cm => cm.mission_id) || []);
+  }, [collectionFilter, collections]);
+
+  // Filter missions for "My Missions", duration, and collection
   let filteredMissions = showOnlyMine && user 
     ? missions?.filter(m => m.created_by === user.id)
     : missions;
+
+  // Apply collection filter
+  if (collectionMissionIds && filteredMissions) {
+    filteredMissions = filteredMissions.filter(m => collectionMissionIds.has(m.id));
+  }
 
   // Apply duration filter
   if (durationFilter && filteredMissions) {
@@ -193,6 +214,12 @@ const MissionSelect = () => {
             </div>
 
             <div className="space-y-4">
+              {/* Collection Filter */}
+              <CollectionFilter 
+                selectedCollectionId={collectionFilter}
+                onSelect={setCollectionFilter}
+              />
+
               {/* Focus Area */}
               <div>
                 <label className="text-xs text-muted-foreground tracking-wider">FOCUS AREA</label>
