@@ -282,13 +282,13 @@ const Command = () => {
   
   const getCreateButtonConfig = () => {
     if (activeTab === 'missions' && source === 'personal') {
-      return { label: 'New Mission', onClick: () => navigate('/exercises?newMission=true') };
+      return { label: 'New Mission', onClick: () => navigate('/exercises?newMission=true&returnTo=command') };
     }
-    if (activeTab === 'campaigns') {
+    if (activeTab === 'campaigns' && campaignSource === 'personal') {
       return { label: 'New Campaign', onClick: () => setCampaignDialogOpen(true) };
     }
-    if (activeTab === 'exercises') {
-      return { label: 'New Exercise', onClick: () => navigate('/exercises?newExercise=true') };
+    if (activeTab === 'exercises' && source === 'personal') {
+      return { label: 'New Exercise', onClick: () => navigate('/exercises?newExercise=true&returnTo=command') };
     }
     return null;
   };

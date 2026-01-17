@@ -339,7 +339,7 @@ export function CampaignCard({
               ) : (
                 <>
                   <Play className="w-4 h-4" />
-                  {hasOtherActive ? 'SWITCH OP' : 'ACTIVATE OP'}
+                  {hasOtherActive ? 'SELECT CAMPAIGN' : 'ACTIVATE OP'}
                 </>
               )}
             </button>
