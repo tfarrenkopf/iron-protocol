@@ -263,3 +263,41 @@ export function useDeleteMission() {
     },
   });
 }
+
+// Add exercise to an existing mission
+export function useAddExerciseToMission() {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: async ({ missionId, exerciseId }: { missionId: string; exerciseId: string }) => {
+      // Get current max order_index for this mission
+      const { data: existingExercises } = await supabase
+        .from('mission_exercises')
+        .select('order_index')
+        .eq('mission_id', missionId)
+        .order('order_index', { ascending: false })
+        .limit(1);
+      
+      const nextOrderIndex = (existingExercises?.[0]?.order_index ?? -1) + 1;
+      
+      // Insert the new exercise
+      const { error } = await supabase
+        .from('mission_exercises')
+        .insert({
+          mission_id: missionId,
+          exercise_id: exerciseId,
+          order_index: nextOrderIndex,
+          target_sets: 3,
+          target_reps: 10,
+          rest_between_sets_sec: 60,
+        });
+      
+      if (error) throw error;
+      
+      return { missionId, exerciseId };
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['missions'] });
+    },
+  });
+}
