@@ -1,13 +1,21 @@
-import { ReactNode } from 'react';
+import { ReactNode, useMemo } from 'react';
 import { motion } from 'framer-motion';
 import { useNavigate } from 'react-router-dom';
-import { Zap, Clock, Play, CheckCircle2, Plus, ChevronUp, ChevronDown, Trash2 } from 'lucide-react';
+import { Zap, Clock, Play, CheckCircle2, Plus, ChevronUp, ChevronDown, Trash2, Dumbbell } from 'lucide-react';
 import { Tables } from '@/integrations/supabase/types';
 import { PopularityBadge } from '@/components/SocialProof';
 import { getPopularityTier } from '@/hooks/useMissionStats';
+import { formatEquipment } from '@/data/muscleGroups';
+
+interface MissionExercise {
+  id: string;
+  exercises?: {
+    equipment?: string[];
+  };
+}
 
 interface Mission extends Tables<'missions'> {
-  mission_exercises?: { id: string }[];
+  mission_exercises?: MissionExercise[];
 }
 
 interface MissionCardProps {
@@ -63,6 +71,15 @@ export function MissionCard({
     if (difficulty <= 6) return 'text-orange-400';
     return 'text-red-400';
   };
+
+  // Extract unique equipment from all exercises
+  const uniqueEquipment = useMemo(() => {
+    const equipmentSet = new Set<string>();
+    mission.mission_exercises?.forEach(me => {
+      me.exercises?.equipment?.forEach(eq => equipmentSet.add(eq));
+    });
+    return Array.from(equipmentSet).slice(0, 4); // Limit to 4 for display
+  }, [mission.mission_exercises]);
 
   return (
     <motion.div
@@ -170,6 +187,29 @@ export function MissionCard({
               )}
             </div>
           </div>
+
+          {/* Equipment row */}
+          {uniqueEquipment.length > 0 && (
+            <div className="flex items-center gap-2 mt-2">
+              <Dumbbell className="w-3 h-3 text-accent flex-shrink-0" />
+              <div className="flex gap-1.5 flex-wrap">
+                {uniqueEquipment.map((eq) => (
+                  <span 
+                    key={eq}
+                    className="text-[10px] px-1.5 py-0.5 bg-accent/10 text-accent rounded"
+                  >
+                    {formatEquipment(eq)}
+                  </span>
+                ))}
+                {(mission.mission_exercises?.length || 0) > 0 && 
+                  Array.from(new Set(mission.mission_exercises?.flatMap(me => me.exercises?.equipment || []))).length > 4 && (
+                  <span className="text-[10px] text-muted-foreground">
+                    +{Array.from(new Set(mission.mission_exercises?.flatMap(me => me.exercises?.equipment || []))).length - 4}
+                  </span>
+                )}
+              </div>
+            </div>
+          )}
 
           {/* Difficulty bar */}
           <div className="flex gap-1 mt-3">
