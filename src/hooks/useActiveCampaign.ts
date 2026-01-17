@@ -74,6 +74,9 @@ export function useActiveCampaign() {
       queryClient.invalidateQueries({ queryKey: ['campaign-progress', campaignId] });
       queryClient.invalidateQueries({ queryKey: ['campaign-progress-all'] });
       queryClient.invalidateQueries({ queryKey: ['profile'] });
+      queryClient.invalidateQueries({ queryKey: ['active-campaign-details'] });
+      queryClient.invalidateQueries({ queryKey: ['active-campaign-progress'] });
+      queryClient.invalidateQueries({ queryKey: ['active-campaign-completed-missions'] });
     },
   });
 

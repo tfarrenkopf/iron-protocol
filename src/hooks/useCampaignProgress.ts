@@ -255,6 +255,10 @@ export function useUpdateCampaignProgress() {
       queryClient.invalidateQueries({ queryKey: ['campaign-progress', variables.campaignId] });
       queryClient.invalidateQueries({ queryKey: ['campaign-progress-all'] });
       queryClient.invalidateQueries({ queryKey: ['campaign-completions', variables.campaignId] });
+      queryClient.invalidateQueries({ queryKey: ['active-campaign-details'] });
+      queryClient.invalidateQueries({ queryKey: ['active-campaign-progress'] });
+      queryClient.invalidateQueries({ queryKey: ['active-campaign-completed-missions'] });
+      queryClient.invalidateQueries({ queryKey: ['collection', variables.campaignId] });
     },
   });
 }
