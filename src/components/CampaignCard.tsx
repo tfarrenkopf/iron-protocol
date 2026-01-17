@@ -200,9 +200,9 @@ export function CampaignCard({
                 {isActive ? (
                   <Flame className="w-7 h-7 text-accent animate-pulse" />
                 ) : isSystem ? (
-                  <Crown className="w-7 h-7 text-secondary" />
+                  <Crosshair className="w-7 h-7 text-secondary" />
                 ) : (
-                  <Swords className="w-7 h-7 text-primary" />
+                  <Crosshair className="w-7 h-7 text-primary" />
                 )}
               </div>
               

@@ -97,7 +97,7 @@ const MissionSelect = () => {
 
   const handleEditClick = (e: React.MouseEvent, missionId: string) => {
     e.stopPropagation();
-    navigate(`/exercises?editMission=${missionId}`);
+    navigate(`/exercises?editMission=${missionId}&returnTo=missions`);
   };
 
   const clearFilters = () => {
