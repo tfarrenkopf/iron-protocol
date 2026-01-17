@@ -91,12 +91,19 @@ const RivalInvite = () => {
           return;
         }
         
-        // Set display name if provided
+        // Set display name if provided - wait for profile to be created by trigger
         if (displayName.trim()) {
+          await new Promise(resolve => setTimeout(resolve, 500));
           try {
             await updateProfile.mutateAsync({ display_name: displayName.trim() });
           } catch {
-            // Non-blocking
+            // Retry once more after a delay
+            await new Promise(resolve => setTimeout(resolve, 500));
+            try {
+              await updateProfile.mutateAsync({ display_name: displayName.trim() });
+            } catch {
+              // Non-blocking
+            }
           }
         }
         // After signup, accept the rivalry
@@ -257,57 +264,73 @@ const RivalInvite = () => {
             /* Non-logged-in user: Auth form */
             <>
               <form onSubmit={handleAuthSubmit} className="space-y-4">
-                <div className="text-center mb-2">
-                  <p className="text-xs text-muted-foreground">
-                    {isSignUp ? 'Create an account to accept' : 'Sign in to accept'}
-                  </p>
+                <div className="flex items-baseline gap-1.5 mb-3">
+                  <span className="font-display text-lg text-foreground">
+                    {isSignUp ? 'Create Account' : 'Sign In'}
+                  </span>
+                  <span className="text-sm text-muted-foreground">
+                    {isSignUp ? (
+                      <>Already have an account? <button type="button" onClick={() => { setIsSignUp(false); setError(null); }} className="text-secondary hover:underline">Sign In</button></>
+                    ) : (
+                      <>Don't have an account? <button type="button" onClick={() => { setIsSignUp(true); setError(null); }} className="text-secondary hover:underline">Sign Up</button></>
+                    )}
+                  </span>
                 </div>
 
                 {/* Email */}
-                <div className="relative">
-                  <Mail className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
-                  <input
-                    type="email"
-                    value={email}
-                    onChange={(e) => setEmail(e.target.value)}
-                    className="w-full bg-background border border-border rounded pl-10 pr-4 py-2.5 text-sm text-foreground placeholder:text-muted-foreground focus:border-primary focus:outline-none transition-colors"
-                    placeholder="Email"
-                    autoComplete="email"
-                  />
+                <div className="space-y-1.5">
+                  <label className="text-sm text-foreground">Email Address</label>
+                  <div className="relative">
+                    <Mail className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+                    <input
+                      type="email"
+                      value={email}
+                      onChange={(e) => setEmail(e.target.value)}
+                      className="w-full bg-background border border-border rounded-lg pl-10 pr-4 py-2.5 text-sm text-foreground placeholder:text-muted-foreground focus:border-primary focus:outline-none transition-colors"
+                      placeholder="you@example.com"
+                      autoComplete="email"
+                    />
+                  </div>
                 </div>
 
                 {/* Password */}
-                <div className="relative">
-                  <Lock className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
-                  <input
-                    type={showPassword ? 'text' : 'password'}
-                    value={password}
-                    onChange={(e) => setPassword(e.target.value)}
-                    className="w-full bg-background border border-border rounded pl-10 pr-10 py-2.5 text-sm text-foreground placeholder:text-muted-foreground focus:border-primary focus:outline-none transition-colors"
-                    placeholder="Password"
-                    autoComplete={isSignUp ? 'new-password' : 'current-password'}
-                  />
-                  <button
-                    type="button"
-                    onClick={() => setShowPassword(!showPassword)}
-                    className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground transition-colors"
-                  >
-                    {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
-                  </button>
+                <div className="space-y-1.5">
+                  <label className="text-sm text-foreground">Password</label>
+                  <div className="relative">
+                    <Lock className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+                    <input
+                      type={showPassword ? 'text' : 'password'}
+                      value={password}
+                      onChange={(e) => setPassword(e.target.value)}
+                      className="w-full bg-background border border-border rounded-lg pl-10 pr-10 py-2.5 text-sm text-foreground placeholder:text-muted-foreground focus:border-primary focus:outline-none transition-colors"
+                      placeholder="Enter 6 characters or more"
+                      autoComplete={isSignUp ? 'new-password' : 'current-password'}
+                    />
+                    <button
+                      type="button"
+                      onClick={() => setShowPassword(!showPassword)}
+                      className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground transition-colors"
+                    >
+                      {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                    </button>
+                  </div>
                 </div>
 
                 {/* Display Name (Sign Up Only) */}
                 {isSignUp && (
-                  <div className="relative">
-                    <User className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
-                    <input
-                      type="text"
-                      value={displayName}
-                      onChange={(e) => setDisplayName(e.target.value)}
-                      className="w-full bg-background border border-border rounded pl-10 pr-4 py-2.5 text-sm text-foreground placeholder:text-muted-foreground focus:border-primary focus:outline-none transition-colors"
-                      placeholder="Call Sign (optional)"
-                      maxLength={15}
-                    />
+                  <div className="space-y-1.5">
+                    <label className="text-sm text-foreground">Call Sign <span className="text-muted-foreground">(Optional)</span></label>
+                    <div className="relative">
+                      <User className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+                      <input
+                        type="text"
+                        value={displayName}
+                        onChange={(e) => setDisplayName(e.target.value)}
+                        className="w-full bg-background border border-border rounded-lg pl-10 pr-4 py-2.5 text-sm text-foreground placeholder:text-muted-foreground focus:border-primary focus:outline-none transition-colors"
+                        placeholder="GHOST_REAPER"
+                        maxLength={15}
+                      />
+                    </div>
                   </div>
                 )}
 
@@ -323,7 +346,7 @@ const RivalInvite = () => {
                 <Button
                   type="submit"
                   disabled={isSubmitting}
-                  className="w-full bg-primary text-primary-foreground hover:bg-primary/90 font-display"
+                  className="w-full bg-primary text-primary-foreground hover:bg-primary/90 font-display text-base"
                   size="lg"
                 >
                   {isSubmitting ? (
@@ -333,20 +356,6 @@ const RivalInvite = () => {
                   )}
                   {isSignUp ? 'CREATE & ACCEPT' : 'SIGN IN & ACCEPT'}
                 </Button>
-
-                {/* Toggle */}
-                <div className="text-center">
-                  <button
-                    type="button"
-                    onClick={() => {
-                      setIsSignUp(!isSignUp);
-                      setError(null);
-                    }}
-                    className="text-xs text-muted-foreground hover:text-secondary transition-colors"
-                  >
-                    {isSignUp ? 'Already have an account? Sign in' : "Don't have an account? Create one"}
-                  </button>
-                </div>
               </form>
 
               {/* Decline */}
