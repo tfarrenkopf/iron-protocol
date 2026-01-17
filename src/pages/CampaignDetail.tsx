@@ -2,7 +2,7 @@ import { useState, useMemo } from 'react';
 import { motion } from 'framer-motion';
 import { useNavigate, useParams } from 'react-router-dom';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
-import { Clock, Pencil, Trash2, Lock, Globe, Users, Flame, Plus, Trophy, Timer, Rocket, Zap, RefreshCw, X, Target } from 'lucide-react';
+import { Clock, Pencil, Trash2, Lock, Globe, Users, Flame, Plus, Trophy, Timer, Rocket, Zap, RefreshCw, X, Crosshair } from 'lucide-react';
 import { GlobalNav } from '@/components/GlobalNav';
 import { useCollection, useDeleteCollection, useRemoveMissionFromCollection, useAddMissionToCollection } from '@/hooks/useCollections';
 import { useCampaignProgress, useCampaignCompletions, useCampaignLeaderboard, CampaignProgress } from '@/hooks/useCampaignProgress';
@@ -98,7 +98,7 @@ function ActiveCampaignControl({
           {/* Quick stats */}
           <div className="flex items-center gap-3 text-xs text-muted-foreground">
             <span className="flex items-center gap-1">
-              <Target className="w-3 h-3 text-section-missions" />
+              <Crosshair className="w-3 h-3 text-section-missions" />
               {missions.length} missions
             </span>
             <span className="flex items-center gap-1">
@@ -448,7 +448,7 @@ const CampaignDetail = () => {
             {isActiveCampaign ? (
               <Rocket className="w-6 h-6 text-accent animate-pulse" />
             ) : (
-              <Flame className="w-6 h-6 text-accent" />
+              <Flame className="w-6 h-6 text-section-campaigns" />
             )}
             <div>
               <div className="flex items-center gap-2">
@@ -542,7 +542,7 @@ const CampaignDetail = () => {
             {/* Compact inline stats */}
             <div className="flex items-center gap-4 text-xs text-muted-foreground flex-wrap">
               <span className="flex items-center gap-1">
-                <Target className="w-3 h-3 text-section-missions" />
+                <Crosshair className="w-3 h-3 text-section-missions" />
                 {missions.length} missions
               </span>
               <span className="flex items-center gap-1">
@@ -574,7 +574,7 @@ const CampaignDetail = () => {
         >
           <div className="flex items-center justify-between mb-3">
             <h2 className="font-display text-sm text-section-missions tracking-wider flex items-center gap-2">
-              <Target className="w-4 h-4" />
+              <Crosshair className="w-4 h-4" />
               {isActiveCampaign ? 'MISSION QUEUE' : 'MISSIONS'} ({completedMissionIds.size}/{missions.length})
             </h2>
             {canEdit && (
@@ -605,7 +605,7 @@ const CampaignDetail = () => {
               
               {/* Empty content area */}
               <div className="p-6 text-center">
-                <Target className="w-10 h-10 mx-auto mb-3 text-section-missions/30" />
+                <Crosshair className="w-10 h-10 mx-auto mb-3 text-section-missions/30" />
                 <p className="text-sm text-muted-foreground mb-4">
                   {canEdit 
                     ? 'Select missions from the arsenal to add to this campaign.'

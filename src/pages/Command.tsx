@@ -1,7 +1,7 @@
 import { useState, useEffect, useMemo } from 'react';
 import { motion } from 'framer-motion';
 import { useNavigate, useSearchParams } from 'react-router-dom';
-import { Target, Dumbbell, Flame, Filter, X, Clock, Plus, Pencil, Trash2, RefreshCw, AlertCircle, Crown } from 'lucide-react';
+import { Crosshair, Dumbbell, Flame, Filter, X, Clock, Plus, Pencil, Trash2, RefreshCw, AlertCircle, Crown } from 'lucide-react';
 import { GlobalNav } from '@/components/GlobalNav';
 import { useMissions, useDeleteMission } from '@/hooks/useMissions';
 import { useCollections, useDeleteCollection, CollectionWithMissions } from '@/hooks/useCollections';
@@ -275,9 +275,9 @@ const Command = () => {
     navigate(`/exercises?editExercise=${exerciseId}&returnTo=command`);
   };
   
-  const tabs: { id: TabType; label: string; icon: typeof Target }[] = [
+  const tabs: { id: TabType; label: string; icon: typeof Flame }[] = [
     { id: 'campaigns', label: 'CAMPAIGNS', icon: Flame },
-    { id: 'missions', label: 'MISSIONS', icon: Target },
+    { id: 'missions', label: 'MISSIONS', icon: Crosshair },
     { id: 'exercises', label: 'EXERCISES', icon: Dumbbell },
   ];
   
@@ -760,7 +760,7 @@ const Command = () => {
                 {/* Mission list */}
                 {filteredMissions?.length === 0 ? (
                   <div className="text-center py-12 border border-dashed border-border rounded-lg">
-                    <Target className="w-10 h-10 mx-auto mb-3 text-muted-foreground/50" />
+                    <Crosshair className="w-10 h-10 mx-auto mb-3 text-muted-foreground/50" />
                     <p className="text-muted-foreground mb-3">
                       {source === 'personal' 
                         ? 'No custom missions yet' 

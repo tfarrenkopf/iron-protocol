@@ -1,7 +1,7 @@
 import { useState, useMemo } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useNavigate } from 'react-router-dom';
-import { Flame, Clock, Dumbbell, Target, Zap, Play, Pencil, Trash2, CheckCircle2, Crown, Users, Swords, ChevronDown, ChevronUp, AlertTriangle, Crosshair, Skull } from 'lucide-react';
+import { Flame, Clock, Dumbbell, Zap, Play, Pencil, Trash2, CheckCircle2, Crown, Users, Swords, ChevronDown, ChevronUp, AlertTriangle, Crosshair, Skull } from 'lucide-react';
 import { CollectionWithMissions } from '@/hooks/useCollections';
 import { useActiveCampaign, useActiveCampaignDetails } from '@/hooks/useActiveCampaign';
 import { useAuth } from '@/hooks/useAuth';
@@ -171,7 +171,7 @@ export function CampaignCard({
         className={`group bg-card border-2 rounded-lg overflow-hidden transition-all relative ${
           isActive 
             ? 'border-accent bg-gradient-to-br from-card via-card to-accent/10 hover:box-glow-accent' 
-            : 'border-border hover:border-primary'
+            : 'border-border hover:border-section-campaigns'
         }`}
       >
         {/* Active campaign glow */}
@@ -191,23 +191,15 @@ export function CampaignCard({
               <div className={`p-2.5 rounded-lg transition-colors ${
                 isActive 
                   ? 'bg-accent/20' 
-                  : isSystem 
-                    ? 'bg-secondary/20' 
-                    : 'bg-primary/20 group-hover:bg-primary/30'
+                  : 'bg-section-campaigns/10 group-hover:bg-section-campaigns/20'
               }`}>
-                {isActive ? (
-                  <Flame className="w-7 h-7 text-accent animate-pulse" />
-                ) : isSystem ? (
-                  <Crosshair className="w-7 h-7 text-secondary" />
-                ) : (
-                  <Crosshair className="w-7 h-7 text-primary" />
-                )}
+                <Flame className={`w-7 h-7 ${isActive ? 'text-accent animate-pulse' : 'text-section-campaigns'}`} />
               </div>
               
               <div className="flex-1 min-w-0">
                 <div className="flex items-center gap-2 flex-wrap">
                   <h3 className={`font-display text-lg ${
-                    isActive ? 'text-accent' : 'text-primary'
+                    isActive ? 'text-accent' : 'text-section-campaigns'
                   }`}>
                     {collection.code_name}
                   </h3>
@@ -257,7 +249,7 @@ export function CampaignCard({
           {/* Stats row */}
           <div className="flex items-center gap-4 text-xs text-muted-foreground mb-3">
             <span className="flex items-center gap-1">
-              <Target className="w-3 h-3" />
+              <Crosshair className="w-3 h-3 text-section-missions" />
               {missionCount} mission{missionCount !== 1 ? 's' : ''}
             </span>
             <span className="flex items-center gap-1">
@@ -327,7 +319,7 @@ export function CampaignCard({
                 'LOADING...'
               ) : isActive ? (
                 <>
-                  <Crosshair className="w-4 h-4" />
+                  <Flame className="w-4 h-4" />
                   VIEW CAMPAIGN
                 </>
               ) : (

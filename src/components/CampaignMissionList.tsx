@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Plus, Target } from 'lucide-react';
+import { Plus, Crosshair } from 'lucide-react';
 import { Tables } from '@/integrations/supabase/types';
 import { MissionCard } from '@/components/MissionCard';
 import { useReorderMissions } from '@/hooks/useCollections';
@@ -59,7 +59,7 @@ export function CampaignMissionList({
         <div className="p-4 border-b border-border bg-muted/20">
           <div className="flex items-center gap-3">
             <div className="p-2 rounded-lg bg-section-missions/10">
-              <Target className="w-5 h-5 text-section-missions" />
+              <Crosshair className="w-5 h-5 text-section-missions" />
             </div>
             <div>
               <p className="font-display text-sm text-foreground">NO MISSIONS ASSIGNED</p>
@@ -68,7 +68,7 @@ export function CampaignMissionList({
           </div>
         </div>
         <div className="p-6 text-center">
-          <Target className="w-10 h-10 mx-auto mb-3 text-section-missions/30" />
+          <Crosshair className="w-10 h-10 mx-auto mb-3 text-section-missions/30" />
           <p className="text-sm text-muted-foreground mb-4">
             {isOwner ? 'Select missions from the arsenal to add to this campaign.' : 'This campaign has no missions yet.'}
           </p>
