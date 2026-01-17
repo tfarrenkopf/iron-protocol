@@ -4,17 +4,18 @@ import { useParams, useNavigate } from 'react-router-dom';
 import { X, Plus, Minus, Check, ChevronRight, Info, Scroll, AlertTriangle } from 'lucide-react';
 import { useGameStore } from '@/stores/gameStore';
 import { useMission } from '@/hooks/useMissions';
-import { useWeightHistory, useUpdateWeight } from '@/hooks/useWeightHistory';
+import { useWeightHistory } from '@/hooks/useWeightHistory';
 import { useAuth } from '@/hooks/useAuth';
 import { useUpdateProfileStats, useProfile } from '@/hooks/useProfile';
 import { useCreateWorkoutSession } from '@/hooks/useWorkoutSessions';
 import { ExplosionEffect } from '@/components/ExplosionEffect';
 import { XPPopup } from '@/components/XPPopup';
 import { PRNotification } from '@/components/PRNotification';
-import { useCheckAndUpdatePR, PRCheckResult, usePersonalRecordsCount } from '@/hooks/usePersonalRecords';
+import { PRCheckResult } from '@/hooks/usePersonalRecords';
 import { useCheckAchievements, Achievement } from '@/hooks/useAchievements';
 import { GuestIndicator, MomentOfLossPrompt, ConversionNudge } from '@/components/AnonymousConversion';
 import { getWeightedRandomLorePhrase } from '@/data/lorePhrases';
+import { useBatchPersist } from '@/hooks/useBatchPersist';
 
 const WorkoutSession = () => {
   const { missionId } = useParams();
@@ -23,11 +24,9 @@ const WorkoutSession = () => {
   const { data: mission, isLoading: missionLoading } = useMission(missionId);
   const { data: weightHistory } = useWeightHistory();
   const { data: profile } = useProfile();
-  const { data: prCount } = usePersonalRecordsCount();
-  const updateWeight = useUpdateWeight();
   const updateProfileStats = useUpdateProfileStats();
   const createWorkoutSession = useCreateWorkoutSession();
-  const checkAndUpdatePR = useCheckAndUpdatePR();
+  const batchPersist = useBatchPersist();
   const { checkAndUnlock } = useCheckAchievements();
 
   const { 
@@ -113,16 +112,6 @@ const WorkoutSession = () => {
     if (user && currentSession?.status === 'COMPLETED' && !statsSaved && mission) {
       setStatsSaved(true);
       
-      // Save profile stats
-      updateProfileStats.mutate({
-        score: stats.score,
-        xp: stats.xp,
-        sets: stats.setsCompleted,
-        reps: stats.totalReps,
-        weight: stats.totalWeight,
-        maxCombo: stats.maxCombo,
-      });
-      
       // Collect all sets from the session for database persistence
       const allSets: Array<{
         exerciseId: string;
@@ -134,7 +123,19 @@ const WorkoutSession = () => {
         scoreEarned: number;
       }> = [];
       
-      currentSession.exercises.forEach((exercise) => {
+      // Also collect data for batch weight/PR persist
+      const batchSets: Array<{
+        exerciseId: string;
+        exerciseName: string;
+        weight: number;
+        reps: number;
+        unit: string;
+      }> = [];
+      
+      currentSession.exercises.forEach((exercise, exerciseIndex) => {
+        const missionExercise = mission.mission_exercises?.[exerciseIndex];
+        const exerciseName = missionExercise?.exercises?.name || 'Unknown Exercise';
+        
         exercise.sets.forEach((set) => {
           allSets.push({
             exerciseId: exercise.exerciseId,
@@ -143,7 +144,15 @@ const WorkoutSession = () => {
             actualReps: set.actualReps,
             weight: set.weight,
             unit: set.unit,
-            scoreEarned: Math.floor(set.actualReps * set.weight), // Approximate score per set
+            scoreEarned: Math.floor(set.actualReps * set.weight),
+          });
+          
+          batchSets.push({
+            exerciseId: exercise.exerciseId,
+            exerciseName,
+            weight: set.weight,
+            reps: set.actualReps,
+            unit: set.unit,
           });
         });
       });
@@ -153,32 +162,72 @@ const WorkoutSession = () => {
       const endTime = currentSession.completedAt ? new Date(currentSession.completedAt).getTime() : Date.now();
       const durationSeconds = Math.floor((endTime - startTime) / 1000);
 
-      // Save workout session to database with individual sets
-      createWorkoutSession.mutate({
-        missionId: mission.id,
-        missionSnapshot: {
-          name: mission.name,
-          code_name: mission.code_name,
-        },
-        scoreEarned: stats.score,
-        xpEarned: stats.xp,
-        setsCompleted: stats.setsCompleted,
-        totalReps: stats.totalReps,
-        totalWeight: stats.totalWeight,
-        maxCombo: stats.maxCombo,
-        damageDealt: stats.damageDealt,
-        sets: allSets,
-        durationSeconds,
-      });
-
-      // Note: Achievements are now checked on each set completion (Story 14.2)
-      // Mission-level achievements are handled there too
+      // Run all persistence in parallel - profile stats, workout session, weight history, and PRs
+      Promise.all([
+        // Save profile stats
+        updateProfileStats.mutateAsync({
+          score: stats.score,
+          xp: stats.xp,
+          sets: stats.setsCompleted,
+          reps: stats.totalReps,
+          weight: stats.totalWeight,
+          maxCombo: stats.maxCombo,
+        }).catch(() => {}),
+        
+        // Save workout session to database with individual sets
+        createWorkoutSession.mutateAsync({
+          missionId: mission.id,
+          missionSnapshot: {
+            name: mission.name,
+            code_name: mission.code_name,
+          },
+          scoreEarned: stats.score,
+          xpEarned: stats.xp,
+          setsCompleted: stats.setsCompleted,
+          totalReps: stats.totalReps,
+          totalWeight: stats.totalWeight,
+          maxCombo: stats.maxCombo,
+          damageDealt: stats.damageDealt,
+          sets: allSets,
+          durationSeconds,
+        }).catch(() => {}),
+        
+        // Batch persist weight history and PRs (replaces per-set calls)
+        batchPersist.mutateAsync({
+          sets: batchSets,
+          sessionId: currentSession.id,
+        }).then(result => {
+          // Show PR notification if any new PRs were set
+          if (result.newPRs.length > 0) {
+            setNewPRs(result.newPRs);
+            setTimeout(() => setShowPRNotification(true), 1500);
+          }
+        }).catch(() => {}),
+        
+        // Check achievements based on final stats
+        (async () => {
+          try {
+            const unlocked = await checkAndUnlock({
+              setsCompleted: (profile?.total_sets || 0) + stats.setsCompleted,
+              weightLifted: (profile?.total_weight || 0) + stats.totalWeight,
+              prsSet: 0, // Will be updated by batch persist
+              comboReached: stats.maxCombo,
+              workoutHour: new Date().getHours(),
+            });
+            if (unlocked.length > 0) {
+              setCurrentSetAchievement(unlocked[0]);
+            }
+          } catch (e) {
+            // Non-blocking
+          }
+        })(),
+      ]);
       
       if (mission.outro_lore) {
         setShowLore('outro');
       }
     }
-  }, [currentSession?.status, user, statsSaved, mission, stats, updateProfileStats, createWorkoutSession]);
+  }, [currentSession?.status, user, statsSaved, mission, stats, updateProfileStats, createWorkoutSession, batchPersist, checkAndUnlock, profile]);
 
   // Show moment of loss prompt for anonymous users after mission complete
   // MUST be before any conditional returns to satisfy React hooks rules
@@ -377,7 +426,7 @@ const WorkoutSession = () => {
   const completedSets = missionExercises.slice(0, safeExerciseIndex).reduce((acc, e) => acc + e.target_sets, 0) + currentSetIndex;
   const progress = (completedSets / totalSets) * 100;
 
-  const handleCompleteSet = async () => {
+  const handleCompleteSet = () => {
     if (isCompleting) return; // Prevent double-tap
     setIsCompleting(true);
     
@@ -388,7 +437,7 @@ const WorkoutSession = () => {
     const lorePhrase = getWeightedRandomLorePhrase();
     setCurrentLorePhrase(lorePhrase.text);
     
-    // IMMEDIATELY update game state - don't wait for DB operations
+    // IMMEDIATELY update game state - NO DB operations here!
     completeSet(reps, weight);
     
     // Trigger explosion immediately
@@ -413,53 +462,8 @@ const WorkoutSession = () => {
       setIsCompleting(false);
     }, 100);
     
-    // Run all DB operations in parallel (non-blocking)
-    if (user && missionExercise.exercise_id && exercise) {
-      // Fire and forget - don't await these
-      Promise.all([
-        // Update weight history
-        updateWeight.mutateAsync({
-          exerciseId: missionExercise.exercise_id,
-          weight,
-        }).catch(() => {}), // Silently catch errors
-        
-        // Check for new PRs
-        checkAndUpdatePR.mutateAsync({
-          exerciseId: missionExercise.exercise_id,
-          exerciseName: exercise.name || 'Unknown Exercise',
-          weight,
-          reps,
-          sessionId: currentSession?.id,
-        }).then(prResults => {
-          if (prResults.length > 0) {
-            setNewPRs(prResults);
-            setTimeout(() => setShowPRNotification(true), 1500);
-          }
-        }).catch(() => {}),
-      ]).then(async () => {
-        // Check achievements after PR check completes (needs PR count)
-        try {
-          const currentStats = useGameStore.getState().stats;
-          const totalSets = (profile?.total_sets || 0) + currentStats.setsCompleted;
-          const totalWeight = (profile?.total_weight || 0) + currentStats.totalWeight;
-          const totalPRs = (prCount || 0) + newPRs.length;
-          
-          const unlocked = await checkAndUnlock({
-            setsCompleted: totalSets,
-            weightLifted: totalWeight,
-            prsSet: totalPRs,
-            comboReached: currentStats.combo,
-            workoutHour: new Date().getHours(),
-          });
-          
-          if (unlocked.length > 0) {
-            setCurrentSetAchievement(unlocked[0]);
-          }
-        } catch (e) {
-          // Non-blocking
-        }
-      });
-    }
+    // All DB operations (weight history, PRs, achievements) are now batched
+    // and executed once at mission end - see the useEffect for session.status === 'COMPLETED'
   };
 
   const adjustValue = (setter: React.Dispatch<React.SetStateAction<number>>, delta: number, min = 0) => {
