@@ -248,7 +248,7 @@ export function MomentOfLossPrompt({
                   </button>
                 </motion.div>
                 
-                <p className="text-center text-[10px] text-muted-foreground/60 mt-4">
+                <p className="text-center text-xs text-muted-foreground/60 mt-4">
                   Create a free account to save your progress
                 </p>
               </div>

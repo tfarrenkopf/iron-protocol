@@ -343,19 +343,19 @@ const WorkoutSession = () => {
           <div className="grid grid-cols-4 gap-3 mb-4">
             <div className={`bg-card border rounded-lg p-3 ${isAnonymous ? 'border-warning/30' : 'border-border'}`}>
               <div className="font-display text-2xl text-accent">{stats.score.toLocaleString()}</div>
-              <div className="text-[10px] text-muted-foreground">SCORE</div>
+              <div className="text-xs text-muted-foreground">SCORE</div>
             </div>
             <div className={`bg-card border rounded-lg p-3 ${isAnonymous ? 'border-warning/30' : 'border-border'}`}>
               <div className="font-display text-2xl text-secondary">{stats.maxCombo}x</div>
-              <div className="text-[10px] text-muted-foreground">COMBO</div>
+              <div className="text-xs text-muted-foreground">COMBO</div>
             </div>
             <div className={`bg-card border rounded-lg p-3 ${isAnonymous ? 'border-warning/30' : 'border-border'}`}>
               <div className="font-display text-2xl text-primary">{stats.setsCompleted}</div>
-              <div className="text-[10px] text-muted-foreground">SETS</div>
+              <div className="text-xs text-muted-foreground">SETS</div>
             </div>
             <div className={`bg-card border rounded-lg p-3 ${isAnonymous ? 'border-warning/30' : 'border-border'}`}>
               <div className="font-display text-2xl text-success">+{stats.xp}</div>
-              <div className="text-[10px] text-muted-foreground">XP</div>
+              <div className="text-xs text-muted-foreground">XP</div>
             </div>
           </div>
           

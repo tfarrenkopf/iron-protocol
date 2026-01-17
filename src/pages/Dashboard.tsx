@@ -143,44 +143,44 @@ const Dashboard = () => {
         {/* Primary Actions - Fight Now */}
         <FightNowActions />
 
-        {/* Utility Actions Row */}
+        {/* Utility Actions Row - uniform sizing */}
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.2 }}
-          className={`grid gap-2 mb-8 ${isHandler ? "grid-cols-4" : "grid-cols-3"}`}
+          className={`grid gap-3 mb-8 ${isHandler ? "grid-cols-4" : "grid-cols-3"}`}
         >
           <button
             onClick={() => navigate("/hiit")}
-            className="group relative bg-card border border-section-hiit/50 rounded p-3 text-center transition-all hover:border-section-hiit hover:bg-section-hiit/5"
+            className="group relative bg-card border border-section-hiit/50 rounded-lg p-4 text-center transition-all hover:border-section-hiit hover:bg-section-hiit/5"
           >
-            <Timer className="w-5 h-5 text-section-hiit mx-auto mb-1" />
-            <h2 className="font-display text-xs text-section-hiit">HIIT</h2>
+            <Timer className="w-6 h-6 text-section-hiit mx-auto mb-2" />
+            <h2 className="font-display text-sm text-section-hiit">HIIT</h2>
           </button>
 
           <button
             onClick={() => navigate("/intel")}
-            className="group relative bg-card border border-section-intel/50 rounded p-3 text-center transition-all hover:border-section-intel hover:bg-section-intel/5"
+            className="group relative bg-card border border-section-intel/50 rounded-lg p-4 text-center transition-all hover:border-section-intel hover:bg-section-intel/5"
           >
-            <Radio className="w-5 h-5 text-section-intel mx-auto mb-1" />
-            <h2 className="font-display text-xs text-section-intel">INTEL</h2>
+            <Radio className="w-6 h-6 text-section-intel mx-auto mb-2" />
+            <h2 className="font-display text-sm text-section-intel">INTEL</h2>
           </button>
 
           <button
             onClick={() => navigate("/command")}
-            className="group relative bg-card border border-section-command/50 rounded p-3 text-center transition-all hover:border-section-command hover:bg-section-command/5"
+            className="group relative bg-card border border-section-command/50 rounded-lg p-4 text-center transition-all hover:border-section-command hover:bg-section-command/5"
           >
-            <Crosshair className="w-5 h-5 text-section-command mx-auto mb-1" />
-            <h2 className="font-display text-xs text-section-command">COMMAND</h2>
+            <Crosshair className="w-6 h-6 text-section-command mx-auto mb-2" />
+            <h2 className="font-display text-sm text-section-command">COMMAND</h2>
           </button>
 
           {isHandler && (
             <button
               onClick={() => navigate("/handler")}
-              className="group relative bg-card border border-warning/50 rounded p-3 text-center transition-all hover:border-warning hover:bg-warning/5"
+              className="group relative bg-card border border-warning/50 rounded-lg p-4 text-center transition-all hover:border-warning hover:bg-warning/5"
             >
-              <Users className="w-5 h-5 text-warning mx-auto mb-1" />
-              <h2 className="font-display text-xs text-warning">HANDLER</h2>
+              <Users className="w-6 h-6 text-warning mx-auto mb-2" />
+              <h2 className="font-display text-sm text-warning">HANDLER</h2>
             </button>
           )}
         </motion.div>

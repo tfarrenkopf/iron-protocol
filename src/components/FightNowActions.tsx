@@ -90,7 +90,7 @@ export function FightNowActions() {
                     <Dumbbell className={`w-3 h-3 ${isComplete ? 'text-secondary/60' : 'text-accent/60'}`} />
                     <div className="flex gap-1">
                       {campaignEquipment.map(eq => (
-                        <span key={eq} className={`text-[9px] px-1.5 py-0.5 rounded ${isComplete ? 'bg-secondary/10 text-secondary/80' : 'bg-accent/10 text-accent/80'}`}>
+                        <span key={eq} className={`text-xs px-1.5 py-0.5 rounded ${isComplete ? 'bg-secondary/10 text-secondary/80' : 'bg-accent/10 text-accent/80'}`}>
                           {formatEquipment(eq)}
                         </span>
                       ))}
@@ -128,8 +128,8 @@ export function FightNowActions() {
                       ONE-TIME STRIKE
                     </div>
                     <h2 className="font-display text-xl text-primary">FLASHPOINT STRIKE</h2>
-                    <p className="text-[10px] text-muted-foreground mt-1 max-w-xs">
-                      Drop in, obliterate the target, extract. No respawns, no mercy—just pure, glorious chaos.
+                    <p className="text-xs text-muted-foreground mt-1 max-w-xs">
+                      Drop in, obliterate the target, extract. No mercy.
                     </p>
                   </div>
                 </div>
@@ -151,8 +151,8 @@ export function FightNowActions() {
                       MULTI-MISSION WAR
                     </div>
                     <h2 className="font-display text-xl text-accent">SELECT CAMPAIGN</h2>
-                    <p className="text-[10px] text-muted-foreground mt-1 max-w-xs">
-                      Suit up, agent. A sequence of objectives—raids, extractions, strikes—all back-to-back.
+                    <p className="text-xs text-muted-foreground mt-1 max-w-xs">
+                      Multi-mission runs—raids, extractions, strikes—all back-to-back.
                     </p>
                   </div>
                 </div>
@@ -177,7 +177,7 @@ export function FightNowActions() {
               </div>
               <div className="flex-1 min-w-0">
                 <h3 className="font-display text-base text-accent">VIEW OPS</h3>
-                <p className="text-[10px] text-muted-foreground">Scout campaigns</p>
+                <p className="text-xs text-muted-foreground">Scout campaigns</p>
               </div>
             </div>
           </button>
@@ -193,7 +193,7 @@ export function FightNowActions() {
               </div>
               <div className="flex-1 min-w-0">
                 <h3 className="font-display text-base text-primary">FLASHPOINT</h3>
-                <p className="text-[10px] text-muted-foreground">One-time strike</p>
+                <p className="text-xs text-muted-foreground">One-time strike</p>
               </div>
             </div>
           </button>
@@ -212,7 +212,7 @@ export function FightNowActions() {
               </div>
               <div className="flex-1 min-w-0">
                 <h3 className="font-display text-base text-secondary">INTEL</h3>
-                <p className="text-[10px] text-muted-foreground">Live combat feed</p>
+                <p className="text-xs text-muted-foreground">Live combat feed</p>
               </div>
             </div>
           </button>
@@ -228,7 +228,7 @@ export function FightNowActions() {
               </div>
               <div className="flex-1 min-w-0">
                 <h3 className="font-display text-base text-accent">SELECT CAMPAIGN</h3>
-                <p className="text-[10px] text-muted-foreground">Switch battlefield</p>
+                <p className="text-xs text-muted-foreground">Switch battlefield</p>
               </div>
             </div>
           </button>
@@ -244,7 +244,7 @@ export function FightNowActions() {
               </div>
               <div className="flex-1 min-w-0">
                 <h3 className="font-display text-base text-secondary">INTEL</h3>
-                <p className="text-[10px] text-muted-foreground">Live combat feed</p>
+                <p className="text-xs text-muted-foreground">Live combat feed</p>
               </div>
             </div>
           </button>
