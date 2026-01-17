@@ -12,7 +12,7 @@ import { AddToCollectionButton } from '@/components/AddToCollectionButton';
 import { CollectionFormDialog } from '@/components/CollectionFormDialog';
 import { FOCUS_AREAS, getMusclesForFocusArea, formatEquipment } from '@/data/muscleGroups';
 import { CollectionFilter } from '@/components/CollectionFilter';
-import { ActiveCampaignHero, PinCampaignButton } from '@/components/ActiveCampaignHero';
+import { ActiveCampaignHero, StartCampaignButton } from '@/components/ActiveCampaignHero';
 import { useActiveCampaign } from '@/hooks/useActiveCampaign';
 import {
   AlertDialog,
@@ -603,8 +603,8 @@ const CampaignRow = ({ collection, isSystem, isOwner, onDelete, onEdit }: Campai
         </div>
         
         <div className="flex items-center gap-1">
-          {/* Pin button - always visible */}
-          <PinCampaignButton campaignId={collection.id} size="small" />
+          {/* Start button - always visible */}
+          <StartCampaignButton campaignId={collection.id} size="small" />
           
           {isOwner && !isSystem && (
             <div className="flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity">

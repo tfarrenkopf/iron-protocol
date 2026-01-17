@@ -41,11 +41,49 @@ export function useActiveCampaign() {
     },
   });
 
+  // Forfeit: clear active campaign AND reset progress (soft reset)
+  const forfeitCampaign = useMutation({
+    mutationFn: async (campaignId: string) => {
+      if (!user) throw new Error('Must be logged in');
+
+      // 1. Reset the campaign progress (missions_completed_count to 0)
+      const { error: progressError } = await supabase
+        .from('user_campaign_progress')
+        .update({ 
+          missions_completed_count: 0,
+          completed_at: null,
+          updated_at: new Date().toISOString()
+        })
+        .eq('campaign_id', campaignId)
+        .eq('user_id', user.id);
+
+      if (progressError) throw progressError;
+
+      // 2. Clear the active campaign
+      const { error: profileError } = await supabase
+        .from('profiles')
+        .update({ active_campaign_id: null })
+        .eq('id', user.id);
+
+      if (profileError) throw profileError;
+
+      return campaignId;
+    },
+    onSuccess: (campaignId) => {
+      queryClient.invalidateQueries({ queryKey: ['active-campaign', user?.id] });
+      queryClient.invalidateQueries({ queryKey: ['campaign-progress', campaignId] });
+      queryClient.invalidateQueries({ queryKey: ['campaign-progress-all'] });
+      queryClient.invalidateQueries({ queryKey: ['profile'] });
+    },
+  });
+
   return {
     activeCampaignId,
     isLoading,
     setActiveCampaign: setActiveCampaign.mutate,
+    forfeitCampaign: forfeitCampaign.mutate,
     isSettingActive: setActiveCampaign.isPending,
+    isForfeiting: forfeitCampaign.isPending,
   };
 }
 

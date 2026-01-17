@@ -1,11 +1,11 @@
 import { useState, useMemo, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import { useNavigate, useParams } from 'react-router-dom';
-import { ArrowLeft, Zap, Clock, Pencil, Trash2, Lock, Globe, Users, FolderOpen, Plus, Trophy, Timer, Pin } from 'lucide-react';
+import { ArrowLeft, Clock, Pencil, Trash2, Lock, Globe, Users, FolderOpen, Plus, Trophy, Timer } from 'lucide-react';
 import { useCollection, useDeleteCollection, useRemoveMissionFromCollection, useAddMissionToCollection } from '@/hooks/useCollections';
 import { useCampaignProgress, useCampaignCompletions, useCampaignLeaderboard } from '@/hooks/useCampaignProgress';
 import { useAuth } from '@/hooks/useAuth';
-import { useActiveCampaign } from '@/hooks/useActiveCampaign';
+import { StartCampaignButton } from '@/components/ActiveCampaignHero';
 import { GuestIndicator } from '@/components/AnonymousConversion';
 import { CollectionFormDialog } from '@/components/CollectionFormDialog';
 import { MissionPickerDialog } from '@/components/MissionPickerDialog';
@@ -35,9 +35,6 @@ const CampaignDetail = () => {
   const deleteCollection = useDeleteCollection();
   const removeMission = useRemoveMissionFromCollection();
   const addMission = useAddMissionToCollection();
-  const { activeCampaignId, setActiveCampaign, isSettingActive } = useActiveCampaign();
-  
-  const isActiveCampaign = activeCampaignId === collectionId;
 
   const [editDialogOpen, setEditDialogOpen] = useState(false);
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
@@ -194,20 +191,9 @@ const CampaignDetail = () => {
           </div>
 
           <div className="flex items-center gap-2">
-            {/* Pin/Unpin button */}
+            {/* Start/Active Campaign button */}
             {user && (
-              <button
-                onClick={() => setActiveCampaign(isActiveCampaign ? null : collectionId!)}
-                disabled={isSettingActive}
-                className={`p-2 border rounded transition-all ${
-                  isActiveCampaign
-                    ? 'border-accent text-accent bg-accent/10 hover:bg-accent/20'
-                    : 'border-border text-muted-foreground hover:border-accent hover:text-accent'
-                }`}
-                title={isActiveCampaign ? 'Unpin campaign' : 'Set as active campaign'}
-              >
-                <Pin className={`w-4 h-4 ${isActiveCampaign ? 'fill-current' : ''}`} />
-              </button>
+              <StartCampaignButton campaignId={collectionId!} />
             )}
             
             {isOwner && !collection.is_system && (
