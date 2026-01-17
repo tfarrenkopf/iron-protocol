@@ -61,7 +61,7 @@ export function MissionCard({
       // In picker mode, clicking adds the mission
       if (!isAdded && onAdd) onAdd();
     } else {
-      navigate(`/mission/${mission.id}`);
+      navigate(`/mission/${mission.id}${window.location.pathname.includes('/campaign/') ? `?campaignId=${window.location.pathname.split('/campaign/')[1]}` : ''}`);
     }
   };
 
@@ -268,7 +268,7 @@ export function MissionCard({
               </button>
             )}
             <button
-              onClick={(e) => { e.stopPropagation(); navigate(`/workout/${mission.id}`); }}
+              onClick={(e) => { e.stopPropagation(); navigate(`/workout/${mission.id}${window.location.pathname.includes('/campaign/') ? `?campaignId=${window.location.pathname.split('/campaign/')[1]}` : ''}`); }}
               className={`flex items-center gap-1.5 text-xs px-3 py-1.5 rounded font-display transition-colors ${
                 isCompleted 
                   ? 'bg-secondary/20 text-secondary hover:bg-secondary/30'
