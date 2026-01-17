@@ -487,7 +487,11 @@ const WorkoutSession = () => {
               setShowCancelConfirm(true);
             } else {
               endSession('ABORTED');
-              navigate('/');
+              if (campaignId) {
+                navigate(`/campaign/${campaignId}`);
+              } else {
+                navigate('/');
+              }
             }
           }}
           className="p-2 border border-destructive/50 rounded text-destructive hover:bg-destructive/10 transition-colors"
@@ -732,7 +736,11 @@ const WorkoutSession = () => {
                 <button
                   onClick={() => {
                     endSession('ABORTED');
-                    navigate('/');
+                    if (campaignId) {
+                      navigate(`/campaign/${campaignId}`);
+                    } else {
+                      navigate('/');
+                    }
                   }}
                   className="w-full py-3 border border-destructive text-destructive font-display rounded hover:bg-destructive/10 transition-all"
                 >
