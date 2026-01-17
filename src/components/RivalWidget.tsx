@@ -42,32 +42,44 @@ export function RivalWidget() {
   const hasRivals = rivals && rivals.length > 0;
 
   const shareRivalLink = async () => {
-    if (!profile?.rival_code) return;
+    if (!profile?.rival_code) {
+      toast({ title: 'Error', description: 'No rival code found. Try refreshing.', variant: 'destructive' });
+      return;
+    }
 
     const shareUrl = `${window.location.origin}/rival/${profile.rival_code}`;
     const shareText = `Challenge me in RIVAL MODE on Iron Protocol! ⚔️💪`;
 
-    if (navigator.share) {
+    // Try native share first (mobile)
+    const isMobile = /iPhone|iPad|iPod|Android/i.test(navigator.userAgent);
+    
+    if (isMobile && navigator.share) {
       try {
         await navigator.share({
           title: 'Iron Protocol - Rival Mode',
           text: shareText,
           url: shareUrl,
         });
-      } catch (err) {
-        // User cancelled or error
+        return; // Success - exit early
+      } catch (err: any) {
+        // User cancelled or share failed - fall through to clipboard
+        if (err?.name === 'AbortError') return; // User cancelled intentionally
       }
-    } else {
-      // Fallback to SMS link for mobile or clipboard
-      const smsBody = encodeURIComponent(`${shareText} ${shareUrl}`);
-      const isMobile = /iPhone|iPad|iPod|Android/i.test(navigator.userAgent);
-      
-      if (isMobile) {
-        window.open(`sms:?body=${smsBody}`, '_blank');
-      } else {
-        await navigator.clipboard.writeText(shareUrl);
-        toast({ title: 'Link copied!', description: 'Share it with your rival.' });
-      }
+    }
+    
+    // Fallback: copy to clipboard
+    try {
+      await navigator.clipboard.writeText(shareUrl);
+      toast({ 
+        title: 'Link copied! 📋', 
+        description: 'Send this to your rival to start competing.' 
+      });
+    } catch {
+      // Final fallback: show the link in a toast
+      toast({ 
+        title: 'Share this link:', 
+        description: shareUrl,
+      });
     }
   };
 
