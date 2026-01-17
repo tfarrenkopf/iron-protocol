@@ -708,13 +708,13 @@ const CampaignDetail = () => {
             className="mb-6"
           >
             <h2 className="font-display text-sm text-section-campaigns mb-3 tracking-wider flex items-center gap-2">
-              <Flame className="w-4 h-4" /> CAMPAIGN STATS
+              <Trophy className="w-4 h-4" /> CAMPAIGN CLEARS
             </h2>
             <div className="bg-card border border-border rounded-lg overflow-hidden">
               {/* Leaderboard section */}
               {leaderboard && leaderboard.length > 0 && (
                 <div className="p-3 border-b border-border">
-                  <p className="text-[10px] text-muted-foreground uppercase tracking-wider mb-2">TOP TIMES</p>
+                  <p className="text-[10px] text-muted-foreground uppercase tracking-wider mb-2">FASTEST FULL CLEARS</p>
                   <div className="space-y-1">
                     {leaderboard.slice(0, 3).map((entry: any, index: number) => (
                       <div key={entry.id} className="flex items-center justify-between text-xs">
@@ -738,10 +738,12 @@ const CampaignDetail = () => {
                 </div>
               )}
               
-              {/* Your history section */}
+              {/* Your full campaign completions */}
               {completions && completions.length > 0 && (
                 <div className="p-3">
-                  <p className="text-[10px] text-muted-foreground uppercase tracking-wider mb-2">YOUR RUNS</p>
+                  <p className="text-[10px] text-muted-foreground uppercase tracking-wider mb-2">
+                    YOUR FULL COMPLETIONS ({completions.length}x cleared)
+                  </p>
                   <div className="space-y-1">
                     {completions.slice(0, 3).map((completion) => (
                       <div key={completion.id} className="flex items-center justify-between text-xs">
