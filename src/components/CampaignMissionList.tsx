@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Plus, Zap } from 'lucide-react';
+import { Plus, Target } from 'lucide-react';
 import { Tables } from '@/integrations/supabase/types';
 import { MissionCard } from '@/components/MissionCard';
 import { useReorderMissions } from '@/hooks/useCollections';
@@ -55,17 +55,32 @@ export function CampaignMissionList({
 
   if (missions.length === 0) {
     return (
-      <div className="text-center py-12 border border-dashed border-border rounded-lg">
-        <Zap className="w-10 h-10 mx-auto mb-2 text-muted-foreground/50" />
-        <p className="text-sm text-muted-foreground mb-3">No missions in this campaign yet</p>
-        {isOwner && (
-          <button
-            onClick={onAddMission}
-            className="text-xs text-primary hover:underline font-display flex items-center gap-1 mx-auto"
-          >
-            <Plus className="w-3 h-3" /> ADD MISSIONS
-          </button>
-        )}
+      <div className="bg-card border border-border rounded-lg overflow-hidden">
+        <div className="p-4 border-b border-border bg-muted/20">
+          <div className="flex items-center gap-3">
+            <div className="p-2 rounded-lg bg-section-missions/10">
+              <Target className="w-5 h-5 text-section-missions" />
+            </div>
+            <div>
+              <p className="font-display text-sm text-foreground">NO MISSIONS ASSIGNED</p>
+              <p className="text-xs text-muted-foreground">Add missions to build your campaign roster</p>
+            </div>
+          </div>
+        </div>
+        <div className="p-6 text-center">
+          <Target className="w-10 h-10 mx-auto mb-3 text-section-missions/30" />
+          <p className="text-sm text-muted-foreground mb-4">
+            {isOwner ? 'Select missions from the arsenal to add to this campaign.' : 'This campaign has no missions yet.'}
+          </p>
+          {isOwner && (
+            <button
+              onClick={onAddMission}
+              className="px-4 py-2 bg-section-missions text-white font-display text-sm rounded hover:box-glow-missions transition-all flex items-center gap-2 mx-auto"
+            >
+              <Plus className="w-4 h-4" /> ADD MISSIONS
+            </button>
+          )}
+        </div>
       </div>
     );
   }
