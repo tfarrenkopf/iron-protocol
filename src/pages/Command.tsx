@@ -910,15 +910,6 @@ const Command = () => {
               </div>
             ) : (
               <div className="space-y-3">
-                {/* Active Campaign at top if in current view */}
-                {activeCampaign && filteredCampaigns.find(c => c.id === activeCampaignId) && (
-                  <div className="mb-2">
-                    <div className="flex items-center gap-2 mb-2">
-                      <Flame className="w-4 h-4 text-section-campaigns animate-pulse" />
-                      <span className="font-display text-xs text-section-campaigns tracking-wider">YOUR ACTIVE OP</span>
-                    </div>
-                  </div>
-                )}
                 
                 {/* Campaign list */}
                 {filteredCampaigns.map((c, i) => (
