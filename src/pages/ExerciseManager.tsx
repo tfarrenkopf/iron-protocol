@@ -217,8 +217,13 @@ const ExerciseManager = () => {
       }
       setShowForm(false);
       resetForm();
-      // Navigate back to Command exercises tab with MY EXERCISES selected
-      navigate('/command?tab=exercises&source=personal');
+      // Navigate back based on returnTo param or default to Command exercises tab
+      const returnTo = searchParams.get('returnTo');
+      if (returnTo === 'missions') {
+        navigate('/missions');
+      } else {
+        navigate('/command?tab=exercises&source=personal');
+      }
     } catch (err: any) {
       if (err.message?.includes("unique")) {
         setError("You already have an exercise with this name");
@@ -271,7 +276,13 @@ const ExerciseManager = () => {
         toast.success('MISSION UPDATED', {
           description: `${missionFormData.codeName} parameters modified.`,
         });
-        navigate('/command?tab=missions&source=personal');
+        // Navigate back based on returnTo param or default to Command missions tab
+        const returnTo = searchParams.get('returnTo');
+        if (returnTo === 'missions') {
+          navigate('/missions');
+        } else {
+          navigate('/command?tab=missions&source=personal');
+        }
       } else {
         await createMission.mutateAsync(missionData);
         toast.success('MISSION DEPLOYED', {
