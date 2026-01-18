@@ -17,6 +17,8 @@ import {
   RefreshCw,
   Activity,
   AlertTriangle,
+  Share2,
+  Play,
 } from 'lucide-react';
 import { GlobalNav } from '@/components/GlobalNav';
 import { RivalWidget } from '@/components/RivalWidget';
@@ -204,6 +206,66 @@ function generateSyntheticWarReport() {
       { id: '3', campaign_id: 'c3', campaign_name: 'PAIN TRAIN', replay_rate: 65, campaign_code: 'FULL' },
     ],
   };
+}
+
+interface SyntheticRivalStats {
+  user_id: string;
+  display_name: string;
+  weekly_sessions: number;
+  weekly_weight: number;
+  weekly_sets: number;
+  weekly_max_combo: number;
+}
+
+interface SyntheticRivalActivity {
+  id: string;
+  display_name: string;
+  completed_at: string;
+  mission_id: string;
+  mission_snapshot: { name: string; code_name: string };
+  score_earned: number;
+  total_weight: number;
+  max_combo: number;
+}
+
+function generateSyntheticRivalData(missions: any[]): {
+  stats: SyntheticRivalStats[];
+  activity: SyntheticRivalActivity[];
+} {
+  const rivalNames = HACKER_NAMES.slice(0, 4);
+  const now = new Date();
+  
+  // Generate leaderboard stats
+  const stats: SyntheticRivalStats[] = rivalNames.map((name, i) => ({
+    user_id: `synth-rival-${i}`,
+    display_name: name,
+    weekly_sessions: 5 - i + Math.floor(Math.random() * 2),
+    weekly_weight: 8000 - (i * 1500) + Math.floor(Math.random() * 3000),
+    weekly_sets: 45 - (i * 8) + Math.floor(Math.random() * 10),
+    weekly_max_combo: 12 - (i * 2) + Math.floor(Math.random() * 3),
+  }));
+  
+  // Generate activity feed
+  const activity: SyntheticRivalActivity[] = [];
+  if (missions && missions.length > 0) {
+    for (let i = 0; i < 5; i++) {
+      const mission = missions[Math.floor(Math.random() * missions.length)];
+      const rivalName = rivalNames[Math.floor(Math.random() * rivalNames.length)];
+      
+      activity.push({
+        id: `synth-activity-${i}`,
+        display_name: rivalName,
+        completed_at: subHours(now, 2 + Math.floor(Math.random() * 24)).toISOString(),
+        mission_id: mission.id,
+        mission_snapshot: { name: mission.name, code_name: mission.code_name },
+        score_earned: 800 + Math.floor(Math.random() * 1500),
+        total_weight: 2000 + Math.floor(Math.random() * 8000),
+        max_combo: 5 + Math.floor(Math.random() * 10),
+      });
+    }
+  }
+  
+  return { stats, activity };
 }
 
 // ==================== HOOKS ====================
@@ -867,6 +929,180 @@ const CampaignSection = ({ title, icon, campaigns, isLoading, metric, navigate, 
   );
 };
 
+// Guest Rivals Tab - Shows synthetic data
+const GuestRivalsTab = () => {
+  const navigate = useNavigate();
+  const { data: missions } = useMissions({ showOnlyPublic: true });
+  
+  const syntheticData = useMemo(() => 
+    generateSyntheticRivalData(missions || []),
+    [missions]
+  );
+  
+  const weekStart = startOfWeek(new Date(), { weekStartsOn: 0 });
+  const weekEnd = endOfWeek(new Date(), { weekStartsOn: 0 });
+  const weekRangeText = `${format(weekStart, 'MMM d')} - ${format(weekEnd, 'MMM d')}`;
+  
+  const formatRelativeTime = (dateStr: string) => {
+    const date = new Date(dateStr);
+    const now = new Date();
+    const diffMs = now.getTime() - date.getTime();
+    const diffMins = Math.floor(diffMs / 60000);
+    const diffHours = Math.floor(diffMs / 3600000);
+    
+    if (diffMins < 60) return `${diffMins}m ago`;
+    if (diffHours < 24) return `${diffHours}h ago`;
+    return format(date, 'MMM d');
+  };
+  
+  const getRankIcon = (index: number) => {
+    if (index === 0) return <Crown className="w-3 h-3" />;
+    return <span>{index + 1}</span>;
+  };
+  
+  const getRankColor = (index: number) => {
+    if (index === 0) return 'bg-foreground/20 text-foreground';
+    return 'bg-muted/20 text-muted-foreground';
+  };
+  
+  return (
+    <div className="space-y-6">
+      <SampleDataBanner />
+      
+      <motion.div
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        className="bg-card border border-section-intel/50 rounded-lg p-4"
+      >
+        {/* Header */}
+        <div className="flex items-center justify-between mb-4">
+          <div className="flex items-center gap-2">
+            <Swords className="w-5 h-5 text-section-intel" />
+            <h3 className="font-display text-lg text-section-intel">RIVAL MODE</h3>
+          </div>
+          <Share2 className="w-4 h-4 text-section-intel/50" />
+        </div>
+        
+        {/* Weekly Leaderboard */}
+        <div className="mb-4">
+          <div className="flex items-center justify-between mb-2">
+            <div className="text-xs text-muted-foreground flex items-center gap-1">
+              <TrendingUp className="w-3 h-3" />
+              <span>WEEKLY LEADERBOARD</span>
+            </div>
+            <div className="text-xs text-muted-foreground">
+              {weekRangeText}
+            </div>
+          </div>
+          
+          <p className="text-xs text-muted-foreground/70 mb-2">
+            Resets every Sunday. Compete for missions completed this week.
+          </p>
+          
+          <div className="space-y-2">
+            {syntheticData.stats.map((stat, index) => (
+              <motion.div
+                key={stat.user_id}
+                initial={{ opacity: 0, x: -10 }}
+                animate={{ opacity: 1, x: 0 }}
+                transition={{ delay: index * 0.1 }}
+                className="p-2 rounded bg-background border border-border"
+              >
+                <div className="flex items-center gap-3">
+                  <div className={`w-6 h-6 rounded-full flex items-center justify-center text-xs font-bold ${getRankColor(index)}`}>
+                    {getRankIcon(index)}
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    <p className="text-sm font-medium truncate text-foreground">
+                      {stat.display_name}
+                    </p>
+                  </div>
+                  <div className="text-right flex-shrink-0">
+                    <p className="text-sm font-display text-foreground">
+                      {stat.weekly_sessions}
+                    </p>
+                    <p className="text-xs text-muted-foreground">
+                      MISSIONS
+                    </p>
+                  </div>
+                </div>
+              </motion.div>
+            ))}
+          </div>
+        </div>
+        
+        {/* Activity Feed */}
+        <div>
+          <div className="text-xs text-muted-foreground mb-2 flex items-center gap-1">
+            <Flame className="w-3 h-3" />
+            <span>RIVAL ACTIVITY FEED</span>
+          </div>
+          
+          <div className="space-y-2">
+            {syntheticData.activity.map((activity, index) => (
+              <motion.div
+                key={activity.id}
+                initial={{ opacity: 0, y: 10 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: index * 0.05 }}
+                className="p-3 bg-background border border-border rounded-lg"
+              >
+                <div className="flex items-start justify-between gap-2 mb-2">
+                  <div>
+                    <span className="font-display text-sm text-foreground">{activity.display_name}</span>
+                    <span className="text-xs text-muted-foreground ml-1">completed</span>
+                  </div>
+                  <span className="text-xs text-muted-foreground">{formatRelativeTime(activity.completed_at)}</span>
+                </div>
+                
+                <div className="font-display text-sm text-muted-foreground mb-2">
+                  {activity.mission_snapshot?.code_name || 'CLASSIFIED MISSION'}
+                </div>
+                
+                <div className="flex items-center gap-3 text-xs text-muted-foreground/80 mb-3">
+                  <span className="flex items-center gap-1">
+                    <Target className="w-3 h-3 text-muted-foreground/60" />
+                    {activity.score_earned.toLocaleString()}
+                  </span>
+                  <span className="flex items-center gap-1">
+                    <Dumbbell className="w-3 h-3 text-muted-foreground/60" />
+                    {activity.total_weight.toLocaleString()} lbs
+                  </span>
+                  <span className="flex items-center gap-1">
+                    <Zap className="w-3 h-3 text-muted-foreground/60" />
+                    {activity.max_combo}x
+                  </span>
+                </div>
+
+                <button
+                  onClick={() => navigate(`/mission/${activity.mission_id}`)}
+                  className="w-full py-2.5 border-2 border-section-intel rounded text-sm font-display text-section-intel hover:bg-section-intel/10 transition-colors flex items-center justify-center gap-2"
+                >
+                  <Play className="w-4 h-4" />
+                  ACCEPT CHALLENGE
+                </button>
+              </motion.div>
+            ))}
+          </div>
+        </div>
+        
+        {/* Sign up CTA */}
+        <div className="mt-4 pt-4 border-t border-border text-center">
+          <p className="text-xs text-muted-foreground mb-2">
+            Sign in to track real rivals and compete head-to-head
+          </p>
+          <button
+            onClick={() => navigate('/auth')}
+            className="px-4 py-2 bg-section-intel text-white font-display text-sm rounded hover:opacity-90 transition-all"
+          >
+            SIGN IN TO COMPETE
+          </button>
+        </div>
+      </motion.div>
+    </div>
+  );
+};
+
 // Rankings Tab
 const RankingsTab = ({ isGuest }: { isGuest: boolean }) => {
   const { data: profile } = useProfile();
@@ -1123,17 +1359,7 @@ const Intel = () => {
 
           <TabsContent value="rivals">
             {isGuest ? (
-              <div className="text-center py-12 border border-dashed border-border rounded-lg">
-                <Swords className="w-12 h-12 mx-auto mb-4 text-muted-foreground/50" />
-                <p className="font-display text-lg text-muted-foreground mb-2">RIVALRY INTEL LOCKED</p>
-                <p className="text-sm text-muted-foreground/70 mb-4">Sign in to track your rivals and compete head-to-head.</p>
-                <button
-                  onClick={() => navigate('/auth')}
-                  className="px-4 py-2 bg-section-intel text-white font-display text-sm rounded hover:opacity-90 transition-all"
-                >
-                  SIGN IN
-                </button>
-              </div>
+              <GuestRivalsTab />
             ) : (
               <RivalWidget variant="full" />
             )}
