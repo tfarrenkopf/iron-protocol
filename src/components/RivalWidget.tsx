@@ -360,7 +360,7 @@ export function RivalWidget({ variant = 'compact' }: RivalWidgetProps) {
                         {activity.mission_id && (
                           <button
                             onClick={() => handleJoinMission(activity.mission_id!)}
-                            className="w-full py-2.5 border-2 border-section-intel rounded text-xs font-display text-section-intel hover:bg-section-intel/10 transition-colors flex items-center justify-center gap-2"
+                            className="w-full py-2.5 border-2 border-section-intel rounded text-sm font-display text-section-intel hover:bg-section-intel/10 transition-colors flex items-center justify-center gap-2"
                           >
                             <Play className="w-4 h-4" />
                             ACCEPT CHALLENGE
@@ -397,25 +397,25 @@ export function RivalWidget({ variant = 'compact' }: RivalWidgetProps) {
                     >
                       <div className="flex items-start justify-between gap-2 mb-2">
                         <div className="flex-1 min-w-0">
-                          <span className="text-xs text-foreground font-display">{activity.display_name}</span>
-                          <span className="text-xs text-muted-foreground"> completed </span>
-                          <span className="text-xs text-section-missions font-display">
+                          <span className="text-sm text-foreground font-display">{activity.display_name}</span>
+                          <span className="text-sm text-muted-foreground"> completed </span>
+                          <span className="text-sm text-section-missions font-display">
                             {activity.mission_snapshot?.code_name || 'MISSION'}
                           </span>
                         </div>
-                        <span className="text-xs text-muted-foreground flex-shrink-0">
+                        <span className="text-sm text-muted-foreground flex-shrink-0">
                           {formatRelativeTime(activity.completed_at)}
                         </span>
                       </div>
                       
                       {/* Stats row */}
-                      <div className="flex items-center gap-3 text-xs text-muted-foreground mb-2">
+                      <div className="flex items-center gap-3 text-sm text-muted-foreground mb-2">
                         <span className="flex items-center gap-1">
-                          <Target className="w-3 h-3" />
+                          <Target className="w-4 h-4" />
                           {activity.score_earned.toLocaleString()}
                         </span>
                         <span className="flex items-center gap-1">
-                          <Dumbbell className="w-3 h-3" />
+                          <Dumbbell className="w-4 h-4" />
                           {activity.total_weight.toLocaleString()} lbs
                         </span>
                       </div>
@@ -424,9 +424,9 @@ export function RivalWidget({ variant = 'compact' }: RivalWidgetProps) {
                       {activity.mission_id && (
                         <button
                           onClick={() => handleJoinMission(activity.mission_id!)}
-                          className="w-full py-2 border-2 border-section-intel rounded text-xs font-display text-section-intel hover:bg-section-intel/10 transition-colors flex items-center justify-center gap-2"
+                          className="w-full py-2.5 border-2 border-section-intel rounded text-sm font-display text-section-intel hover:bg-section-intel/10 transition-colors flex items-center justify-center gap-2"
                         >
-                          <Play className="w-3 h-3" />
+                          <Play className="w-4 h-4" />
                           ACCEPT CHALLENGE
                         </button>
                       )}
@@ -442,7 +442,7 @@ export function RivalWidget({ variant = 'compact' }: RivalWidgetProps) {
                 size="sm"
                 variant="outline"
                 onClick={shareRivalLink}
-                className="w-full text-xs"
+                className="w-full text-sm"
               >
                 <Share2 className="w-3 h-3 mr-1" />
                 CHALLENGE ANOTHER
