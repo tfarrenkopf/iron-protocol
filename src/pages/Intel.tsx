@@ -448,10 +448,10 @@ const LiveFeedTab = ({ isGuest }: { isGuest: boolean }) => {
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
-          className="p-4 bg-card border border-primary/50 rounded-lg"
+          className="p-4 bg-card border border-section-intel/50 rounded-lg"
         >
           <div className="flex items-center justify-between mb-4">
-            <h2 className="font-display text-lg text-primary flex items-center gap-2">
+            <h2 className="font-display text-lg text-section-intel flex items-center gap-2">
               <Users className="w-5 h-5" />
               THIS WEEK'S STATS
             </h2>
@@ -663,7 +663,7 @@ const CampaignIntelTab = ({ isGuest }: { isGuest: boolean }) => {
         className="bg-muted/30 border border-border rounded-lg p-4"
       >
         <div className="flex items-start gap-3">
-          <Shield className="w-5 h-5 text-primary mt-0.5 flex-shrink-0" />
+          <Shield className="w-5 h-5 text-section-intel mt-0.5 flex-shrink-0" />
           <div>
             <p className="text-sm text-muted-foreground">
               All data shown is <span className="text-foreground font-medium">aggregated and anonymized</span>.
@@ -751,9 +751,9 @@ interface StatCardProps {
 }
 
 const StatCard = ({ icon, label, value, suffix }: StatCardProps) => (
-  <Card className="bg-card/50 border-section-campaigns/30 hover:border-section-campaigns/60 transition-colors">
+  <Card className="bg-card/50 border-border hover:border-muted-foreground transition-colors">
     <CardContent className="p-3">
-      <div className="flex items-center gap-2 text-section-campaigns mb-1">
+      <div className="flex items-center gap-2 text-muted-foreground mb-1">
         {icon}
         <span className="text-xs font-mono uppercase">{label}</span>
       </div>
@@ -890,7 +890,7 @@ const RankingsTab = ({ isGuest }: { isGuest: boolean }) => {
   };
 
   if (isLoading) {
-    return <div className="text-center py-12"><div className="font-display text-lg text-primary animate-neon-pulse">LOADING...</div></div>;
+    return <div className="text-center py-12"><div className="font-display text-lg text-section-intel animate-neon-pulse">LOADING...</div></div>;
   }
 
   if (!leaderboard || leaderboard.length === 0) {
@@ -1129,7 +1129,7 @@ const Intel = () => {
                 <p className="text-sm text-muted-foreground/70 mb-4">Sign in to track your rivals and compete head-to-head.</p>
                 <button
                   onClick={() => navigate('/auth')}
-                  className="px-4 py-2 bg-primary text-primary-foreground font-display text-sm rounded hover:box-glow-primary transition-all"
+                  className="px-4 py-2 bg-section-intel text-white font-display text-sm rounded hover:opacity-90 transition-all"
                 >
                   SIGN IN
                 </button>
