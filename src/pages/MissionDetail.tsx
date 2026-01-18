@@ -173,7 +173,7 @@ const MissionDetail = () => {
           className="bg-card border border-border rounded-lg p-4 mb-6"
         >
           <div className="flex items-center gap-2 mb-3">
-            <Trophy className="w-4 h-4 text-warning" />
+            <Trophy className="w-4 h-4 text-muted-foreground" />
             <h3 className="font-display text-sm text-muted-foreground">MISSION RANKINGS</h3>
           </div>
           
@@ -192,11 +192,11 @@ const MissionDetail = () => {
           ) : (
             <div className="text-center py-4">
               <div className="text-4xl mb-2">👑</div>
-              <p className="font-display text-sm text-warning mb-1">UNCHARTED TERRITORY</p>
+              <p className="font-display text-sm text-muted-foreground mb-1">UNCHARTED TERRITORY</p>
               <p className="text-xs text-muted-foreground">
                 No one has conquered this mission yet.
               </p>
-              <p className="text-xs text-primary mt-2 font-display">
+              <p className="text-xs text-section-missions mt-2 font-display">
                 Be the first to claim victory!
               </p>
             </div>
@@ -210,7 +210,7 @@ const MissionDetail = () => {
           transition={{ delay: 0.2 }}
           className="mb-24"
         >
-          <h2 className="font-display text-xl text-secondary mb-4 tracking-wider">EXERCISE ROSTER</h2>
+          <h2 className="font-display text-xl text-muted-foreground mb-4 tracking-wider">EXERCISE ROSTER</h2>
           
           <div className="space-y-3">
             {sortedExercises.map((missionExercise, index) => {
