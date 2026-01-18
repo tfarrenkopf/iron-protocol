@@ -10,13 +10,14 @@ const JoinSquad = () => {
   const { inviteCode } = useParams<{ inviteCode: string }>();
   const { user, isAnonymous } = useAuth();
   const { data: squad, isLoading, error: fetchError } = useSquadByInviteCode(inviteCode || '');
-  const { data: mySquads } = useMySquads();
+  const { data: mySquads, isLoading: mySquadsLoading } = useMySquads();
   const joinSquad = useJoinSquad();
   const [joined, setJoined] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
   // Check if already a member of THIS specific squad
-  const isAlreadyMember = mySquads?.some(m => m.squads?.id === squad?.id);
+  // Only check AFTER mySquads has loaded to prevent false positives
+  const isAlreadyMember = !mySquadsLoading && mySquads?.some(m => m.squads?.id === squad?.id);
 
   const handleJoin = async () => {
     if (!squad) return;
@@ -60,7 +61,7 @@ const JoinSquad = () => {
     );
   }
 
-  if (isLoading) {
+  if (isLoading || mySquadsLoading) {
     return (
       <div className="min-h-screen bg-background relative flex items-center justify-center">
         <div className="fixed inset-0 pointer-events-none scanlines opacity-20" />
