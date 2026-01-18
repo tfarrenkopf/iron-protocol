@@ -56,6 +56,7 @@ export default {
           hiit: "hsl(var(--section-hiit))",
           rivals: "hsl(var(--section-rivals))",
           orders: "hsl(var(--section-orders))",
+          exercises: "hsl(var(--section-exercises))",
         },
         popover: {
           DEFAULT: "hsl(var(--popover))",
