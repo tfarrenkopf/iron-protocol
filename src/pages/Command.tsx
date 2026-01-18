@@ -397,7 +397,7 @@ const Command = () => {
           >
             {/* Mission instruction */}
             <div className="mb-3 p-3 bg-section-missions/5 border border-section-missions/20 rounded-lg">
-              <p className="text-xs text-muted-foreground">
+              <p className="text-sm text-muted-foreground leading-relaxed">
                 <span className="text-section-missions font-display">MISSIONS</span> are single combat ops. Pick one. Execute. Get stronger.
               </p>
             </div>
