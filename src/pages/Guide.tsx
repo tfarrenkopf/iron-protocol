@@ -97,9 +97,9 @@ const GUIDE_SECTIONS = [
     color: 'text-section-intel',
     content: [
       { type: 'text', value: 'Challenge friends to head-to-head competition with the Rival system.' },
-      { type: 'highlight', value: 'Profile → Share your Rival Code or send your invite link' },
-      { type: 'step', label: '1', value: 'Go to your Profile and copy your unique Rival Code' },
-      { type: 'step', label: '2', value: 'Share the link with friends — they can sign up directly from it' },
+      { type: 'highlight', value: 'Dashboard → Rival Widget → Share your invite link or Rival Code' },
+      { type: 'step', label: '1', value: 'Find the Rival Widget on your Dashboard and tap to share your unique link' },
+      { type: 'step', label: '2', value: 'Friends can sign up directly from the invite — no code needed' },
       { type: 'step', label: '3', value: 'Once connected, you\'ll see each other on the Weekly Killboard' },
       { type: 'text', value: 'The Weekly Killboard tracks missions completed, weight lifted, and max combos — resetting every Sunday.' },
       { type: 'stat', label: 'ACCEPT CHALLENGE', value: 'Start the same mission a rival just finished to compete directly' },
