@@ -190,23 +190,23 @@ const ProfilePage = () => {
               className="grid grid-cols-2 gap-4 mb-6"
             >
               <div className="bg-card border border-border rounded-lg p-4 text-center">
-                <Trophy className="w-5 h-5 mx-auto mb-2 text-accent" />
-                <div className="font-display text-2xl text-accent">{(profile?.total_score || 0).toLocaleString()}</div>
+                <Trophy className="w-5 h-5 mx-auto mb-2 text-primary" />
+                <div className="font-display text-2xl text-foreground">{(profile?.total_score || 0).toLocaleString()}</div>
                 <div className="text-xs text-muted-foreground">TOTAL SCORE</div>
               </div>
               <div className="bg-card border border-border rounded-lg p-4 text-center">
-                <Zap className="w-5 h-5 mx-auto mb-2 text-secondary" />
-                <div className="font-display text-2xl text-secondary">{profile?.max_combo || 0}x</div>
+                <Zap className="w-5 h-5 mx-auto mb-2 text-primary" />
+                <div className="font-display text-2xl text-foreground">{profile?.max_combo || 0}x</div>
                 <div className="text-xs text-muted-foreground">MAX COMBO</div>
               </div>
               <div className="bg-card border border-border rounded-lg p-4 text-center">
                 <Target className="w-5 h-5 mx-auto mb-2 text-primary" />
-                <div className="font-display text-2xl text-primary">{profile?.total_sets || 0}</div>
+                <div className="font-display text-2xl text-foreground">{profile?.total_sets || 0}</div>
                 <div className="text-xs text-muted-foreground">TOTAL SETS</div>
               </div>
               <div className="bg-card border border-border rounded-lg p-4 text-center">
-                <Dumbbell className="w-5 h-5 mx-auto mb-2 text-success" />
-                <div className="font-display text-2xl text-success">
+                <Dumbbell className="w-5 h-5 mx-auto mb-2 text-primary" />
+                <div className="font-display text-2xl text-foreground">
                   {((profile?.total_weight || 0) / 1000).toFixed(1)}k
                 </div>
                 <div className="text-xs text-muted-foreground">LBS LIFTED</div>

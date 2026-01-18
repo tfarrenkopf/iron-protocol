@@ -109,21 +109,21 @@ const MissionDetail = () => {
           {/* Stats row */}
           <div className="grid grid-cols-4 gap-4 mb-4">
             <div className="text-center">
-              <div className="flex items-center justify-center gap-1 text-accent mb-1">
+              <div className="flex items-center justify-center gap-1 text-muted-foreground mb-1">
                 <Zap className="w-4 h-4" />
               </div>
               <div className="font-display text-lg text-foreground">{mission.difficulty}</div>
               <div className="text-xs text-muted-foreground">DIFFICULTY</div>
             </div>
             <div className="text-center">
-              <div className="flex items-center justify-center gap-1 text-secondary mb-1">
+              <div className="flex items-center justify-center gap-1 text-muted-foreground mb-1">
                 <Clock className="w-4 h-4" />
               </div>
               <div className="font-display text-lg text-foreground">{mission.estimated_minutes}</div>
               <div className="text-xs text-muted-foreground">MINUTES</div>
             </div>
             <div className="text-center">
-              <div className="flex items-center justify-center gap-1 text-primary mb-1">
+              <div className="flex items-center justify-center gap-1 text-muted-foreground mb-1">
                 <Dumbbell className="w-4 h-4" />
               </div>
               <div className="font-display text-lg text-foreground">{totalSets}</div>
@@ -271,7 +271,7 @@ const MissionDetail = () => {
                             <span className="text-xs text-muted-foreground tracking-wider">EQUIPMENT</span>
                             <div className="flex flex-wrap gap-2 mt-1">
                               {exercise.equipment.map((eq) => (
-                                <span key={eq} className="text-xs px-2 py-1 bg-accent/20 text-accent rounded">
+                                <span key={eq} className="text-xs px-2 py-1 bg-muted text-muted-foreground rounded">
                                   {eq.replace(/_/g, ' ')}
                                 </span>
                               ))}

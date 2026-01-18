@@ -562,22 +562,22 @@ const CampaignDetail = () => {
             {/* Compact inline stats */}
             <div className="flex items-center gap-4 text-xs text-muted-foreground flex-wrap">
               <span className="flex items-center gap-1">
-                <Crosshair className="w-3 h-3 text-section-missions" />
+                <Crosshair className="w-3 h-3 text-muted-foreground" />
                 {missions.length} missions
               </span>
               <span className="flex items-center gap-1">
-                <Clock className="w-3 h-3 text-secondary" />
+                <Clock className="w-3 h-3 text-muted-foreground" />
                 ~{missions.reduce((acc, m) => acc + (m?.estimated_minutes || 0), 0)} min
               </span>
               {progress?.total_completions && progress.total_completions > 0 && (
                 <span className="flex items-center gap-1">
-                  <RefreshCw className="w-3 h-3 text-accent" />
+                  <RefreshCw className="w-3 h-3 text-muted-foreground" />
                   {progress.total_completions}x cleared
                 </span>
               )}
               {progress?.best_completion_time_seconds && (
                 <span className="flex items-center gap-1">
-                  <Timer className="w-3 h-3 text-secondary" />
+                  <Timer className="w-3 h-3 text-muted-foreground" />
                   Best: {formatTime(progress.best_completion_time_seconds)}
                 </span>
               )}
@@ -726,11 +726,11 @@ const CampaignDetail = () => {
                           }`}>
                             #{index + 1}
                           </span>
-                          <span className="text-muted-foreground">
+                        <span className="text-muted-foreground">
                             {entry.profiles?.display_name || 'Anonymous'}
                           </span>
                         </div>
-                        <span className="text-primary font-display">
+                        <span className="text-foreground font-display">
                           {formatTime(entry.completion_time_seconds)}
                         </span>
                       </div>
@@ -757,7 +757,7 @@ const CampaignDetail = () => {
                           </span>
                         </div>
                         <div className="flex items-center gap-3">
-                          <span className="text-primary">{formatTime(completion.completion_time_seconds)}</span>
+                          <span className="text-foreground">{formatTime(completion.completion_time_seconds)}</span>
                           <span className="text-muted-foreground">{completion.total_score} pts</span>
                         </div>
                       </div>

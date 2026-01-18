@@ -90,7 +90,7 @@ export function FightNowActions() {
                     <Dumbbell className={`w-3 h-3 ${isComplete ? 'text-secondary/60' : 'text-accent/60'}`} />
                     <div className="flex gap-1">
                       {campaignEquipment.map(eq => (
-                        <span key={eq} className={`text-xs px-1.5 py-0.5 rounded ${isComplete ? 'bg-secondary/10 text-secondary/80' : 'bg-accent/10 text-accent/80'}`}>
+                        <span key={eq} className={`text-xs px-1.5 py-0.5 rounded ${isComplete ? 'bg-secondary/10 text-muted-foreground' : 'bg-accent/10 text-muted-foreground'}`}>
                           {formatEquipment(eq)}
                         </span>
                       ))}

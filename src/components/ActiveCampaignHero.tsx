@@ -164,13 +164,13 @@ export function ActiveCampaignHero({ className = '' }: ActiveCampaignHeroProps) 
         <div className="flex items-center gap-4 text-xs text-muted-foreground mb-3">
           {progress?.total_completions !== undefined && progress.total_completions > 0 && (
             <div className="flex items-center gap-1">
-              <RefreshCw className="w-3 h-3 text-secondary" />
+              <RefreshCw className="w-3 h-3" />
               <span>{progress.total_completions}x cleared</span>
             </div>
           )}
           {progress?.best_completion_time_seconds && (
             <div className="flex items-center gap-1">
-              <Clock className="w-3 h-3 text-secondary" />
+              <Clock className="w-3 h-3" />
               <span>Best: {formatTime(progress.best_completion_time_seconds)}</span>
             </div>
           )}

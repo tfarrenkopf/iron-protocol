@@ -87,18 +87,18 @@ export function CampaignProgressCard({
         {/* Stats Grid - Arcade Style */}
         <div className="grid grid-cols-4 gap-2 text-center">
           <div className="p-2 bg-background/50 rounded border border-border/50">
-            <div className="text-xl font-display text-primary">{progressPercent}%</div>
+            <div className="text-xl font-display text-foreground">{progressPercent}%</div>
             <div className="text-xs text-muted-foreground tracking-wider">PROG</div>
           </div>
           <div className="p-2 bg-background/50 rounded border border-border/50">
-            <div className="text-xl font-display text-secondary flex items-center justify-center gap-1">
+            <div className="text-xl font-display text-foreground flex items-center justify-center gap-1">
               <RotateCcw className="w-3 h-3" />
               {totalRuns}
             </div>
             <div className="text-xs text-muted-foreground tracking-wider">RUNS</div>
           </div>
           <div className="p-2 bg-background/50 rounded border border-border/50">
-            <div className="text-xl font-display text-accent">
+            <div className="text-xl font-display text-foreground">
               {progress?.best_completion_time_seconds 
                 ? formatTime(progress.best_completion_time_seconds)
                 : '--:--'}
