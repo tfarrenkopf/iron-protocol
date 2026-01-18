@@ -135,9 +135,7 @@ export function RivalWidget({ variant = 'compact' }: RivalWidgetProps) {
   };
 
   const getRankColor = (index: number) => {
-    if (index === 0) return 'bg-yellow-500/20 text-yellow-500';
-    if (index === 1) return 'bg-gray-400/20 text-gray-400';
-    if (index === 2) return 'bg-amber-600/20 text-amber-600';
+    if (index === 0) return 'bg-foreground/20 text-foreground';
     return 'bg-muted/20 text-muted-foreground';
   };
 
@@ -261,7 +259,7 @@ export function RivalWidget({ variant = 'compact' }: RivalWidgetProps) {
                           
                           {/* Name & expand indicator */}
                           <div className="flex-1 min-w-0 flex items-center gap-1">
-                            <p className={`text-sm font-medium truncate ${isCurrentUser ? 'text-section-intel' : 'text-foreground'}`}>
+                            <p className={`text-sm font-medium truncate ${isCurrentUser ? 'text-foreground' : 'text-foreground'}`}>
                               {isCurrentUser ? 'You' : stat.display_name || 'Anonymous'}
                             </p>
                             {isExpanded ? (
@@ -273,7 +271,7 @@ export function RivalWidget({ variant = 'compact' }: RivalWidgetProps) {
                           
                           {/* Missions this week - primary stat */}
                           <div className="text-right flex-shrink-0">
-                            <p className={`text-sm font-display ${isCurrentUser ? 'text-section-intel' : 'text-foreground'}`}>
+                            <p className="text-sm font-display text-foreground">
                               {stat.weekly_sessions}
                             </p>
                             <p className="text-xs text-muted-foreground">
@@ -329,17 +327,17 @@ export function RivalWidget({ variant = 'compact' }: RivalWidgetProps) {
                         initial={{ opacity: 0, y: 10 }}
                         animate={{ opacity: 1, y: 0 }}
                         transition={{ delay: index * 0.05 }}
-                        className="p-3 bg-background border border-section-intel/30 rounded-lg hover:border-section-intel/60 transition-colors"
+                        className="p-3 bg-background border border-border rounded-lg hover:border-border transition-colors"
                       >
                         <div className="flex items-start justify-between gap-2 mb-2">
                           <div>
-                            <span className="font-display text-sm text-section-intel">{activity.display_name}</span>
+                            <span className="font-display text-sm text-foreground">{activity.display_name}</span>
                             <span className="text-xs text-muted-foreground ml-1">completed</span>
                           </div>
                           <span className="text-xs text-muted-foreground">{formatRelativeTime(activity.completed_at)}</span>
                         </div>
                         
-                        <div className="font-display text-section-missions mb-2">
+                        <div className="font-display text-sm text-muted-foreground mb-2">
                           {activity.mission_snapshot?.code_name || 'CLASSIFIED MISSION'}
                         </div>
                         
@@ -362,7 +360,7 @@ export function RivalWidget({ variant = 'compact' }: RivalWidgetProps) {
                         {activity.mission_id && (
                           <button
                             onClick={() => handleJoinMission(activity.mission_id!)}
-                            className="w-full py-2.5 border-2 border-section-missions rounded text-xs font-display text-section-missions hover:bg-section-missions/10 transition-colors flex items-center justify-center gap-2"
+                            className="w-full py-2.5 border-2 border-section-intel rounded text-xs font-display text-section-intel hover:bg-section-intel/10 transition-colors flex items-center justify-center gap-2"
                           >
                             <Play className="w-4 h-4" />
                             ACCEPT CHALLENGE
@@ -395,11 +393,11 @@ export function RivalWidget({ variant = 'compact' }: RivalWidgetProps) {
                   {rivalActivity.slice(0, 2).map((activity) => (
                     <div
                       key={activity.id}
-                      className="p-3 bg-background border border-section-intel/30 rounded-lg"
+                      className="p-3 bg-background border border-border rounded-lg"
                     >
                       <div className="flex items-start justify-between gap-2 mb-2">
                         <div className="flex-1 min-w-0">
-                          <span className="text-xs text-section-intel font-display">{activity.display_name}</span>
+                          <span className="text-xs text-foreground font-display">{activity.display_name}</span>
                           <span className="text-xs text-muted-foreground"> completed </span>
                           <span className="text-xs text-section-missions font-display">
                             {activity.mission_snapshot?.code_name || 'MISSION'}
@@ -426,7 +424,7 @@ export function RivalWidget({ variant = 'compact' }: RivalWidgetProps) {
                       {activity.mission_id && (
                         <button
                           onClick={() => handleJoinMission(activity.mission_id!)}
-                          className="w-full py-2 border-2 border-section-missions rounded text-xs font-display text-section-missions hover:bg-section-missions/10 transition-colors flex items-center justify-center gap-2"
+                          className="w-full py-2 border-2 border-section-intel rounded text-xs font-display text-section-intel hover:bg-section-intel/10 transition-colors flex items-center justify-center gap-2"
                         >
                           <Play className="w-3 h-3" />
                           ACCEPT CHALLENGE
