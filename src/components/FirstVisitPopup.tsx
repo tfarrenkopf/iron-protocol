@@ -83,19 +83,44 @@ export const FirstVisitPopup = () => {
               </p>
             </div>
 
-            {/* Quick Start Info */}
-            <div className="bg-background rounded-lg p-4 mb-5 border border-border">
-              <p className="text-xs text-muted-foreground mb-3 uppercase tracking-wide">Key Features:</p>
-              <div className="space-y-2">
-                <div className="flex items-center gap-3">
-                  <div className="p-1.5 rounded bg-section-missions/20">
+            {/* Content Structure */}
+            <div className="bg-background rounded-lg p-4 mb-4 border border-border">
+              <p className="text-xs text-muted-foreground mb-3 uppercase tracking-wide">How It Works:</p>
+              <div className="space-y-3">
+                <div className="flex items-start gap-3">
+                  <div className="p-1.5 rounded bg-section-campaigns/20 mt-0.5">
+                    <Flame className="w-4 h-4 text-section-campaigns" />
+                  </div>
+                  <div className="text-sm">
+                    <span className="text-section-campaigns font-medium">Campaigns</span>
+                    <p className="text-muted-foreground text-xs mt-0.5">Training programs with multiple missions (e.g., Push Pull Legs)</p>
+                  </div>
+                </div>
+                <div className="flex items-start gap-3">
+                  <div className="p-1.5 rounded bg-section-missions/20 mt-0.5">
                     <Crosshair className="w-4 h-4 text-section-missions" />
                   </div>
                   <div className="text-sm">
-                    <span className="text-section-missions font-medium">Missions & Campaigns</span>
-                    <span className="text-muted-foreground"> — structured workouts to deploy on</span>
+                    <span className="text-section-missions font-medium">Missions</span>
+                    <p className="text-muted-foreground text-xs mt-0.5">Individual workouts with exercises and rep targets</p>
                   </div>
                 </div>
+                <div className="flex items-start gap-3">
+                  <div className="p-1.5 rounded bg-section-exercises/20 mt-0.5">
+                    <Dumbbell className="w-4 h-4 text-section-exercises" />
+                  </div>
+                  <div className="text-sm">
+                    <span className="text-section-exercises font-medium">Exercises</span>
+                    <p className="text-muted-foreground text-xs mt-0.5">The building blocks — squats, curls, presses, etc.</p>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            {/* Social Features */}
+            <div className="bg-background rounded-lg p-4 mb-5 border border-border">
+              <p className="text-xs text-muted-foreground mb-3 uppercase tracking-wide">Compete & Train Together:</p>
+              <div className="space-y-2">
                 <div className="flex items-center gap-3">
                   <div className="p-1.5 rounded bg-section-intel/20">
                     <Target className="w-4 h-4 text-section-intel" />
@@ -110,7 +135,7 @@ export const FirstVisitPopup = () => {
                     <Flame className="w-4 h-4 text-section-orders" />
                   </div>
                   <div className="text-sm">
-                    <span className="text-section-orders font-medium">Squad System</span>
+                    <span className="text-section-orders font-medium">Squads</span>
                     <span className="text-muted-foreground"> — trainers assign missions to athletes</span>
                   </div>
                 </div>
