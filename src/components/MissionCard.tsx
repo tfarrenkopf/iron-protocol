@@ -1,4 +1,4 @@
-import { ReactNode, useMemo } from 'react';
+import { ReactNode, useMemo, memo } from 'react';
 import { motion } from 'framer-motion';
 import { useNavigate } from 'react-router-dom';
 import { Zap, Clock, Play, CheckCircle2, Plus, ChevronUp, ChevronDown, Trash2, Dumbbell, Trophy, Crosshair } from 'lucide-react';
@@ -40,7 +40,7 @@ interface MissionCardProps {
   onClick?: () => void;
 }
 
-export function MissionCard({
+export const MissionCard = memo(function MissionCard({
   mission,
   index = 0,
   variant = 'default',
@@ -313,4 +313,4 @@ export function MissionCard({
       </div>
     </motion.div>
   );
-}
+});

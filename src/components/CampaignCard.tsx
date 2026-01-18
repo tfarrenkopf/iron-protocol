@@ -1,4 +1,4 @@
-import { useState, useMemo } from 'react';
+import { useState, useMemo, memo } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useNavigate } from 'react-router-dom';
 import { Flame, Clock, Dumbbell, Zap, Play, Pencil, Trash2, CheckCircle2, Crown, Users, Swords, ChevronDown, ChevronUp, AlertTriangle, Crosshair, Skull } from 'lucide-react';
@@ -30,7 +30,7 @@ interface CampaignCardProps {
   onDelete?: (id: string, name: string) => void;
 }
 
-export function CampaignCard({ 
+export const CampaignCard = memo(function CampaignCard({ 
   collection, 
   index = 0, 
   isActive = false,
@@ -554,4 +554,4 @@ export function CampaignCard({
       </AlertDialog>
     </>
   );
-}
+});

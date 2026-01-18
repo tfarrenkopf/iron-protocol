@@ -23,6 +23,8 @@ export function useProfile() {
       return data as Profile;
     },
     enabled: !!user,
+    staleTime: 2 * 60 * 1000, // 2 minutes
+    gcTime: 5 * 60 * 1000, // 5 minutes
   });
 }
 
@@ -63,6 +65,8 @@ export function useLeaderboard() {
       if (error) throw error;
       return data;
     },
+    staleTime: 5 * 60 * 1000, // 5 minutes - leaderboard doesn't change frequently
+    gcTime: 10 * 60 * 1000,
   });
 }
 
