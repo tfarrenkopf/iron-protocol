@@ -479,11 +479,11 @@ const HIITTimer = () => {
                   animate={{ opacity: 1, x: 0 }}
                   transition={{ delay: i * 0.1 }}
                   onClick={() => handleStart(config)}
-                  className="w-full group bg-card border border-border rounded-lg p-5 text-left hover:border-secondary transition-all"
+                  className="w-full group bg-card border border-section-hiit/30 rounded-lg p-5 text-left hover:border-section-hiit transition-all"
                 >
                   <div className="flex items-start justify-between">
                     <div>
-                      <h2 className="font-display text-2xl text-secondary group-hover:text-glow-secondary transition-all">
+                      <h2 className="font-display text-2xl text-section-hiit group-hover:text-glow-hiit transition-all">
                         {config.codeName}
                       </h2>
                       <div className="flex gap-4 mt-2 text-sm text-muted-foreground">
@@ -492,14 +492,14 @@ const HIITTimer = () => {
                         <span>{config.rounds} rounds</span>
                       </div>
                     </div>
-                    <Play className="w-8 h-8 text-secondary opacity-0 group-hover:opacity-100 transition-opacity" />
+                    <Play className="w-8 h-8 text-section-hiit opacity-0 group-hover:opacity-100 transition-opacity" />
                   </div>
                   
                   <div className="mt-4 flex gap-1">
                     {[...Array(config.rounds)].map((_, j) => (
                       <div 
                         key={j}
-                        className="h-1 flex-1 rounded-full bg-secondary/30 max-w-4"
+                        className="h-1 flex-1 rounded-full bg-section-hiit/30 max-w-4"
                       />
                     ))}
                   </div>
