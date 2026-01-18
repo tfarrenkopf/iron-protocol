@@ -249,7 +249,7 @@ export const CampaignCard = memo(function CampaignCard({
           {/* Stats row */}
           <div className="flex items-center gap-4 text-xs text-muted-foreground mb-3">
             <span className="flex items-center gap-1">
-              <Crosshair className="w-3 h-3 text-section-missions" />
+              <Crosshair className="w-3 h-3" />
               {missionCount} mission{missionCount !== 1 ? 's' : ''}
             </span>
             <span className="flex items-center gap-1">
@@ -276,10 +276,10 @@ export const CampaignCard = memo(function CampaignCard({
           {/* Equipment - compact view */}
           {stats.equipment.length > 0 && (
             <div className="flex items-start gap-2 mb-3">
-              <Dumbbell className="w-3 h-3 text-accent flex-shrink-0 mt-0.5" />
+              <Dumbbell className="w-3 h-3 text-muted-foreground flex-shrink-0 mt-0.5" />
               <div className="flex gap-1.5 flex-wrap">
                 {stats.equipment.slice(0, 5).map(eq => (
-                  <span key={eq} className="text-xs px-1.5 py-0.5 bg-accent/10 text-accent rounded">
+                  <span key={eq} className="text-xs px-1.5 py-0.5 bg-muted text-muted-foreground rounded">
                     {formatEquipment(eq)}
                   </span>
                 ))}
@@ -295,14 +295,14 @@ export const CampaignCard = memo(function CampaignCard({
             <div className="flex items-center gap-4 text-xs text-muted-foreground/80 mb-3 py-2 px-3 bg-muted/30 rounded-lg">
               {fomoStats.totalCompletions > 0 && (
                 <span className="flex items-center gap-1">
-                  <Users className="w-3 h-3 text-secondary" />
-                  <span className="text-secondary">{fomoStats.totalCompletions}</span> completions
+                  <Users className="w-3 h-3" />
+                  <span className="text-foreground">{fomoStats.totalCompletions}</span> completions
                 </span>
               )}
               {fomoStats.lastCompletedAt && (
                 <span className="flex items-center gap-1">
-                  <Flame className="w-3 h-3 text-accent" />
-                  Last run <span className="text-accent">{formatTimeAgo(fomoStats.lastCompletedAt)}</span>
+                  <Flame className="w-3 h-3" />
+                  Last run <span className="text-foreground">{formatTimeAgo(fomoStats.lastCompletedAt)}</span>
                 </span>
               )}
             </div>
@@ -425,7 +425,7 @@ export const CampaignCard = memo(function CampaignCard({
                     <h4 className="text-xs font-display text-muted-foreground mb-2">// REQUIRED EQUIPMENT</h4>
                     <div className="flex gap-1.5 flex-wrap">
                       {stats.equipment.map(eq => (
-                        <span key={eq} className="text-xs px-2 py-1 bg-accent/10 text-accent rounded border border-accent/20">
+                        <span key={eq} className="text-xs px-2 py-1 bg-muted text-muted-foreground rounded border border-border">
                           {formatEquipment(eq)}
                         </span>
                       ))}

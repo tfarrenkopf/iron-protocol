@@ -84,7 +84,7 @@ export function MissionRankBadge({ rank, totalPlayers, bestScore }: MissionRankB
       </div>
       {bestScore && (
         <div className="text-right">
-          <div className="font-display text-secondary">{bestScore.toLocaleString()}</div>
+          <div className="font-display text-foreground">{bestScore.toLocaleString()}</div>
           <div className="text-xs text-muted-foreground">BEST</div>
         </div>
       )}

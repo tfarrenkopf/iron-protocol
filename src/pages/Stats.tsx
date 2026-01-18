@@ -255,12 +255,12 @@ const Stats = () => {
                       {entry.display_name || 'ANONYMOUS'}
                     </div>
                     
-                    <div className="text-right font-display text-secondary">
+                    <div className="text-right font-display text-foreground">
                       {(entry.total_score || 0).toLocaleString()}
                     </div>
                     
                     <div className="text-right">
-                      <span className="font-display text-accent">{entryLevel}</span>
+                      <span className="font-display text-foreground">{entryLevel}</span>
                       {entry.max_combo && entry.max_combo > 0 && (
                         <span className="text-xs text-muted-foreground ml-1">
                           🔥{entry.max_combo}
@@ -297,14 +297,14 @@ const Stats = () => {
           ) : (
             <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
               {[
-                { label: 'SCORE', value: (displayProfile?.total_score || 0).toLocaleString(), icon: Target, color: isAnonymous ? 'text-muted-foreground' : 'text-primary' },
-                { label: 'XP', value: (displayProfile?.total_xp || 0).toLocaleString(), icon: Star, color: isAnonymous ? 'text-muted-foreground' : 'text-success' },
-                { label: 'SETS', value: (displayProfile?.total_sets || 0).toString(), icon: Dumbbell, color: isAnonymous ? 'text-muted-foreground' : 'text-secondary' },
-                { label: 'COMBO', value: `${displayProfile?.max_combo || 0}x`, icon: Trophy, color: isAnonymous ? 'text-muted-foreground' : 'text-accent' },
-                { label: 'REPS', value: (displayProfile?.total_reps || 0).toLocaleString(), icon: Zap, color: isAnonymous ? 'text-muted-foreground' : 'text-accent' },
-                { label: 'WEIGHT', value: `${((displayProfile?.total_weight || 0) / 1000).toFixed(1)}K`, icon: Dumbbell, color: isAnonymous ? 'text-muted-foreground' : 'text-warning' },
-                { label: 'LEVEL', value: level.toString(), icon: Crown, color: isAnonymous ? 'text-muted-foreground' : 'text-secondary' },
-                { label: 'AVG/SET', value: (displayProfile?.total_sets || 0) > 0 ? Math.round((displayProfile?.total_weight || 0) / (displayProfile?.total_sets || 1)).toString() : '0', icon: Target, color: isAnonymous ? 'text-muted-foreground' : 'text-primary' },
+                { label: 'SCORE', value: (displayProfile?.total_score || 0).toLocaleString(), icon: Target, color: isAnonymous ? 'text-muted-foreground' : 'text-foreground' },
+                { label: 'XP', value: (displayProfile?.total_xp || 0).toLocaleString(), icon: Star, color: isAnonymous ? 'text-muted-foreground' : 'text-foreground' },
+                { label: 'SETS', value: (displayProfile?.total_sets || 0).toString(), icon: Dumbbell, color: isAnonymous ? 'text-muted-foreground' : 'text-foreground' },
+                { label: 'COMBO', value: `${displayProfile?.max_combo || 0}x`, icon: Trophy, color: isAnonymous ? 'text-muted-foreground' : 'text-foreground' },
+                { label: 'REPS', value: (displayProfile?.total_reps || 0).toLocaleString(), icon: Zap, color: isAnonymous ? 'text-muted-foreground' : 'text-foreground' },
+                { label: 'WEIGHT', value: `${((displayProfile?.total_weight || 0) / 1000).toFixed(1)}K`, icon: Dumbbell, color: isAnonymous ? 'text-muted-foreground' : 'text-foreground' },
+                { label: 'LEVEL', value: level.toString(), icon: Crown, color: isAnonymous ? 'text-muted-foreground' : 'text-foreground' },
+                { label: 'AVG/SET', value: (displayProfile?.total_sets || 0) > 0 ? Math.round((displayProfile?.total_weight || 0) / (displayProfile?.total_sets || 1)).toString() : '0', icon: Target, color: isAnonymous ? 'text-muted-foreground' : 'text-foreground' },
               ].map((stat, i) => (
                 <motion.div
                   key={stat.label}

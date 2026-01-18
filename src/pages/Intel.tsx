@@ -463,15 +463,15 @@ const LiveFeedTab = ({ isGuest }: { isGuest: boolean }) => {
           {/* Aggregate Stats */}
           <div className="grid grid-cols-4 gap-3 mb-4">
             <div className="text-center p-2 bg-background/50 rounded">
-              <div className="font-display text-xl text-secondary">{communityStats.activeWarriors}</div>
+              <div className="font-display text-xl text-foreground">{communityStats.activeWarriors}</div>
               <div className="text-xs uppercase tracking-wide text-muted-foreground">ACTIVE</div>
             </div>
             <div className="text-center p-2 bg-background/50 rounded">
-              <div className="font-display text-xl text-primary">{communityStats.totalMissions}</div>
+              <div className="font-display text-xl text-foreground">{communityStats.totalMissions}</div>
               <div className="text-xs uppercase tracking-wide text-muted-foreground">MISSIONS</div>
             </div>
             <div className="text-center p-2 bg-background/50 rounded">
-              <div className="font-display text-xl text-accent">
+              <div className="font-display text-xl text-foreground">
                 {communityStats.totalWeight >= 1000000 
                   ? `${(communityStats.totalWeight / 1000000).toFixed(1)}M`
                   : communityStats.totalWeight >= 1000 
@@ -481,10 +481,10 @@ const LiveFeedTab = ({ isGuest }: { isGuest: boolean }) => {
               <div className="text-xs uppercase tracking-wide text-muted-foreground">LBS</div>
             </div>
             <div className="text-center p-2 bg-background/50 rounded">
-              <div className="font-display text-xl text-destructive">
+              <div className="font-display text-xl text-foreground">
                 {communityStats.totalDamage >= 1000000 
                   ? `${(communityStats.totalDamage / 1000000).toFixed(1)}M`
-                  : communityStats.totalDamage >= 1000 
+                  : communityStats.totalDamage >= 1000
                     ? `${(communityStats.totalDamage / 1000).toFixed(0)}k` 
                     : communityStats.totalDamage}
               </div>

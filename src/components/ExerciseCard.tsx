@@ -272,7 +272,7 @@ export const ExerciseCard = memo(function ExerciseCard({
                     <span className="text-xs text-muted-foreground font-display">EQUIPMENT</span>
                     <div className="flex gap-1.5 flex-wrap mt-1">
                       {exercise.equipment.map(eq => (
-                        <span key={eq} className="text-xs px-2 py-0.5 bg-accent/10 text-accent rounded">
+                        <span key={eq} className="text-xs px-2 py-0.5 bg-muted text-muted-foreground rounded">
                           {formatEquipment(eq)}
                         </span>
                       ))}
@@ -315,19 +315,19 @@ export const ExerciseCard = memo(function ExerciseCard({
                   <div className="space-y-2 pt-2 border-t border-border">
                     {exercise.instructions_setup && (
                       <div>
-                        <span className="text-xs text-secondary font-display">SETUP</span>
+                        <span className="text-xs text-muted-foreground font-display">SETUP</span>
                         <p className="text-xs text-muted-foreground mt-0.5">{exercise.instructions_setup}</p>
                       </div>
                     )}
                     {exercise.instructions_execution && (
                       <div>
-                        <span className="text-xs text-primary font-display">EXECUTION</span>
+                        <span className="text-xs text-muted-foreground font-display">EXECUTION</span>
                         <p className="text-xs text-muted-foreground mt-0.5">{exercise.instructions_execution}</p>
                       </div>
                     )}
                     {exercise.instructions_tips && (
                       <div>
-                        <span className="text-xs text-accent font-display">TIPS</span>
+                        <span className="text-xs text-muted-foreground font-display">TIPS</span>
                         <p className="text-xs text-muted-foreground mt-0.5">{exercise.instructions_tips}</p>
                       </div>
                     )}
