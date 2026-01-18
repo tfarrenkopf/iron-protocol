@@ -100,11 +100,11 @@ function ActiveCampaignControl({
           {/* Quick stats */}
           <div className="flex items-center gap-3 text-xs text-muted-foreground">
             <span className="flex items-center gap-1">
-              <Crosshair className="w-3 h-3 text-section-missions" />
+              <Crosshair className="w-3 h-3" />
               {missions.length} missions
             </span>
             <span className="flex items-center gap-1">
-              <Clock className="w-3 h-3 text-secondary" />
+              <Clock className="w-3 h-3" />
               ~{totalTime} min
             </span>
           </div>
@@ -124,12 +124,12 @@ function ActiveCampaignControl({
                 : `MISSION ${completedMissionIds.size + 1} OF ${missions.length}`
               }
             </p>
-            <p className={`font-display text-xl ${isComplete ? 'text-secondary' : 'text-accent'}`}>
+            <p className={`font-display text-xl ${isComplete ? 'text-secondary' : 'text-foreground'}`}>
               {isComplete ? 'VICTORY ACHIEVED' : nextMission?.code_name || 'READY'}
             </p>
           </div>
           <div className="text-right">
-            <div className={`text-2xl font-display ${isComplete ? 'text-secondary' : 'text-accent'}`}>
+            <div className={`text-2xl font-display ${isComplete ? 'text-secondary' : 'text-foreground'}`}>
               {progressPercent}%
             </div>
             <div className="text-xs text-muted-foreground">PROGRESS</div>
@@ -155,13 +155,13 @@ function ActiveCampaignControl({
           <div className="flex items-center gap-4 mb-4 text-xs text-muted-foreground py-2 px-3 bg-muted/30 rounded-lg">
             {progress.total_completions > 0 && (
               <div className="flex items-center gap-1">
-                <RefreshCw className="w-3 h-3 text-secondary" />
+                <RefreshCw className="w-3 h-3" />
                 <span>{progress.total_completions}x cleared</span>
               </div>
             )}
             {progress.best_completion_time_seconds && (
               <div className="flex items-center gap-1">
-                <Timer className="w-3 h-3 text-secondary" />
+                <Timer className="w-3 h-3" />
                 <span>Best: {formatTime(progress.best_completion_time_seconds)}</span>
               </div>
             )}
@@ -423,10 +423,10 @@ const CampaignDetail = () => {
   };
 
   const getDifficultyLabel = (difficulty: number) => {
-    if (difficulty <= 2) return { label: 'EASY', color: 'text-green-400' };
-    if (difficulty <= 4) return { label: 'MEDIUM', color: 'text-yellow-400' };
-    if (difficulty <= 6) return { label: 'HARD', color: 'text-orange-400' };
-    return { label: 'EXTREME', color: 'text-red-400' };
+    if (difficulty <= 2) return { label: 'EASY', color: 'text-muted-foreground' };
+    if (difficulty <= 4) return { label: 'MEDIUM', color: 'text-muted-foreground' };
+    if (difficulty <= 6) return { label: 'HARD', color: 'text-muted-foreground' };
+    return { label: 'EXTREME', color: 'text-muted-foreground' };
   };
 
   if (isLoading) {
@@ -666,7 +666,7 @@ const CampaignDetail = () => {
             transition={{ delay: 0.2 }}
             className="mb-6"
           >
-            <h2 className="font-display text-sm text-accent mb-3 tracking-wider flex items-center gap-2">
+            <h2 className="font-display text-sm text-muted-foreground mb-3 tracking-wider flex items-center gap-2">
               <Calendar className="w-4 h-4" /> RUN HISTORY
             </h2>
             <div className="bg-card border border-border rounded-lg overflow-hidden divide-y divide-border">
@@ -680,7 +680,7 @@ const CampaignDetail = () => {
                   <div key={session.id} className="p-3 flex items-center justify-between">
                     <div className="flex items-center gap-3">
                       <div className="text-center min-w-[70px]">
-                        <div className="text-xs text-primary font-display">{dayOfWeek}</div>
+                        <div className="text-xs text-foreground font-display">{dayOfWeek}</div>
                         <div className="text-xs text-muted-foreground">{dateStr}</div>
                       </div>
                       <div>
@@ -692,7 +692,7 @@ const CampaignDetail = () => {
                         </div>
                       </div>
                     </div>
-                    <div className="text-xs text-secondary">✓</div>
+                    <div className="text-xs text-muted-foreground">✓</div>
                   </div>
                 );
               })}
@@ -721,8 +721,7 @@ const CampaignDetail = () => {
                       <div key={entry.id} className="flex items-center justify-between text-xs">
                         <div className="flex items-center gap-2">
                           <span className={`font-display ${
-                            index === 0 ? 'text-yellow-400' : 
-                            index === 1 ? 'text-gray-300' : 'text-amber-600'
+                            index === 0 ? 'text-foreground' : 'text-muted-foreground'
                           }`}>
                             #{index + 1}
                           </span>
@@ -750,7 +749,7 @@ const CampaignDetail = () => {
                       <div key={completion.id} className="flex items-center justify-between text-xs">
                         <div className="flex items-center gap-2">
                           {completion.is_personal_record && (
-                            <span className="text-yellow-400">⚡</span>
+                            <span className="text-foreground">⚡</span>
                           )}
                           <span className="text-muted-foreground">
                             {new Date(completion.completed_at).toLocaleDateString()}
