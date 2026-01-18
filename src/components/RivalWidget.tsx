@@ -150,16 +150,16 @@ export function RivalWidget({ variant = 'compact' }: RivalWidgetProps) {
     >
       <div className="grid grid-cols-3 gap-2 text-center">
         <div>
-          <div className="font-display text-sm text-foreground">{stat.weekly_weight.toLocaleString()}</div>
-          <div className="text-xs text-muted-foreground uppercase">LBS</div>
+          <div className="font-display text-sm text-muted-foreground">{stat.weekly_weight.toLocaleString()}</div>
+          <div className="text-xs text-muted-foreground/70 uppercase">LBS</div>
         </div>
         <div>
-          <div className="font-display text-sm text-foreground">{stat.weekly_sets}</div>
-          <div className="text-xs text-muted-foreground uppercase">SETS</div>
+          <div className="font-display text-sm text-muted-foreground">{stat.weekly_sets}</div>
+          <div className="text-xs text-muted-foreground/70 uppercase">SETS</div>
         </div>
         <div>
-          <div className="font-display text-sm text-foreground">{stat.weekly_max_combo}x</div>
-          <div className="text-xs text-muted-foreground uppercase">COMBO</div>
+          <div className="font-display text-sm text-muted-foreground">{stat.weekly_max_combo}x</div>
+          <div className="text-xs text-muted-foreground/70 uppercase">COMBO</div>
         </div>
       </div>
     </motion.div>
@@ -248,8 +248,8 @@ export function RivalWidget({ variant = 'compact' }: RivalWidgetProps) {
                         transition={{ delay: index * 0.1 }}
                         className={`p-2 rounded cursor-pointer transition-colors ${
                           isCurrentUser 
-                            ? 'bg-primary/10 border border-primary/30' 
-                            : 'bg-background border border-border hover:border-primary/30'
+                            ? 'bg-section-intel/10 border border-section-intel/30' 
+                            : 'bg-background border border-border hover:border-section-intel/30'
                         }`}
                         onClick={() => setExpandedRival(isExpanded ? null : stat.user_id)}
                       >
@@ -261,7 +261,7 @@ export function RivalWidget({ variant = 'compact' }: RivalWidgetProps) {
                           
                           {/* Name & expand indicator */}
                           <div className="flex-1 min-w-0 flex items-center gap-1">
-                            <p className={`text-sm font-medium truncate ${isCurrentUser ? 'text-primary' : 'text-foreground'}`}>
+                            <p className={`text-sm font-medium truncate ${isCurrentUser ? 'text-section-intel' : 'text-foreground'}`}>
                               {isCurrentUser ? 'You' : stat.display_name || 'Anonymous'}
                             </p>
                             {isExpanded ? (
@@ -273,7 +273,7 @@ export function RivalWidget({ variant = 'compact' }: RivalWidgetProps) {
                           
                           {/* Missions this week - primary stat */}
                           <div className="text-right flex-shrink-0">
-                            <p className={`text-sm font-display ${isCurrentUser ? 'text-primary' : 'text-foreground'}`}>
+                            <p className={`text-sm font-display ${isCurrentUser ? 'text-section-intel' : 'text-foreground'}`}>
                               {stat.weekly_sessions}
                             </p>
                             <p className="text-xs text-muted-foreground">
@@ -343,17 +343,17 @@ export function RivalWidget({ variant = 'compact' }: RivalWidgetProps) {
                           {activity.mission_snapshot?.code_name || 'CLASSIFIED MISSION'}
                         </div>
                         
-                        <div className="flex items-center gap-3 text-xs text-muted-foreground mb-3">
+                        <div className="flex items-center gap-3 text-xs text-muted-foreground/80 mb-3">
                           <span className="flex items-center gap-1">
-                            <Target className="w-3 h-3" />
+                            <Target className="w-3 h-3 text-muted-foreground/60" />
                             {activity.score_earned.toLocaleString()}
                           </span>
                           <span className="flex items-center gap-1">
-                            <Dumbbell className="w-3 h-3" />
+                            <Dumbbell className="w-3 h-3 text-muted-foreground/60" />
                             {activity.total_weight.toLocaleString()} lbs
                           </span>
                           <span className="flex items-center gap-1">
-                            <Zap className="w-3 h-3" />
+                            <Zap className="w-3 h-3 text-muted-foreground/60" />
                             {activity.max_combo}x
                           </span>
                         </div>
