@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useNavigate } from 'react-router-dom';
-import { Target, BookOpen, X, ChevronRight } from 'lucide-react';
+import { Target, BookOpen, X, ChevronRight, Flame, Crosshair, Dumbbell } from 'lucide-react';
 
 const STORAGE_KEY = 'iron-protocol-visited';
 
@@ -28,6 +28,12 @@ export const FirstVisitPopup = () => {
     localStorage.setItem(STORAGE_KEY, 'true');
     setShow(false);
     navigate('/guide');
+  };
+
+  const handleStartNow = () => {
+    localStorage.setItem(STORAGE_KEY, 'true');
+    setShow(false);
+    navigate('/command');
   };
 
   return (
@@ -67,45 +73,70 @@ export const FirstVisitPopup = () => {
             </div>
 
             {/* Content */}
-            <div className="text-center mb-6">
+            <div className="text-center mb-5">
               <h2 className="font-display text-3xl text-primary text-glow-primary mb-2">
                 WELCOME, AGENT
               </h2>
               <p className="text-muted-foreground text-sm leading-relaxed">
-                You've entered the Iron Protocol. This is a gamified workout tracker 
-                where every rep counts toward your score and rank.
+                Turn your workouts into tactical missions. Log sets, build combos, 
+                earn XP, and climb the global leaderboard.
               </p>
             </div>
 
-            {/* Features preview */}
-            <div className="grid grid-cols-3 gap-2 mb-6">
-              {[
-                { label: 'Missions', desc: 'Structured workouts' },
-                { label: 'Combos', desc: 'Chain sets for bonus' },
-                { label: 'Ranks', desc: 'Global leaderboard' },
-              ].map((item) => (
-              <div key={item.label} className="bg-background rounded p-2 text-center">
-                  <div className="font-display text-xs text-secondary">{item.label}</div>
-                  <div className="text-xs text-muted-foreground">{item.desc}</div>
+            {/* Quick Start Info */}
+            <div className="bg-background rounded-lg p-4 mb-5 border border-border">
+              <p className="text-xs text-muted-foreground mb-3 uppercase tracking-wide">How it works:</p>
+              <div className="space-y-2">
+                <div className="flex items-center gap-3">
+                  <div className="p-1.5 rounded bg-section-campaigns/20">
+                    <Flame className="w-4 h-4 text-section-campaigns" />
+                  </div>
+                  <div className="text-sm">
+                    <span className="text-section-campaigns font-medium">Campaigns</span>
+                    <span className="text-muted-foreground"> — training programs with multiple missions</span>
+                  </div>
                 </div>
-              ))}
+                <div className="flex items-center gap-3">
+                  <div className="p-1.5 rounded bg-section-missions/20">
+                    <Crosshair className="w-4 h-4 text-section-missions" />
+                  </div>
+                  <div className="text-sm">
+                    <span className="text-section-missions font-medium">Missions</span>
+                    <span className="text-muted-foreground"> — structured workouts to complete</span>
+                  </div>
+                </div>
+                <div className="flex items-center gap-3">
+                  <div className="p-1.5 rounded bg-section-exercises/20">
+                    <Dumbbell className="w-4 h-4 text-section-exercises" />
+                  </div>
+                  <div className="text-sm">
+                    <span className="text-section-exercises font-medium">Exercises</span>
+                    <span className="text-muted-foreground"> — individual movements you log</span>
+                  </div>
+                </div>
+              </div>
             </div>
+
+            {/* Key tip */}
+            <p className="text-xs text-center text-accent mb-5 italic">
+              Tip: Sign up to save your progress. Guest mode doesn't persist data.
+            </p>
 
             {/* Actions */}
             <div className="space-y-2">
               <button
-                onClick={handleViewGuide}
+                onClick={handleStartNow}
                 className="w-full py-3 bg-primary text-primary-foreground font-display rounded flex items-center justify-center gap-2 hover:box-glow-primary transition-all"
               >
-                <BookOpen className="w-5 h-5" />
-                VIEW FIELD MANUAL
+                START TRAINING
+                <ChevronRight className="w-5 h-5" />
               </button>
               <button
-                onClick={handleDismiss}
-                className="w-full py-2 text-muted-foreground font-display text-sm hover:text-foreground transition-colors flex items-center justify-center gap-1"
+                onClick={handleViewGuide}
+                className="w-full py-2 text-muted-foreground font-display text-sm hover:text-foreground transition-colors flex items-center justify-center gap-2 border border-border rounded hover:border-primary/50"
               >
-                Skip, I'll figure it out
-                <ChevronRight className="w-4 h-4" />
+                <BookOpen className="w-4 h-4" />
+                Read the Field Manual
               </button>
             </div>
           </motion.div>
