@@ -225,7 +225,7 @@ export function CollectionFormDialog({ open, onOpenChange, collectionId }: Colle
                           (inputRef as any).current = e;
                         }}
                         placeholder="e.g., MORNING ASSAULT"
-                        className="bg-background border-border mt-1 font-display focus:border-section-campaigns"
+                        className="bg-background border-border mt-1 font-display focus-visible:ring-section-campaigns focus-visible:border-section-campaigns"
                         autoComplete="off"
                       />
                       {errors.name && <p className="text-xs text-destructive mt-1">{errors.name.message}</p>}
@@ -240,7 +240,7 @@ export function CollectionFormDialog({ open, onOpenChange, collectionId }: Colle
                         id="description"
                         {...register('description')}
                         placeholder="What's this campaign about?"
-                        className="bg-background border-border mt-1 resize-none focus:border-section-campaigns"
+                        className="bg-background border-border mt-1 resize-none focus-visible:ring-section-campaigns focus-visible:border-section-campaigns"
                         rows={3}
                       />
                     </div>
