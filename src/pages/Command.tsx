@@ -422,14 +422,14 @@ const Command = () => {
           >
             {/* Campaign instruction */}
             <div className="mb-3 p-3 bg-section-campaigns/5 border border-section-campaigns/20 rounded-lg">
-              <p className="text-xs text-muted-foreground">
+              <p className="text-sm text-muted-foreground leading-relaxed">
                 <span className="text-section-campaigns font-display">CAMPAIGNS</span> are multi-mission operations. Commit to one. Complete all missions. Earn glory.
               </p>
             </div>
             <div className="flex rounded-lg border border-border overflow-hidden">
               <button
                 onClick={() => setCampaignSource('standard')}
-                className={`flex-1 py-2.5 font-display text-xs transition-colors ${
+                className={`flex-1 py-2.5 font-display text-sm transition-colors ${
                   campaignSource === 'standard' 
                     ? 'bg-section-campaigns text-white' 
                     : 'bg-card text-muted-foreground hover:text-foreground'
@@ -440,7 +440,7 @@ const Command = () => {
               {user && (
                 <button
                   onClick={() => setCampaignSource('personal')}
-                  className={`flex-1 py-2.5 font-display text-xs transition-colors border-x border-border ${
+                  className={`flex-1 py-2.5 font-display text-sm transition-colors border-x border-border ${
                     campaignSource === 'personal' 
                       ? 'bg-section-campaigns text-white' 
                       : 'bg-card text-muted-foreground hover:text-foreground'
@@ -451,7 +451,7 @@ const Command = () => {
               )}
               <button
                 onClick={() => setCampaignSource('community')}
-                className={`flex-1 py-2.5 font-display text-xs transition-colors ${
+                className={`flex-1 py-2.5 font-display text-sm transition-colors ${
                   campaignSource === 'community' 
                     ? 'bg-section-campaigns text-white' 
                     : 'bg-card text-muted-foreground hover:text-foreground'
@@ -832,7 +832,7 @@ const Command = () => {
               <>
                 {/* Exercise instruction */}
                 <div className="mb-4 p-3 bg-section-command/5 border border-section-command/20 rounded-lg">
-                  <p className="text-xs text-muted-foreground">
+                  <p className="text-sm text-muted-foreground leading-relaxed">
                     <span className="text-section-command font-display">EXERCISES</span> are your building blocks. Browse global or create custom moves for your missions.
                   </p>
                 </div>
