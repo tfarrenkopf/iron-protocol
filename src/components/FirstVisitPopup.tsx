@@ -85,33 +85,33 @@ export const FirstVisitPopup = () => {
 
             {/* Quick Start Info */}
             <div className="bg-background rounded-lg p-4 mb-5 border border-border">
-              <p className="text-xs text-muted-foreground mb-3 uppercase tracking-wide">How it works:</p>
+              <p className="text-xs text-muted-foreground mb-3 uppercase tracking-wide">Key Features:</p>
               <div className="space-y-2">
-                <div className="flex items-center gap-3">
-                  <div className="p-1.5 rounded bg-section-campaigns/20">
-                    <Flame className="w-4 h-4 text-section-campaigns" />
-                  </div>
-                  <div className="text-sm">
-                    <span className="text-section-campaigns font-medium">Campaigns</span>
-                    <span className="text-muted-foreground"> — training programs with multiple missions</span>
-                  </div>
-                </div>
                 <div className="flex items-center gap-3">
                   <div className="p-1.5 rounded bg-section-missions/20">
                     <Crosshair className="w-4 h-4 text-section-missions" />
                   </div>
                   <div className="text-sm">
-                    <span className="text-section-missions font-medium">Missions</span>
-                    <span className="text-muted-foreground"> — structured workouts to complete</span>
+                    <span className="text-section-missions font-medium">Missions & Campaigns</span>
+                    <span className="text-muted-foreground"> — structured workouts to deploy on</span>
                   </div>
                 </div>
                 <div className="flex items-center gap-3">
-                  <div className="p-1.5 rounded bg-section-exercises/20">
-                    <Dumbbell className="w-4 h-4 text-section-exercises" />
+                  <div className="p-1.5 rounded bg-section-intel/20">
+                    <Target className="w-4 h-4 text-section-intel" />
                   </div>
                   <div className="text-sm">
-                    <span className="text-section-exercises font-medium">Exercises</span>
-                    <span className="text-muted-foreground"> — individual movements you log</span>
+                    <span className="text-section-intel font-medium">Rival Mode</span>
+                    <span className="text-muted-foreground"> — challenge friends head-to-head</span>
+                  </div>
+                </div>
+                <div className="flex items-center gap-3">
+                  <div className="p-1.5 rounded bg-section-orders/20">
+                    <Flame className="w-4 h-4 text-section-orders" />
+                  </div>
+                  <div className="text-sm">
+                    <span className="text-section-orders font-medium">Squad System</span>
+                    <span className="text-muted-foreground"> — trainers assign missions to athletes</span>
                   </div>
                 </div>
               </div>
