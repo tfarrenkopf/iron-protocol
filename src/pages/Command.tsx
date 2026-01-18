@@ -313,8 +313,8 @@ const Command = () => {
 
         {/* Tab Navigation with Filter & Create Actions */}
         <div className="flex items-center justify-between gap-2 mb-4">
-          {/* Tabs */}
-          <div className="flex gap-1 overflow-x-auto scrollbar-hide">
+          {/* Tabs - horizontal scroll on mobile with scroll snap */}
+          <div className="flex gap-1.5 sm:gap-2 overflow-x-auto scrollbar-hide snap-x snap-mandatory -mx-1 px-1 pb-1">
             {tabs.map((tab) => {
               const Icon = tab.icon;
               const isActive = activeTab === tab.id;
@@ -333,25 +333,26 @@ const Command = () => {
                 <button
                   key={tab.id}
                   onClick={() => setActiveTab(tab.id)}
-                  className={`flex items-center gap-1.5 px-4 py-2.5 rounded-lg font-display text-sm whitespace-nowrap transition-all border-2 ${
+                  className={`flex items-center gap-1 sm:gap-1.5 px-3 sm:px-4 py-2.5 rounded-lg font-display text-xs sm:text-sm whitespace-nowrap transition-all border-2 snap-start min-h-[44px] active:scale-[0.98] ${
                     isActive
                       ? colors.active
                       : `border-border text-muted-foreground hover:text-foreground ${colors.inactive}`
                   }`}
                 >
-                  <Icon className="w-4 h-4" />
-                  {tab.label}
+                  <Icon className="w-4 h-4 flex-shrink-0" />
+                  <span className="hidden xs:inline sm:inline">{tab.label}</span>
+                  <span className="xs:hidden sm:hidden">{tab.label.slice(0, 4)}</span>
                 </button>
               );
             })}
           </div>
           
           {/* Action Buttons - aligned right */}
-          <div className="flex items-center gap-2 flex-shrink-0">
+          <div className="flex items-center gap-1.5 sm:gap-2 flex-shrink-0">
             {/* Filter button */}
             <button
               onClick={() => setShowFilters(!showFilters)}
-              className={`p-2 border rounded-lg transition-colors ${
+              className={`p-2.5 sm:p-2 border rounded-lg transition-colors min-w-[44px] min-h-[44px] flex items-center justify-center active:scale-95 ${
                 hasFilters 
                   ? activeTab === 'campaigns' 
                     ? 'border-section-campaigns text-section-campaigns bg-section-campaigns/10'
@@ -366,13 +367,13 @@ const Command = () => {
               }`}
               aria-label="Toggle filters"
             >
-              <Filter className="w-4 h-4" />
+              <Filter className="w-5 h-5 sm:w-4 sm:h-4" />
             </button>
             {/* Create button - always visible for logged in users */}
             {user && createConfig && (
               <button
                 onClick={createConfig.onClick}
-                className={`p-2 border rounded-lg transition-colors ${
+                className={`p-2.5 sm:p-2 border rounded-lg transition-colors min-w-[44px] min-h-[44px] flex items-center justify-center active:scale-95 ${
                   activeTab === 'campaigns'
                     ? 'border-section-campaigns text-section-campaigns hover:bg-section-campaigns/10'
                     : activeTab === 'missions'
@@ -382,7 +383,7 @@ const Command = () => {
                 title={createConfig.label}
                 aria-label={createConfig.label}
               >
-                <Plus className="w-4 h-4" />
+                <Plus className="w-5 h-5 sm:w-4 sm:h-4" />
               </button>
             )}
           </div>

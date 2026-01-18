@@ -308,12 +308,12 @@ export const CampaignCard = memo(function CampaignCard({
             </div>
           )}
 
-          {/* Action Button - Simplified: just SELECT CAMPAIGN */}
+          {/* Action Button - Simplified with proper touch target */}
           <div className="mt-3">
             <button
               onClick={handleActivateClick}
               disabled={isSettingActive}
-              className="w-full flex items-center justify-center gap-2 py-2.5 rounded-lg font-display text-sm transition-colors disabled:opacity-50 bg-accent text-accent-foreground hover:bg-accent/90"
+              className="w-full flex items-center justify-center gap-2 py-3 sm:py-2.5 rounded-lg font-display text-sm transition-colors disabled:opacity-50 bg-accent text-accent-foreground hover:bg-accent/90 active:scale-[0.99] min-h-[48px]"
             >
               {isSettingActive ? (
                 'LOADING...'

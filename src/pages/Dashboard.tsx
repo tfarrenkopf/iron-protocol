@@ -129,43 +129,43 @@ const Dashboard = () => {
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: 0.2 }}
-              className={`grid gap-4 ${isHandler ? "grid-cols-4" : "grid-cols-3"}`}
+              className={`grid gap-3 sm:gap-4 grid-cols-2 ${isHandler ? "sm:grid-cols-4" : "sm:grid-cols-3"}`}
             >
               <button
                 onClick={() => navigate("/hiit")}
-                className="group relative bg-card border border-section-hiit/50 rounded-lg p-4 text-center transition-all hover:border-section-hiit hover:bg-section-hiit/5"
+                className="group relative bg-card border border-section-hiit/50 rounded-lg p-3 sm:p-4 text-center transition-all hover:border-section-hiit hover:bg-section-hiit/5 active:scale-[0.98] min-h-[72px]"
               >
-                <Timer className="w-6 h-6 text-section-hiit mx-auto mb-2" />
-                <h2 className="font-display text-sm text-section-hiit">HIIT</h2>
-                <p className="text-xs text-muted-foreground mt-1">Interval Timer</p>
+                <Timer className="w-5 h-5 sm:w-6 sm:h-6 text-section-hiit mx-auto mb-1.5 sm:mb-2" />
+                <h2 className="font-display text-xs sm:text-sm text-section-hiit">HIIT</h2>
+                <p className="text-xs text-muted-foreground mt-0.5 sm:mt-1 hidden sm:block">Interval Timer</p>
               </button>
 
               <button
                 onClick={() => navigate("/intel")}
-                className="group relative bg-card border border-section-intel/50 rounded-lg p-4 text-center transition-all hover:border-section-intel hover:bg-section-intel/5"
+                className="group relative bg-card border border-section-intel/50 rounded-lg p-3 sm:p-4 text-center transition-all hover:border-section-intel hover:bg-section-intel/5 active:scale-[0.98] min-h-[72px]"
               >
-                <Radio className="w-6 h-6 text-section-intel mx-auto mb-2" />
-                <h2 className="font-display text-sm text-section-intel">INTEL</h2>
-                <p className="text-xs text-muted-foreground mt-1">Global Activity</p>
+                <Radio className="w-5 h-5 sm:w-6 sm:h-6 text-section-intel mx-auto mb-1.5 sm:mb-2" />
+                <h2 className="font-display text-xs sm:text-sm text-section-intel">INTEL</h2>
+                <p className="text-xs text-muted-foreground mt-0.5 sm:mt-1 hidden sm:block">Global Activity</p>
               </button>
 
               <button
                 onClick={() => navigate("/command")}
-                className="group relative bg-card border border-section-command/50 rounded-lg p-4 text-center transition-all hover:border-section-command hover:bg-section-command/5"
+                className="group relative bg-card border border-section-command/50 rounded-lg p-3 sm:p-4 text-center transition-all hover:border-section-command hover:bg-section-command/5 active:scale-[0.98] min-h-[72px]"
               >
-                <Crosshair className="w-6 h-6 text-section-command mx-auto mb-2" />
-                <h2 className="font-display text-sm text-section-command">COMMAND</h2>
-                <p className="text-xs text-muted-foreground mt-1">Mission Arsenal</p>
+                <Crosshair className="w-5 h-5 sm:w-6 sm:h-6 text-section-command mx-auto mb-1.5 sm:mb-2" />
+                <h2 className="font-display text-xs sm:text-sm text-section-command">COMMAND</h2>
+                <p className="text-xs text-muted-foreground mt-0.5 sm:mt-1 hidden sm:block">Mission Arsenal</p>
               </button>
 
               {isHandler && (
                 <button
                   onClick={() => navigate("/handler")}
-                  className="group relative bg-card border border-warning/50 rounded-lg p-4 text-center transition-all hover:border-warning hover:bg-warning/5"
+                  className="group relative bg-card border border-warning/50 rounded-lg p-3 sm:p-4 text-center transition-all hover:border-warning hover:bg-warning/5 active:scale-[0.98] min-h-[72px]"
                 >
-                  <Users className="w-6 h-6 text-warning mx-auto mb-2" />
-                  <h2 className="font-display text-sm text-warning">HANDLER</h2>
-                  <p className="text-xs text-muted-foreground mt-1">Squad Control</p>
+                  <Users className="w-5 h-5 sm:w-6 sm:h-6 text-warning mx-auto mb-1.5 sm:mb-2" />
+                  <h2 className="font-display text-xs sm:text-sm text-warning">HANDLER</h2>
+                  <p className="text-xs text-muted-foreground mt-0.5 sm:mt-1 hidden sm:block">Squad Control</p>
                 </button>
               )}
             </motion.div>

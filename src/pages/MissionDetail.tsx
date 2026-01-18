@@ -106,31 +106,31 @@ const MissionDetail = () => {
             <p className="text-muted-foreground mb-4">{mission.description}</p>
           )}
 
-          {/* Stats row */}
-          <div className="grid grid-cols-4 gap-4 mb-4">
+          {/* Stats row - responsive grid */}
+          <div className="grid grid-cols-4 gap-2 sm:gap-4 mb-4">
             <div className="text-center">
               <div className="flex items-center justify-center gap-1 text-muted-foreground mb-1">
-                <Zap className="w-4 h-4" />
+                <Zap className="w-3 h-3 sm:w-4 sm:h-4" />
               </div>
-              <div className="font-display text-lg text-foreground">{mission.difficulty}</div>
-              <div className="text-xs text-muted-foreground">DIFFICULTY</div>
+              <div className="font-display text-base sm:text-lg text-foreground">{mission.difficulty}</div>
+              <div className="text-xs text-muted-foreground">DIFF</div>
             </div>
             <div className="text-center">
               <div className="flex items-center justify-center gap-1 text-muted-foreground mb-1">
-                <Clock className="w-4 h-4" />
+                <Clock className="w-3 h-3 sm:w-4 sm:h-4" />
               </div>
-              <div className="font-display text-lg text-foreground">{mission.estimated_minutes}</div>
-              <div className="text-xs text-muted-foreground">MINUTES</div>
+              <div className="font-display text-base sm:text-lg text-foreground">{mission.estimated_minutes}</div>
+              <div className="text-xs text-muted-foreground">MIN</div>
             </div>
             <div className="text-center">
               <div className="flex items-center justify-center gap-1 text-muted-foreground mb-1">
-                <Dumbbell className="w-4 h-4" />
+                <Dumbbell className="w-3 h-3 sm:w-4 sm:h-4" />
               </div>
-              <div className="font-display text-lg text-foreground">{totalSets}</div>
+              <div className="font-display text-base sm:text-lg text-foreground">{totalSets}</div>
               <div className="text-xs text-muted-foreground">SETS</div>
             </div>
             <div className="text-center">
-              <div className="font-display text-lg text-foreground">{totalReps}</div>
+              <div className="font-display text-base sm:text-lg text-foreground">{totalReps}</div>
               <div className="text-xs text-muted-foreground">REPS</div>
             </div>
           </div>
@@ -341,9 +341,9 @@ const MissionDetail = () => {
                 const campaignId = searchParams.get('campaignId');
                 navigate(`/workout/${missionId}${campaignId ? `?campaignId=${campaignId}` : ''}`);
               }}
-              className="w-full py-4 bg-gradient-to-r from-primary to-accent text-primary-foreground font-display text-xl rounded-lg hover:opacity-90 transition-opacity flex items-center justify-center gap-3"
+              className="w-full py-4 sm:py-5 bg-gradient-to-r from-primary to-accent text-primary-foreground font-display text-lg sm:text-xl rounded-lg hover:opacity-90 active:scale-[0.99] transition-all flex items-center justify-center gap-2 sm:gap-3 min-h-[56px]"
             >
-              <Play className="w-6 h-6" />
+              <Play className="w-5 h-5 sm:w-6 sm:h-6" />
               BEGIN MISSION
             </button>
           </div>

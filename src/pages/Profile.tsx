@@ -187,31 +187,31 @@ const ProfilePage = () => {
               </div>
             </motion.div>
 
-            {/* Stats Grid */}
+            {/* Stats Grid - responsive sizing */}
             <motion.div
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: 0.2 }}
-              className="grid grid-cols-2 gap-4 mb-6"
+              className="grid grid-cols-2 gap-3 sm:gap-4 mb-6"
             >
-              <div className="bg-card border border-border rounded-lg p-4 text-center">
-                <Trophy className="w-5 h-5 mx-auto mb-2 text-primary" />
-                <div className="font-display text-2xl text-foreground">{(profile?.total_score || 0).toLocaleString()}</div>
+              <div className="bg-card border border-border rounded-lg p-3 sm:p-4 text-center">
+                <Trophy className="w-4 h-4 sm:w-5 sm:h-5 mx-auto mb-1.5 sm:mb-2 text-primary" />
+                <div className="font-display text-lg sm:text-2xl text-foreground">{(profile?.total_score || 0).toLocaleString()}</div>
                 <div className="text-xs text-muted-foreground">TOTAL SCORE</div>
               </div>
-              <div className="bg-card border border-border rounded-lg p-4 text-center">
-                <Zap className="w-5 h-5 mx-auto mb-2 text-primary" />
-                <div className="font-display text-2xl text-foreground">{profile?.max_combo || 0}x</div>
+              <div className="bg-card border border-border rounded-lg p-3 sm:p-4 text-center">
+                <Zap className="w-4 h-4 sm:w-5 sm:h-5 mx-auto mb-1.5 sm:mb-2 text-primary" />
+                <div className="font-display text-lg sm:text-2xl text-foreground">{profile?.max_combo || 0}x</div>
                 <div className="text-xs text-muted-foreground">MAX COMBO</div>
               </div>
-              <div className="bg-card border border-border rounded-lg p-4 text-center">
-                <Target className="w-5 h-5 mx-auto mb-2 text-primary" />
-                <div className="font-display text-2xl text-foreground">{profile?.total_sets || 0}</div>
+              <div className="bg-card border border-border rounded-lg p-3 sm:p-4 text-center">
+                <Target className="w-4 h-4 sm:w-5 sm:h-5 mx-auto mb-1.5 sm:mb-2 text-primary" />
+                <div className="font-display text-lg sm:text-2xl text-foreground">{profile?.total_sets || 0}</div>
                 <div className="text-xs text-muted-foreground">TOTAL SETS</div>
               </div>
-              <div className="bg-card border border-border rounded-lg p-4 text-center">
-                <Dumbbell className="w-5 h-5 mx-auto mb-2 text-primary" />
-                <div className="font-display text-2xl text-foreground">
+              <div className="bg-card border border-border rounded-lg p-3 sm:p-4 text-center">
+                <Dumbbell className="w-4 h-4 sm:w-5 sm:h-5 mx-auto mb-1.5 sm:mb-2 text-primary" />
+                <div className="font-display text-lg sm:text-2xl text-foreground">
                   {((profile?.total_weight || 0) / 1000).toFixed(1)}k
                 </div>
                 <div className="text-xs text-muted-foreground">LBS LIFTED</div>

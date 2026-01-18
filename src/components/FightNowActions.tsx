@@ -163,8 +163,8 @@ export function FightNowActions() {
         </>
       )}
 
-      {/* Secondary Actions Grid */}
-      <div className="grid grid-cols-2 gap-4">
+      {/* Secondary Actions Grid - stack on very small screens */}
+      <div className="grid grid-cols-2 gap-3 sm:gap-4">
         {/* For guests: View Campaigns as secondary */}
         {isGuest ? (
           <button
