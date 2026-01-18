@@ -34,14 +34,8 @@ import {
   useLeaveSquad,
   useUpdateMemberStats,
 } from "@/hooks/useHandlerMode";
-import { z } from "zod";
 import { format } from "date-fns";
-
-const displayNameSchema = z
-  .string()
-  .min(3, { message: "Display name must be at least 3 characters" })
-  .max(15, { message: "Display name must be 15 characters or less" })
-  .regex(/^[a-zA-Z0-9_-]+$/, { message: "Only letters, numbers, underscores and dashes allowed" });
+import { displayNameSchema, validateDisplayName } from "@/lib/displayNameValidation";
 
 const ProfilePage = () => {
   const navigate = useNavigate();
@@ -99,9 +93,9 @@ const ProfilePage = () => {
     setSuccess(false);
 
     if (displayName.trim()) {
-      const result = displayNameSchema.safeParse(displayName.trim());
-      if (!result.success) {
-        setError(result.error.errors[0]?.message || "Invalid display name");
+      const validation = validateDisplayName(displayName.trim());
+      if (!validation.isValid) {
+        setError(validation.error || "Invalid display name");
         return;
       }
     }
@@ -112,6 +106,17 @@ const ProfilePage = () => {
       setTimeout(() => setSuccess(false), 3000);
     } catch (err) {
       setError("Failed to update profile. Try again.");
+    }
+  };
+
+  const handleDisplayNameChange = (value: string) => {
+    setDisplayName(value);
+    setSuccess(false);
+    if (value.trim()) {
+      const validation = validateDisplayName(value);
+      setError(validation.isValid ? null : validation.error || null);
+    } else {
+      setError(null);
     }
   };
 
@@ -229,12 +234,10 @@ const ProfilePage = () => {
                   <input
                     type="text"
                     value={displayName}
-                    onChange={(e) => {
-                      setDisplayName(e.target.value);
-                      setError(null);
-                      setSuccess(false);
-                    }}
-                    className="w-full bg-background border border-border rounded pl-11 pr-4 py-3 text-foreground placeholder:text-muted-foreground focus:border-primary focus:outline-none transition-colors font-display"
+                    onChange={(e) => handleDisplayNameChange(e.target.value)}
+                    className={`w-full bg-background border rounded pl-11 pr-4 py-3 text-foreground placeholder:text-muted-foreground focus:outline-none transition-colors font-display ${
+                      error ? 'border-destructive focus:border-destructive' : 'border-border focus:border-primary'
+                    }`}
                     placeholder="GHOST_REAPER"
                     maxLength={15}
                   />

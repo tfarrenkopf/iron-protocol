@@ -6,13 +6,12 @@ import { useAuth } from '@/hooks/useAuth';
 import { useUpdateProfile, useUpdateProfileStats } from '@/hooks/useProfile';
 import { useCreateWorkoutSession } from '@/hooks/useWorkoutSessions';
 import { z } from 'zod';
+import { displayNameSchema, validateDisplayName } from '@/lib/displayNameValidation';
 
 const authSchema = z.object({
   email: z.string().trim().email({ message: 'Invalid email address' }).max(255),
   password: z.string().min(6, { message: 'Password must be at least 6 characters' }).max(72),
 });
-
-const displayNameSchema = z.string().min(3, { message: 'Display name must be at least 3 characters' }).max(15, { message: 'Display name must be 15 characters or less' }).regex(/^[a-zA-Z0-9_-]+$/, { message: 'Only letters, numbers, underscores and dashes allowed' });
 
 interface PendingWorkout {
   missionId: string;
@@ -46,10 +45,21 @@ const AuthPage = () => {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [displayName, setDisplayName] = useState('');
+  const [displayNameError, setDisplayNameError] = useState<string | null>(null);
   const [showPassword, setShowPassword] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(false);
   const [pendingWorkoutSaved, setPendingWorkoutSaved] = useState(false);
+
+  const handleDisplayNameChange = (value: string) => {
+    setDisplayName(value);
+    if (value.trim()) {
+      const validation = validateDisplayName(value);
+      setDisplayNameError(validation.isValid ? null : validation.error || null);
+    } else {
+      setDisplayNameError(null);
+    }
+  };
 
   // Check for pending workout after auth completes
   useEffect(() => {
@@ -254,13 +264,19 @@ const AuthPage = () => {
                 <input
                   type="text"
                   value={displayName}
-                  onChange={(e) => setDisplayName(e.target.value)}
-                  className="w-full bg-card border border-border rounded-lg pl-11 pr-4 py-3 text-foreground placeholder:text-muted-foreground focus:border-primary focus:outline-none transition-colors"
+                  onChange={(e) => handleDisplayNameChange(e.target.value)}
+                  className={`w-full bg-card border rounded-lg pl-11 pr-4 py-3 text-foreground placeholder:text-muted-foreground focus:outline-none transition-colors ${
+                    displayNameError ? 'border-destructive focus:border-destructive' : 'border-border focus:border-primary'
+                  }`}
                   placeholder="GHOST_REAPER"
                   maxLength={15}
                 />
               </div>
-              <p className="text-sm text-muted-foreground">3-15 characters. Letters, numbers, underscores, dashes only.</p>
+              {displayNameError ? (
+                <p className="text-sm text-destructive">{displayNameError}</p>
+              ) : (
+                <p className="text-sm text-muted-foreground">3-15 characters. Letters, numbers, underscores, dashes only.</p>
+              )}
             </div>
           )}
 
