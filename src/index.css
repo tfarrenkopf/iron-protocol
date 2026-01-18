@@ -71,6 +71,9 @@
     
     /* ORDERS/HANDLER: Warning Amber - assigned missions */
     --section-orders: 45 100% 55%;
+    
+    /* EXERCISES: Electric Cyan - the building blocks */
+    --section-exercises: 177 100% 50%;
 
     /* Borders and inputs */
     --border: 240 10% 20%;
