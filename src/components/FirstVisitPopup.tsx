@@ -85,7 +85,7 @@ export const FirstVisitPopup = () => {
 
             {/* Content Structure */}
             <div className="bg-background rounded-lg p-4 mb-4 border border-border">
-              <p className="text-xs text-muted-foreground mb-3 uppercase tracking-wide">How It Works:</p>
+              <p className="text-sm text-muted-foreground mb-3 uppercase tracking-wide">How It Works:</p>
               <div className="space-y-3">
                 <div className="flex items-start gap-3">
                   <div className="p-1.5 rounded bg-section-campaigns/20 mt-0.5">
@@ -93,7 +93,7 @@ export const FirstVisitPopup = () => {
                   </div>
                   <div className="text-sm">
                     <span className="text-section-campaigns font-medium">Campaigns</span>
-                    <p className="text-muted-foreground text-xs mt-0.5">Training programs with multiple missions (e.g., Push Pull Legs)</p>
+                    <p className="text-muted-foreground text-sm mt-0.5 leading-snug">Training programs with multiple missions (e.g., Push Pull Legs)</p>
                   </div>
                 </div>
                 <div className="flex items-start gap-3">
@@ -102,7 +102,7 @@ export const FirstVisitPopup = () => {
                   </div>
                   <div className="text-sm">
                     <span className="text-section-missions font-medium">Missions</span>
-                    <p className="text-muted-foreground text-xs mt-0.5">Individual workouts with exercises and rep targets</p>
+                    <p className="text-muted-foreground text-sm mt-0.5 leading-snug">Individual workouts with exercises and rep targets</p>
                   </div>
                 </div>
                 <div className="flex items-start gap-3">
@@ -111,7 +111,7 @@ export const FirstVisitPopup = () => {
                   </div>
                   <div className="text-sm">
                     <span className="text-section-exercises font-medium">Exercises</span>
-                    <p className="text-muted-foreground text-xs mt-0.5">The building blocks — squats, curls, presses, etc.</p>
+                    <p className="text-muted-foreground text-sm mt-0.5 leading-snug">The building blocks — squats, curls, presses, etc.</p>
                   </div>
                 </div>
               </div>
@@ -119,7 +119,7 @@ export const FirstVisitPopup = () => {
 
             {/* Social Features */}
             <div className="bg-background rounded-lg p-4 mb-5 border border-border">
-              <p className="text-xs text-muted-foreground mb-3 uppercase tracking-wide">Compete & Train Together:</p>
+              <p className="text-sm text-muted-foreground mb-3 uppercase tracking-wide">Compete & Train Together:</p>
               <div className="space-y-2">
                 <div className="flex items-center gap-3">
                   <div className="p-1.5 rounded bg-section-intel/20">
@@ -143,7 +143,7 @@ export const FirstVisitPopup = () => {
             </div>
 
             {/* Key tip */}
-            <p className="text-xs text-center text-accent mb-5 italic">
+            <p className="text-sm text-center text-accent mb-5 italic">
               Tip: Sign up to save your progress. Guest mode doesn't persist data.
             </p>
 
