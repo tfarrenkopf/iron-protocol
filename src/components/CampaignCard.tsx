@@ -403,13 +403,13 @@ export const CampaignCard = memo(function CampaignCard({
                       </div>
                       <div className="flex-1 min-w-0">
                         <p className="text-sm font-display text-primary truncate">{mission.code_name}</p>
-                        <div className="flex items-center gap-2 text-[10px] text-muted-foreground">
+                        <div className="flex items-center gap-2 text-xs text-muted-foreground">
                           <span className="flex items-center gap-1">
-                            <Clock className="w-2.5 h-2.5" />
+                            <Clock className="w-3 h-3" />
                             {mission.estimated_minutes}min
                           </span>
                           <span className="flex items-center gap-1">
-                            <Zap className="w-2.5 h-2.5" />
+                            <Zap className="w-3 h-3" />
                             {mission.difficulty}/5
                           </span>
                           <span>{mission.mission_exercises?.length || 0} exercises</span>
@@ -425,7 +425,7 @@ export const CampaignCard = memo(function CampaignCard({
                     <h4 className="text-xs font-display text-muted-foreground mb-2">// REQUIRED EQUIPMENT</h4>
                     <div className="flex gap-1.5 flex-wrap">
                       {stats.equipment.map(eq => (
-                        <span key={eq} className="text-[10px] px-2 py-1 bg-accent/10 text-accent rounded border border-accent/20">
+                        <span key={eq} className="text-xs px-2 py-1 bg-accent/10 text-accent rounded border border-accent/20">
                           {formatEquipment(eq)}
                         </span>
                       ))}

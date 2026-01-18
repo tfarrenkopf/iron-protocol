@@ -681,11 +681,11 @@ const CampaignDetail = () => {
                     <div className="flex items-center gap-3">
                       <div className="text-center min-w-[70px]">
                         <div className="text-xs text-primary font-display">{dayOfWeek}</div>
-                        <div className="text-[10px] text-muted-foreground">{dateStr}</div>
+                        <div className="text-xs text-muted-foreground">{dateStr}</div>
                       </div>
                       <div>
                         <div className="text-sm font-display text-foreground">{missionName}</div>
-                        <div className="text-[10px] text-muted-foreground flex items-center gap-2">
+                        <div className="text-xs text-muted-foreground flex items-center gap-2">
                           <span>{session.score_earned} pts</span>
                           <span>•</span>
                           <span>{session.total_weight.toLocaleString()} lbs lifted</span>
@@ -715,7 +715,7 @@ const CampaignDetail = () => {
               {/* Leaderboard section */}
               {leaderboard && leaderboard.length > 0 && (
                 <div className="p-3 border-b border-border">
-                  <p className="text-[10px] text-muted-foreground uppercase tracking-wider mb-2">FASTEST FULL CLEARS</p>
+                  <p className="text-xs text-muted-foreground uppercase tracking-wider mb-2">FASTEST FULL CLEARS</p>
                   <div className="space-y-1">
                     {leaderboard.slice(0, 3).map((entry: any, index: number) => (
                       <div key={entry.id} className="flex items-center justify-between text-xs">
@@ -742,8 +742,8 @@ const CampaignDetail = () => {
               {/* Your full campaign completions */}
               {completions && completions.length > 0 && (
                 <div className="p-3">
-                  <p className="text-[10px] text-muted-foreground uppercase tracking-wider mb-2">
-                    YOUR FULL COMPLETIONS ({completions.length}x cleared)
+                  <p className="text-xs text-muted-foreground uppercase tracking-wider mb-2">
+                    YOUR COMPLETIONS ({completions.length}x cleared)
                   </p>
                   <div className="space-y-1">
                     {completions.slice(0, 3).map((completion) => (

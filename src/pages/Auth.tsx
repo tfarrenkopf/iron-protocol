@@ -260,7 +260,7 @@ const AuthPage = () => {
                   maxLength={15}
                 />
               </div>
-              <p className="text-xs text-muted-foreground">3-15 characters. Letters, numbers, underscores, dashes only.</p>
+              <p className="text-sm text-muted-foreground">3-15 characters. Letters, numbers, underscores, dashes only.</p>
             </div>
           )}
 
@@ -298,13 +298,13 @@ const AuthPage = () => {
               <AlertCircle className="w-5 h-5 text-warning flex-shrink-0 mt-0.5" />
               <div>
                 <p className="font-display text-sm text-warning">GUEST MODE AVAILABLE</p>
-                <p className="text-xs text-muted-foreground mt-1">
+                <p className="text-sm text-muted-foreground mt-1">
                   You can use IRON PROTOCOL without signing in, but your progress won't be saved. 
                   Like a save file that's been corrupted. Forever.
                 </p>
                 <button
                   onClick={() => navigate('/')}
-                  className="mt-3 text-xs text-secondary hover:underline"
+                  className="mt-3 text-sm text-secondary hover:underline"
                 >
                   Continue as Guest →
                 </button>

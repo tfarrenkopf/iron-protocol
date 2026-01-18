@@ -59,7 +59,7 @@ export function AchievementNotification({ achievement, onComplete }: Achievement
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
               transition={{ delay: 0.3 }}
-              className="text-xs text-muted-foreground"
+              className="text-sm text-muted-foreground"
             >
               {achievement.description}
             </motion.p>
@@ -69,7 +69,7 @@ export function AchievementNotification({ achievement, onComplete }: Achievement
                 initial={{ opacity: 0, scale: 0.8 }}
                 animate={{ opacity: 1, scale: 1 }}
                 transition={{ delay: 0.4 }}
-                className="mt-2 text-xs text-success font-display"
+                className="mt-2 text-sm text-success font-display"
               >
                 +{achievement.xpReward} XP
               </motion.div>

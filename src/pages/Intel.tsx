@@ -990,9 +990,9 @@ const MyStatsTab = ({ isGuest }: { isGuest: boolean }) => {
             { label: 'SETS', value: displayProfile?.total_sets || 0, color: 'text-accent' },
             { label: 'COMBO', value: `${displayProfile?.max_combo || 0}x`, color: 'text-warning' },
           ].map((stat) => (
-            <div key={stat.label} className="bg-card border border-border rounded p-2 text-center">
+          <div key={stat.label} className="bg-card border border-border rounded p-2 text-center">
               <div className={`font-display text-lg ${stat.color}`}>{stat.value}</div>
-              <div className="text-[10px] text-muted-foreground">{stat.label}</div>
+              <div className="text-xs text-muted-foreground">{stat.label}</div>
             </div>
           ))}
         </div>
@@ -1026,9 +1026,9 @@ const MyStatsTab = ({ isGuest }: { isGuest: boolean }) => {
           { label: 'SETS', value: profile?.total_sets || 0, color: 'text-accent' },
           { label: 'COMBO', value: `${profile?.max_combo || 0}x`, color: 'text-warning' },
         ].map((stat) => (
-          <div key={stat.label} className="bg-card border border-border rounded p-2 text-center">
+        <div key={stat.label} className="bg-card border border-border rounded p-2 text-center">
             <div className={`font-display text-lg ${stat.color}`}>{stat.value}</div>
-            <div className="text-[10px] text-muted-foreground">{stat.label}</div>
+            <div className="text-xs text-muted-foreground">{stat.label}</div>
           </div>
         ))}
       </div>

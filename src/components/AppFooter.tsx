@@ -11,7 +11,7 @@ export function AppFooter() {
       transition={{ delay: 0.5 }}
       className="mt-12 pb-6 text-center space-y-3"
     >
-      <div className="flex items-center justify-center gap-4 text-xs">
+      <div className="flex items-center justify-center gap-4 text-sm">
         <button
           onClick={() => navigate("/guide")}
           className="text-muted-foreground hover:text-secondary transition-colors"
