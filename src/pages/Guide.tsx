@@ -9,7 +9,8 @@ import {
   Flame,
   Users,
   Crosshair,
-  Layers
+  Layers,
+  Radio
 } from 'lucide-react';
 import { GlobalNav } from '@/components/GlobalNav';
 import { AppFooter } from '@/components/AppFooter';
@@ -90,6 +91,55 @@ const GUIDE_SECTIONS = [
     ]
   },
   {
+    id: 'rivals',
+    title: 'RIVALS',
+    icon: Target,
+    color: 'text-section-intel',
+    content: [
+      { type: 'text', value: 'Challenge friends to head-to-head competition with the Rival system.' },
+      { type: 'highlight', value: 'Profile → Share your Rival Code or send your invite link' },
+      { type: 'step', label: '1', value: 'Go to your Profile and copy your unique Rival Code' },
+      { type: 'step', label: '2', value: 'Share the link with friends — they can sign up directly from it' },
+      { type: 'step', label: '3', value: 'Once connected, you\'ll see each other on the Weekly Killboard' },
+      { type: 'text', value: 'The Weekly Killboard tracks missions completed, weight lifted, and max combos — resetting every Sunday.' },
+      { type: 'stat', label: 'ACCEPT CHALLENGE', value: 'Start the same mission a rival just finished to compete directly' },
+      { type: 'tip', value: 'Check the Rival Widget on your dashboard or Intel page to see who\'s ahead' },
+    ]
+  },
+  {
+    id: 'squads',
+    title: 'SQUADS',
+    icon: Users,
+    color: 'text-warning',
+    content: [
+      { type: 'text', value: 'Squads let trainers (Handlers) organize athletes into groups for structured programming.' },
+      { type: 'highlight', value: 'Handler Dashboard → Create Squad → Share recruitment link' },
+      { type: 'step', label: '1', value: 'Create a Squad with a name and optional description' },
+      { type: 'step', label: '2', value: 'Copy the unique recruitment link to share with athletes' },
+      { type: 'step', label: '3', value: 'Athletes click the link to join — they can be in multiple squads' },
+      { type: 'text', value: 'Squads are the foundation for assigning orders. Athletes in a squad receive the missions and campaigns you assign.' },
+      { type: 'tip', value: 'Athletes choose whether to share their detailed stats with you' },
+    ]
+  },
+  {
+    id: 'handlers',
+    title: 'HANDLER MODE',
+    icon: Radio,
+    color: 'text-warning',
+    content: [
+      { type: 'text', value: 'Handler Mode is for personal trainers and coaches who want to program for others.' },
+      { type: 'highlight', value: 'Dashboard → HANDLER button (visible if you have the handler role)' },
+      { type: 'step', label: '1', value: 'Create one or more Squads for your athletes' },
+      { type: 'step', label: '2', value: 'Click ASSIGN ORDER to send missions or campaigns to a squad' },
+      { type: 'step', label: '3', value: 'Set optional due dates for accountability' },
+      { type: 'step', label: '4', value: 'Track completion from the Recent Orders feed' },
+      { type: 'text', value: 'Orders appear in your athletes\' INCOMING ORDERS section on their dashboard.' },
+      { type: 'stat', label: 'DELETE', value: 'Remove orders that are no longer relevant' },
+      { type: 'stat', label: 'VIEW DETAILS', value: 'See the full mission or campaign you assigned' },
+      { type: 'tip', value: 'You can assign entire campaigns — not just individual missions' },
+    ]
+  },
+  {
     id: 'scoring',
     title: 'SCORING & XP',
     icon: Zap,
@@ -134,32 +184,17 @@ const GUIDE_SECTIONS = [
     ]
   },
   {
-    id: 'handlers',
-    title: 'HANDLER MODE',
-    icon: Users,
-    color: 'text-warning',
-    content: [
-      { type: 'text', value: 'For trainers and coaches: create Squads and assign orders to your athletes.' },
-      { type: 'step', label: '1', value: 'Access Handler Ops from the dashboard (requires handler role)' },
-      { type: 'step', label: '2', value: 'Create a Squad and share the recruitment link' },
-      { type: 'step', label: '3', value: 'Assign missions OR campaigns as orders' },
-      { type: 'step', label: '4', value: 'Track completion and manage orders from the dashboard' },
-      { type: 'text', value: 'Orders appear in your athletes\' INCOMING ORDERS section on their dashboard.' },
-      { type: 'tip', value: 'You can delete orders and view order details from the Handler Dashboard' },
-    ]
-  },
-  {
     id: 'intel',
     title: 'INTEL & STATS',
     icon: Trophy,
-    color: 'text-accent',
+    color: 'text-section-intel',
     content: [
-      { type: 'text', value: 'Track your progress and compete on the global leaderboard.' },
-      { type: 'stat', label: 'WAR ROOM', value: 'Weekly summary of your training volume and PRs' },
-      { type: 'stat', label: 'LEADERBOARD', value: 'Global rankings by total score' },
-      { type: 'stat', label: 'FRONT LINES', value: 'Live feed of recent activity from all agents' },
-      { type: 'text', value: 'Your profile shows lifetime stats: sets, reps, total weight lifted, and max combo.' },
-      { type: 'tip', value: 'Add rivals to compete head-to-head on weekly stats' },
+      { type: 'text', value: 'Track your progress across multiple dimensions.' },
+      { type: 'stat', label: 'WAR ROOM', value: 'Lifetime stats, milestones, achievements, and weight history' },
+      { type: 'stat', label: 'INTEL CENTER', value: 'Campaign analytics, leaderboards, and the Front Lines activity feed' },
+      { type: 'stat', label: 'WEEKLY DEBRIEF', value: 'Dashboard summary of missions, weight, PRs, and muscle groups trained' },
+      { type: 'text', value: 'Personal Records (PRs) are tracked automatically and celebrated when you beat them.' },
+      { type: 'tip', value: 'Check the Front Lines for a live feed of all agent activity across the platform' },
     ]
   },
 ];
