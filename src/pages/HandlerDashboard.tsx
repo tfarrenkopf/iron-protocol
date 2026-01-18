@@ -1,14 +1,24 @@
 import { useState, useMemo } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useNavigate } from 'react-router-dom';
-import { Users, Target, Plus, Copy, Check, Trash2, ChevronRight, Send, Calendar, Edit3, X, Save, Percent, Info } from 'lucide-react';
+import { Users, Target, Plus, Copy, Trash2, ChevronRight, Send, Calendar, Edit3, X, Save, Percent, Info, Flame, Eye } from 'lucide-react';
 import { useAuth } from '@/hooks/useAuth';
 import { useIsHandler, useSquads, useCreateSquad, useDeleteSquad, useUpdateSquad } from '@/hooks/useHandlerMode';
-import { useHandlerAssignments } from '@/hooks/useAssignments';
+import { useHandlerAssignments, useDeleteAssignment } from '@/hooks/useAssignments';
 import { format } from 'date-fns';
 import { GlobalNav } from '@/components/GlobalNav';
 import { AppFooter } from '@/components/AppFooter';
 import { toast } from '@/hooks/use-toast';
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
 
 const HandlerDashboard = () => {
   const navigate = useNavigate();
@@ -19,6 +29,7 @@ const HandlerDashboard = () => {
   const createSquad = useCreateSquad();
   const deleteSquad = useDeleteSquad();
   const updateSquad = useUpdateSquad();
+  const deleteAssignment = useDeleteAssignment();
 
   const [showCreateSquad, setShowCreateSquad] = useState(false);
   const [squadName, setSquadName] = useState('');
@@ -31,7 +42,9 @@ const HandlerDashboard = () => {
   const [editSquadName, setEditSquadName] = useState('');
   const [editSquadCodeName, setEditSquadCodeName] = useState('');
   const [editSquadDescription, setEditSquadDescription] = useState('');
-
+  
+  // Delete assignment confirmation
+  const [deleteOrderId, setDeleteOrderId] = useState<string | null>(null);
   // Calculate assignments by squad
   const assignmentsBySquad = useMemo(() => {
     if (!assignments) return {};
@@ -460,6 +473,7 @@ const HandlerDashboard = () => {
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.4 }}
+          className="mb-8"
         >
           <h2 className="font-display text-lg text-muted-foreground mb-4 tracking-wider">
             // RECENT ORDERS
@@ -467,22 +481,24 @@ const HandlerDashboard = () => {
 
           {assignmentsLoading ? (
             <div className="text-center py-4">
-              <div className="font-display text-sm text-primary animate-neon-pulse">LOADING...</div>
+              <div className="font-display text-sm text-warning animate-neon-pulse">LOADING...</div>
             </div>
           ) : !assignments || assignments.length === 0 ? (
-            <div className="bg-card border border-border rounded-lg p-6 text-center">
-              <Send className="w-8 h-8 mx-auto mb-3 text-muted-foreground" />
+            <div className="bg-card border border-warning/30 rounded-lg p-6 text-center">
+              <Send className="w-8 h-8 mx-auto mb-3 text-warning/50" />
               <p className="text-muted-foreground text-sm">No orders sent yet.</p>
             </div>
           ) : (
             <div className="space-y-3">
-              {assignments.slice(0, 10).map((assignment: any, i: number) => {
+              {assignments.slice(0, 15).map((assignment: any, i: number) => {
                 const snapshot = assignment.mission_snapshot as any;
+                const isCampaign = snapshot?.type === 'campaign';
                 const exercises = snapshot?.mission_exercises || [];
+                const missionCount = snapshot?.mission_count || 0;
                 const statusColors = {
-                  'NOT_STARTED': 'text-muted-foreground',
-                  'IN_PROGRESS': 'text-warning',
-                  'COMPLETED': 'text-success',
+                  'NOT_STARTED': 'text-muted-foreground bg-muted',
+                  'IN_PROGRESS': 'text-warning bg-warning/10',
+                  'COMPLETED': 'text-success bg-success/10',
                 };
                 
                 return (
@@ -491,21 +507,26 @@ const HandlerDashboard = () => {
                     initial={{ opacity: 0, x: -20 }}
                     animate={{ opacity: 1, x: 0 }}
                     transition={{ delay: 0.5 + i * 0.03 }}
-                    className="bg-card border border-border rounded-lg p-3"
+                    className="bg-card border border-warning/30 rounded-lg p-3"
                   >
-                    <div className="flex items-center justify-between">
+                    <div className="flex items-start justify-between gap-2">
                       <div className="flex-1 min-w-0">
-                        <div className="flex items-center gap-2">
-                          <div className="font-display text-sm text-primary truncate">
-                            {snapshot?.code_name || 'Unknown Mission'}
-                          </div>
-                          <span className="text-xs text-muted-foreground bg-muted px-1.5 py-0.5 rounded">
-                            {exercises.length} exercise{exercises.length !== 1 ? 's' : ''}
+                        <div className="flex items-center gap-2 mb-1">
+                          {isCampaign ? (
+                            <Flame className="w-4 h-4 text-section-campaigns flex-shrink-0" />
+                          ) : (
+                            <Target className="w-4 h-4 text-section-missions flex-shrink-0" />
+                          )}
+                          <span className="font-display text-sm text-warning truncate">
+                            {snapshot?.code_name || 'Unknown'}
+                          </span>
+                          <span className="text-xs text-muted-foreground bg-muted px-1.5 py-0.5 rounded flex-shrink-0">
+                            {isCampaign ? `${missionCount} missions` : `${exercises.length} ex`}
                           </span>
                         </div>
-                        <div className="flex items-center gap-2 text-xs text-muted-foreground mt-0.5">
+                        <div className="flex items-center gap-2 text-xs text-muted-foreground">
                           <span>→ {assignment.assignee_type === 'SQUAD' 
-                            ? (assignment.squads as any)?.name 
+                            ? (assignment.squads as any)?.code_name || (assignment.squads as any)?.name
                             : (assignment.profiles as any)?.display_name || 'Agent'
                           }</span>
                           {assignment.due_at && (
@@ -516,9 +537,36 @@ const HandlerDashboard = () => {
                           )}
                         </div>
                       </div>
-                      <span className={`text-xs font-display ${statusColors[assignment.status as keyof typeof statusColors]}`}>
-                        {assignment.status.replace('_', ' ')}
-                      </span>
+                      
+                      <div className="flex items-center gap-2 flex-shrink-0">
+                        <span className={`text-xs font-display px-2 py-0.5 rounded ${statusColors[assignment.status as keyof typeof statusColors]}`}>
+                          {assignment.status.replace('_', ' ')}
+                        </span>
+                        
+                        {/* View Details Button */}
+                        <button
+                          onClick={() => {
+                            if (isCampaign && snapshot?.id) {
+                              navigate(`/campaigns/${snapshot.id}`);
+                            } else if (snapshot?.id) {
+                              navigate(`/missions/${snapshot.id}`);
+                            }
+                          }}
+                          className="p-1.5 text-muted-foreground hover:text-warning transition-colors"
+                          title="View details"
+                        >
+                          <Eye className="w-4 h-4" />
+                        </button>
+                        
+                        {/* Delete Button */}
+                        <button
+                          onClick={() => setDeleteOrderId(assignment.id)}
+                          className="p-1.5 text-muted-foreground hover:text-destructive transition-colors"
+                          title="Delete order"
+                        >
+                          <Trash2 className="w-4 h-4" />
+                        </button>
+                      </div>
                     </div>
                   </motion.div>
                 );
@@ -608,6 +656,39 @@ const HandlerDashboard = () => {
             </motion.div>
           )}
         </AnimatePresence>
+
+        {/* Delete Order Confirmation */}
+        <AlertDialog open={!!deleteOrderId} onOpenChange={() => setDeleteOrderId(null)}>
+          <AlertDialogContent className="bg-card border-warning">
+            <AlertDialogHeader>
+              <AlertDialogTitle className="font-display text-warning">REVOKE ORDER?</AlertDialogTitle>
+              <AlertDialogDescription>
+                This will remove this order from the squad. Athletes who haven't started will no longer see it.
+              </AlertDialogDescription>
+            </AlertDialogHeader>
+            <AlertDialogFooter>
+              <AlertDialogCancel className="font-display">CANCEL</AlertDialogCancel>
+              <AlertDialogAction
+                onClick={() => {
+                  if (deleteOrderId) {
+                    deleteAssignment.mutate(deleteOrderId, {
+                      onSuccess: () => {
+                        toast({ title: 'Order revoked', description: 'The assignment has been removed.' });
+                        setDeleteOrderId(null);
+                      },
+                      onError: () => {
+                        toast({ title: 'Error', description: 'Failed to delete assignment.', variant: 'destructive' });
+                      }
+                    });
+                  }
+                }}
+                className="bg-destructive text-destructive-foreground font-display hover:bg-destructive/90"
+              >
+                {deleteAssignment.isPending ? 'REVOKING...' : 'REVOKE'}
+              </AlertDialogAction>
+            </AlertDialogFooter>
+          </AlertDialogContent>
+        </AlertDialog>
 
         {/* Footer */}
         <AppFooter />
