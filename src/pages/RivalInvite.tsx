@@ -8,13 +8,12 @@ import { useUpdateProfile } from '@/hooks/useProfile';
 import { Button } from '@/components/ui/button';
 import { toast } from 'sonner';
 import { z } from 'zod';
+import { displayNameSchema, validateDisplayName } from '@/lib/displayNameValidation';
 
 const authSchema = z.object({
   email: z.string().trim().email({ message: 'Invalid email address' }).max(255),
   password: z.string().min(6, { message: 'Password must be at least 6 characters' }).max(72),
 });
-
-const displayNameSchema = z.string().min(3, { message: 'Display name must be at least 3 characters' }).max(15, { message: 'Display name must be 15 characters or less' }).regex(/^[a-zA-Z0-9_-]+$/, { message: 'Only letters, numbers, underscores and dashes allowed' });
 
 const RivalInvite = () => {
   const { rivalCode } = useParams<{ rivalCode: string }>();
@@ -32,9 +31,20 @@ const RivalInvite = () => {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [displayName, setDisplayName] = useState('');
+  const [displayNameError, setDisplayNameError] = useState<string | null>(null);
   const [showPassword, setShowPassword] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
+
+  const handleDisplayNameChange = (value: string) => {
+    setDisplayName(value);
+    if (value.trim()) {
+      const validation = validateDisplayName(value);
+      setDisplayNameError(validation.isValid ? null : validation.error || null);
+    } else {
+      setDisplayNameError(null);
+    }
+  };
 
   const handleAcceptRival = async () => {
     if (!rivalCode) return;
@@ -327,12 +337,17 @@ const RivalInvite = () => {
                       <input
                         type="text"
                         value={displayName}
-                        onChange={(e) => setDisplayName(e.target.value)}
-                        className="w-full bg-background border border-border rounded-lg pl-10 pr-4 py-2.5 text-sm text-foreground placeholder:text-muted-foreground focus:border-primary focus:outline-none transition-colors"
+                        onChange={(e) => handleDisplayNameChange(e.target.value)}
+                        className={`w-full bg-background border rounded-lg pl-10 pr-4 py-2.5 text-sm text-foreground placeholder:text-muted-foreground focus:outline-none transition-colors ${
+                          displayNameError ? 'border-destructive focus:border-destructive' : 'border-border focus:border-primary'
+                        }`}
                         placeholder="GHOST_REAPER"
                         maxLength={15}
                       />
                     </div>
+                    {displayNameError && (
+                      <p className="text-xs text-destructive">{displayNameError}</p>
+                    )}
                   </div>
                 )}
 
