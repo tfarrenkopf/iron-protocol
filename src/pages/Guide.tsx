@@ -8,7 +8,8 @@ import {
   Target,
   Flame,
   Users,
-  Plus
+  Crosshair,
+  Layers
 } from 'lucide-react';
 import { GlobalNav } from '@/components/GlobalNav';
 import { AppFooter } from '@/components/AppFooter';
@@ -20,23 +21,72 @@ const GUIDE_SECTIONS = [
     icon: Target,
     color: 'text-primary',
     content: [
-      { type: 'text', value: 'Iron Protocol transforms your workouts into missions. Every rep counts. Every set matters.' },
-      { type: 'highlight', value: 'Complete sets → Earn XP → Level up → Dominate the leaderboard' },
-      { type: 'text', value: 'This guide will brief you on all combat protocols.' },
+      { type: 'text', value: 'Iron Protocol transforms your workouts into tactical missions. Every rep deals damage. Every set earns XP. Rise through the ranks.' },
+      { type: 'highlight', value: 'Log sets → Build combos → Earn XP → Climb the leaderboard' },
+      { type: 'text', value: 'Guest mode lets you explore, but sign up to save your progress and claim your rank.' },
+    ]
+  },
+  {
+    id: 'command',
+    title: 'COMMAND CENTER',
+    icon: Layers,
+    color: 'text-primary',
+    content: [
+      { type: 'text', value: 'The Command Center is your hub for browsing and creating workout content. It\'s organized into three tabs:' },
+      { type: 'highlight', value: 'CAMPAIGNS → MISSIONS → EXERCISES' },
+      { type: 'stat', label: 'CAMPAIGNS', value: 'Multi-mission training programs (e.g., Push Pull Legs, Starting Strength)' },
+      { type: 'stat', label: 'MISSIONS', value: 'Individual workouts with specific exercises and rep targets' },
+      { type: 'stat', label: 'EXERCISES', value: 'The building blocks — individual movements like squats or curls' },
+      { type: 'tip', value: 'Use the source toggle (STANDARD / MY OPS / COMMUNITY) to filter between official content and your own creations' },
+    ]
+  },
+  {
+    id: 'exercises',
+    title: 'EXERCISES',
+    icon: Dumbbell,
+    color: 'text-section-exercises',
+    content: [
+      { type: 'text', value: 'Exercises are individual movements that form the foundation of your training.' },
+      { type: 'highlight', value: 'Command Center → Exercises tab → + button to create' },
+      { type: 'step', label: '1', value: 'Enter the exercise name (e.g., "Incline Dumbbell Press")' },
+      { type: 'step', label: '2', value: 'Select the primary muscle group it targets' },
+      { type: 'step', label: '3', value: 'Choose the required equipment' },
+      { type: 'step', label: '4', value: 'Optionally add focus areas and instructions' },
+      { type: 'text', value: 'Your custom exercises are private and can be used in your own missions.' },
+      { type: 'tip', value: 'The app remembers your last-used weight for each exercise to speed up logging' },
     ]
   },
   {
     id: 'missions',
     title: 'MISSIONS',
-    icon: Dumbbell,
-    color: 'text-primary',
+    icon: Crosshair,
+    color: 'text-section-missions',
     content: [
-      { type: 'text', value: 'Missions are structured workouts with specific exercises, sets, and rep targets.' },
-      { type: 'step', label: '1', value: 'Select a mission from the dashboard or mission list' },
-      { type: 'step', label: '2', value: 'Review the exercises and start when ready' },
-      { type: 'step', label: '3', value: 'Log each set with your actual weight and reps' },
-      { type: 'step', label: '4', value: 'Complete all sets to finish the mission' },
-      { type: 'tip', value: 'Create your own missions in the Arsenal to match your training style' },
+      { type: 'text', value: 'Missions are structured workouts that combine multiple exercises with set and rep targets.' },
+      { type: 'highlight', value: 'Command Center → Missions tab → + button to create' },
+      { type: 'step', label: '1', value: 'Give your mission a name and optional description' },
+      { type: 'step', label: '2', value: 'Add exercises from the library' },
+      { type: 'step', label: '3', value: 'Set target sets, reps, and rest time for each exercise' },
+      { type: 'step', label: '4', value: 'Choose focus areas to categorize your mission' },
+      { type: 'text', value: 'During a mission, log each set with your actual weight and reps. Complete all sets to finish.' },
+      { type: 'tip', value: 'Quick train lets you log any exercise on-the-fly without selecting a mission first' },
+    ]
+  },
+  {
+    id: 'campaigns',
+    title: 'CAMPAIGNS',
+    icon: Flame,
+    color: 'text-section-campaigns',
+    content: [
+      { type: 'text', value: 'Campaigns are multi-mission training programs that track your long-term progress.' },
+      { type: 'highlight', value: 'Command Center → Campaigns tab → + button to create' },
+      { type: 'step', label: '1', value: 'Name your campaign (e.g., "Upper/Lower Split")' },
+      { type: 'step', label: '2', value: 'Add missions from the picker — these become your rotation' },
+      { type: 'step', label: '3', value: 'Set a campaign as your Active Campaign to track progress' },
+      { type: 'text', value: 'Campaigns are open-ended — complete missions in any order and as many times as you want.' },
+      { type: 'stat', label: 'RUN HISTORY', value: 'Shows every mission completed in your current campaign run' },
+      { type: 'stat', label: 'CAMPAIGN CLEARS', value: 'Tracks how many times you\'ve completed all missions in a campaign' },
+      { type: 'tip', value: 'Switching campaigns abandons your current run progress — a confirmation will warn you' },
     ]
   },
   {
@@ -45,11 +95,11 @@ const GUIDE_SECTIONS = [
     icon: Zap,
     color: 'text-accent',
     content: [
-      { type: 'text', value: 'Every completed set earns you Score and XP. Your performance determines your gains.' },
+      { type: 'text', value: 'Every completed set earns you Score and XP based on your performance.' },
       { type: 'stat', label: 'BASE SCORE', value: 'Reps × Weight = Base points per set' },
-      { type: 'stat', label: 'COMBO BONUS', value: 'Chain sets without long breaks for multipliers' },
-      { type: 'stat', label: 'XP', value: 'Score ÷ 10 = XP earned (levels you up)' },
-      { type: 'tip', value: 'Higher combos mean exponentially more points. Stay in the zone!' },
+      { type: 'stat', label: 'COMBO BONUS', value: 'Chain sets quickly for score multipliers' },
+      { type: 'stat', label: 'XP', value: 'Score ÷ 10 = XP earned toward leveling up' },
+      { type: 'tip', value: 'Heavier weight and higher reps mean bigger scores — push yourself!' },
     ]
   },
   {
@@ -58,39 +108,29 @@ const GUIDE_SECTIONS = [
     icon: Flame,
     color: 'text-secondary',
     content: [
-      { type: 'text', value: 'Combos reward consistent effort. Keep moving to build your multiplier.' },
-      { type: 'highlight', value: 'Complete sets within 90 seconds to maintain combo' },
+      { type: 'text', value: 'Combos reward consistent, focused training. Keep moving to build your multiplier.' },
+      { type: 'highlight', value: 'Complete sets within 90 seconds to maintain your combo' },
       { type: 'text', value: 'Each consecutive set adds +1 to your combo. Miss the window and it resets to 1x.' },
       { type: 'stat', label: '5x COMBO', value: '50% bonus score' },
       { type: 'stat', label: '10x COMBO', value: '100% bonus score (2x multiplier!)' },
-      { type: 'tip', value: 'Your max combo is tracked on your profile and the leaderboard' },
+      { type: 'tip', value: 'Your max combo is tracked on your profile — chase the high score!' },
     ]
   },
   {
     id: 'hiit',
     title: 'HIIT TIMER',
     icon: Timer,
-    color: 'text-secondary',
+    color: 'text-section-hiit',
     content: [
-      { type: 'text', value: 'High-Intensity Interval Training with built-in work/rest phases.' },
-      { type: 'step', label: '1', value: 'Choose a protocol (e.g., BLITZ: 30s work / 10s rest)' },
+      { type: 'text', value: 'High-Intensity Interval Training with built-in work and rest phases.' },
+      { type: 'step', label: '1', value: 'Choose a preset protocol or customize your own timing' },
       { type: 'step', label: '2', value: 'Perform any exercise during FIGHT phases' },
       { type: 'step', label: '3', value: 'Rest during RECOVER phases' },
       { type: 'step', label: '4', value: 'Survive all rounds to complete the session' },
+      { type: 'stat', label: 'BLITZ', value: '30s work / 10s rest — fast and intense' },
+      { type: 'stat', label: 'STANDARD', value: '40s work / 20s rest — balanced protocol' },
+      { type: 'stat', label: 'ENDURANCE', value: '45s work / 15s rest — extended effort' },
       { type: 'tip', value: 'Screen stays awake automatically during HIIT sessions' },
-    ]
-  },
-  {
-    id: 'command',
-    title: 'COMMAND CENTER',
-    icon: Plus,
-    color: 'text-primary',
-    content: [
-      { type: 'text', value: 'Create and manage your custom exercises and missions.' },
-      { type: 'highlight', value: 'COMMAND on the dashboard → MY MISSIONS / MY EXERCISES tabs → Create new' },
-      { type: 'text', value: 'Custom exercises are private by default. Use them in your personal missions.' },
-      { type: 'text', value: 'Missions you create appear in your mission list for quick access.' },
-      { type: 'tip', value: 'Include muscle groups and equipment tags for better organization' },
     ]
   },
   {
@@ -99,25 +139,27 @@ const GUIDE_SECTIONS = [
     icon: Users,
     color: 'text-warning',
     content: [
-      { type: 'text', value: 'Trainers can create Squads and assign missions to athletes.' },
-      { type: 'step', label: '1', value: 'Enable Handler Mode in your profile' },
-      { type: 'step', label: '2', value: 'Create a Squad and share the invite link' },
-      { type: 'step', label: '3', value: 'Assign missions that appear as INCOMING ORDERS' },
-      { type: 'step', label: '4', value: 'Track completion through the Handler Dashboard' },
-      { type: 'tip', value: 'Athletes choose whether to share their stats with you' },
+      { type: 'text', value: 'For trainers and coaches: create Squads and assign orders to your athletes.' },
+      { type: 'step', label: '1', value: 'Access Handler Ops from the dashboard (requires handler role)' },
+      { type: 'step', label: '2', value: 'Create a Squad and share the recruitment link' },
+      { type: 'step', label: '3', value: 'Assign missions OR campaigns as orders' },
+      { type: 'step', label: '4', value: 'Track completion and manage orders from the dashboard' },
+      { type: 'text', value: 'Orders appear in your athletes\' INCOMING ORDERS section on their dashboard.' },
+      { type: 'tip', value: 'You can delete orders and view order details from the Handler Dashboard' },
     ]
   },
   {
-    id: 'leaderboard',
-    title: 'LEADERBOARD',
+    id: 'intel',
+    title: 'INTEL & STATS',
     icon: Trophy,
     color: 'text-accent',
     content: [
-      { type: 'text', value: 'Compete against all agents on the global rankings.' },
-      { type: 'stat', label: 'RANKED BY', value: 'Total Score earned across all sessions' },
-      { type: 'text', value: 'Your profile shows lifetime stats: sets, reps, weight lifted, and max combo.' },
-      { type: 'highlight', value: 'Guest mode doesn\'t save progress. Sign up to claim your rank!' },
-      { type: 'tip', value: 'Check THE FRONT LINES for a live feed of all warrior activity' },
+      { type: 'text', value: 'Track your progress and compete on the global leaderboard.' },
+      { type: 'stat', label: 'WAR ROOM', value: 'Weekly summary of your training volume and PRs' },
+      { type: 'stat', label: 'LEADERBOARD', value: 'Global rankings by total score' },
+      { type: 'stat', label: 'FRONT LINES', value: 'Live feed of recent activity from all agents' },
+      { type: 'text', value: 'Your profile shows lifetime stats: sets, reps, total weight lifted, and max combo.' },
+      { type: 'tip', value: 'Add rivals to compete head-to-head on weekly stats' },
     ]
   },
 ];
@@ -191,17 +233,17 @@ const Guide = () => {
                         <p className="text-muted-foreground">{item.value}</p>
                       )}
                       {item.type === 'highlight' && (
-                        <p className="text-primary border-l-2 border-primary pl-3">{item.value}</p>
+                        <p className="text-primary border-l-2 border-primary pl-3 font-medium">{item.value}</p>
                       )}
                       {item.type === 'step' && (
                         <div className="flex gap-3 text-foreground">
-                          <span className="text-muted-foreground">{item.label}.</span>
+                          <span className="text-primary font-bold">{item.label}.</span>
                           <span>{item.value}</span>
                         </div>
                       )}
                       {item.type === 'stat' && (
                         <div className="flex gap-3 text-foreground border-l-2 border-muted pl-3">
-                          <span className="text-muted-foreground shrink-0">{item.label}:</span>
+                          <span className="text-muted-foreground shrink-0 font-medium">{item.label}:</span>
                           <span>{item.value}</span>
                         </div>
                       )}
