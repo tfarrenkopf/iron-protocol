@@ -184,8 +184,8 @@ export function GlobalNav({
         </div>
 
         {/* Right side: Nav icons + Auth controls */}
-        <div className="flex items-center gap-1">
-          <nav className="flex items-center gap-1">
+        <div className="flex items-center gap-0.5 sm:gap-1">
+          <nav className="flex items-center gap-0.5 sm:gap-1">
             {navItems.map((item) => {
               const Icon = item.icon;
               const itemColors = SECTION_COLORS[item.section];
@@ -203,7 +203,7 @@ export function GlobalNav({
                   key={item.path}
                   onClick={() => navigate(item.path)}
                   className={cn(
-                    "p-2 rounded transition-colors",
+                    "p-2.5 sm:p-2 rounded transition-colors min-w-[44px] min-h-[44px] flex items-center justify-center active:scale-95",
                     isActive 
                       ? `${itemColors.text} ${itemColors.bg}` 
                       : "text-muted-foreground hover:text-foreground hover:bg-muted/50"
@@ -211,7 +211,7 @@ export function GlobalNav({
                   aria-label={item.label}
                   title={item.label}
                 >
-                  <Icon className="w-4 h-4" />
+                  <Icon className="w-5 h-5 sm:w-4 sm:h-4" />
                 </button>
               );
             })}
@@ -226,11 +226,11 @@ export function GlobalNav({
 
           {/* Auth controls - only shown when logged in */}
           {!isLoading && user && (
-            <div className="flex items-center gap-1 ml-1 pl-1 border-l border-border">
+            <div className="flex items-center gap-0.5 sm:gap-1 ml-1 pl-1 border-l border-border">
               <button
                 onClick={() => navigate("/profile")}
                 className={cn(
-                  "p-2 rounded transition-colors",
+                  "p-2.5 sm:p-2 rounded transition-colors min-w-[44px] min-h-[44px] flex items-center justify-center active:scale-95",
                   location.pathname === "/profile"
                     ? "text-primary bg-primary/10"
                     : "text-muted-foreground hover:text-foreground hover:bg-muted/50"
@@ -238,15 +238,15 @@ export function GlobalNav({
                 aria-label="Profile"
                 title="Profile"
               >
-                <User className="w-4 h-4" />
+                <User className="w-5 h-5 sm:w-4 sm:h-4" />
               </button>
               <button
                 onClick={() => setShowSignOutDialog(true)}
-                className="p-2 rounded text-muted-foreground hover:text-destructive hover:bg-destructive/10 transition-colors"
+                className="p-2.5 sm:p-2 rounded text-muted-foreground hover:text-destructive hover:bg-destructive/10 transition-colors min-w-[44px] min-h-[44px] flex items-center justify-center active:scale-95"
                 aria-label="Sign out"
                 title="Sign out"
               >
-                <LogOut className="w-4 h-4" />
+                <LogOut className="w-5 h-5 sm:w-4 sm:h-4" />
               </button>
             </div>
           )}

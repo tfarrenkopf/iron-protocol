@@ -99,7 +99,7 @@ export const MissionCard = memo(function MissionCard({
       animate={{ opacity: 1, x: 0 }}
       transition={{ delay: index * 0.03 }}
       onClick={handleClick}
-      className={`group w-full bg-card border rounded-lg p-4 text-left transition-all relative overflow-hidden cursor-pointer ${
+      className={`group w-full bg-card border rounded-lg p-3 sm:p-4 text-left transition-all relative overflow-hidden cursor-pointer active:scale-[0.99] ${
         isCompleted ? 'border-secondary/50' : 
         isAdded ? 'border-secondary/50 opacity-70' : 
         'border-border hover:border-primary'
@@ -267,20 +267,20 @@ export const MissionCard = memo(function MissionCard({
             {isAdded ? (
               <button
                 onClick={(e) => { e.stopPropagation(); onRemove?.(); }}
-                className="w-12 h-12 rounded-lg flex items-center justify-center bg-secondary/20 text-secondary
-                           hover:bg-destructive/20 hover:text-destructive active:scale-95 transition-all"
+                className="w-12 h-12 sm:w-14 sm:h-14 rounded-lg flex items-center justify-center bg-secondary/20 text-secondary
+                           hover:bg-destructive/20 hover:text-destructive active:scale-95 transition-all min-w-[48px] min-h-[48px]"
                 aria-label="Remove mission from campaign"
               >
-                <CheckCircle2 className="w-6 h-6" />
+                <CheckCircle2 className="w-5 h-5 sm:w-6 sm:h-6" />
               </button>
             ) : (
               <button
                 onClick={(e) => { e.stopPropagation(); onAdd?.(); }}
-                className="w-12 h-12 rounded-lg flex items-center justify-center bg-section-missions text-white 
-                           hover:box-glow-missions active:scale-95 transition-all"
+                className="w-12 h-12 sm:w-14 sm:h-14 rounded-lg flex items-center justify-center bg-section-missions text-white 
+                           hover:box-glow-missions active:scale-95 transition-all min-w-[48px] min-h-[48px]"
                 aria-label="Add mission to campaign"
               >
-                <Plus className="w-6 h-6" />
+                <Plus className="w-5 h-5 sm:w-6 sm:h-6" />
               </button>
             )}
           </div>

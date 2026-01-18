@@ -696,41 +696,41 @@ const WorkoutSession = () => {
         </AnimatePresence>
 
         {/* Weight Control */}
-        <div className="bg-card border border-border rounded-lg p-4 mb-3 flex-shrink-0">
-          <div className="text-xs text-muted-foreground text-center mb-3">WEIGHT (LB)</div>
-          <div className="flex items-center justify-center gap-4">
+        <div className="bg-card border border-border rounded-lg p-4 sm:p-5 mb-3 flex-shrink-0">
+          <div className="text-xs text-muted-foreground text-center mb-3 sm:mb-4">WEIGHT (LB)</div>
+          <div className="flex items-center justify-center gap-3 sm:gap-6">
             <button 
               onClick={() => adjustValue(setWeight, -5)}
-              className="tap-target-xl bg-muted rounded-lg hover:bg-muted/80 transition-colors"
+              className="w-16 h-16 sm:w-20 sm:h-20 bg-muted rounded-xl hover:bg-muted/80 active:scale-95 transition-all flex items-center justify-center touch-manipulation"
             >
-              <Minus className="w-8 h-8" />
+              <Minus className="w-8 h-8 sm:w-10 sm:h-10" />
             </button>
-            <div className="arcade-number text-secondary min-w-[120px] text-center text-5xl md:text-7xl">{weight}</div>
+            <div className="arcade-number text-secondary min-w-[100px] sm:min-w-[140px] text-center text-5xl sm:text-6xl md:text-7xl font-display">{weight}</div>
             <button 
               onClick={() => adjustValue(setWeight, 5)}
-              className="tap-target-xl bg-muted rounded-lg hover:bg-muted/80 transition-colors"
+              className="w-16 h-16 sm:w-20 sm:h-20 bg-muted rounded-xl hover:bg-muted/80 active:scale-95 transition-all flex items-center justify-center touch-manipulation"
             >
-              <Plus className="w-8 h-8" />
+              <Plus className="w-8 h-8 sm:w-10 sm:h-10" />
             </button>
           </div>
         </div>
 
         {/* Reps Control */}
-        <div className="bg-card border border-border rounded-lg p-4 mb-4 flex-shrink-0">
-          <div className="text-xs text-muted-foreground text-center mb-3">REPS</div>
-          <div className="flex items-center justify-center gap-4">
+        <div className="bg-card border border-border rounded-lg p-4 sm:p-5 mb-4 flex-shrink-0">
+          <div className="text-xs text-muted-foreground text-center mb-3 sm:mb-4">REPS</div>
+          <div className="flex items-center justify-center gap-3 sm:gap-6">
             <button 
               onClick={() => adjustValue(setReps, -1)}
-              className="tap-target-xl bg-muted rounded-lg hover:bg-muted/80 transition-colors"
+              className="w-16 h-16 sm:w-20 sm:h-20 bg-muted rounded-xl hover:bg-muted/80 active:scale-95 transition-all flex items-center justify-center touch-manipulation"
             >
-              <Minus className="w-8 h-8" />
+              <Minus className="w-8 h-8 sm:w-10 sm:h-10" />
             </button>
-            <div className="arcade-number text-accent min-w-[120px] text-center text-5xl md:text-7xl">{reps}</div>
+            <div className="arcade-number text-accent min-w-[100px] sm:min-w-[140px] text-center text-5xl sm:text-6xl md:text-7xl font-display">{reps}</div>
             <button 
               onClick={() => adjustValue(setReps, 1)}
-              className="tap-target-xl bg-muted rounded-lg hover:bg-muted/80 transition-colors"
+              className="w-16 h-16 sm:w-20 sm:h-20 bg-muted rounded-xl hover:bg-muted/80 active:scale-95 transition-all flex items-center justify-center touch-manipulation"
             >
-              <Plus className="w-8 h-8" />
+              <Plus className="w-8 h-8 sm:w-10 sm:h-10" />
             </button>
           </div>
         </div>
