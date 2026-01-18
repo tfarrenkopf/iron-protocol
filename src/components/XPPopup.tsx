@@ -1,5 +1,5 @@
 import { motion, AnimatePresence } from 'framer-motion';
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useMemo, useState, useRef } from 'react';
 import { Trophy } from 'lucide-react';
 import { Achievement, getRarityColor, getRarityGlow } from '@/hooks/useAchievements';
 
@@ -39,6 +39,9 @@ export const XPPopup = ({
   onComplete,
 }: XPPopupProps) => {
   const [showContainer, setShowContainer] = useState(false);
+  // Use ref to avoid stale closure issues and prevent timer resets from callback changes
+  const onCompleteRef = useRef(onComplete);
+  onCompleteRef.current = onComplete;
 
   const items = useMemo<LootItem[]>(() => {
     const lootItems: LootItem[] = [
@@ -56,6 +59,7 @@ export const XPPopup = ({
 
   // Important performance fix:
   // Run the auto-dismiss timer ONLY when `show` toggles on (not on every stat update while spam-clicking).
+  // Use ref for onComplete to prevent timer resets from callback recreation.
   useEffect(() => {
     if (!show) {
       setShowContainer(false);
@@ -67,11 +71,11 @@ export const XPPopup = ({
     const displayTime = achievement ? 3500 : 2000;
     const timer = window.setTimeout(() => {
       setShowContainer(false);
-      onComplete?.();
+      onCompleteRef.current?.();
     }, displayTime);
 
     return () => window.clearTimeout(timer);
-  }, [show, achievement, onComplete]);
+  }, [show, achievement]);
 
   // Determine border color based on achievement rarity or default
   const getBorderStyle = () => {
