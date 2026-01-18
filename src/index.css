@@ -334,9 +334,9 @@
   .border-section-rivals { border-color: hsl(var(--section-rivals)); }
 
   /* ===== TYPOGRAPHY SCALE =====
-     Consistent text sizes for readability
+     Optimized for readability across all devices
      Minimum body text: 14px (text-sm)
-     Labels/captions: 12px (text-xs) - avoid 10px except decorative
+     Labels/captions: 12px (text-xs) minimum - NEVER use 10px or 9px
   */
   
   /* Section headers - used for "// SECTION NAME" */
@@ -349,7 +349,7 @@
     @apply font-display text-lg;
   }
   
-  /* Stat labels - minimum readable size */
+  /* Stat labels - readable size for arcade-style labels */
   .text-stat-label {
     @apply text-xs uppercase tracking-wider text-muted-foreground;
   }
@@ -359,13 +359,18 @@
     @apply font-display text-2xl;
   }
   
-  /* Body text - never smaller than this for readable content */
+  /* Body text - primary content */
   .text-body {
     @apply text-sm leading-relaxed;
   }
   
-  /* Small but readable captions */
+  /* Small but readable captions - minimum readable size */
   .text-caption {
+    @apply text-xs text-muted-foreground;
+  }
+  
+  /* Widget descriptions - slightly larger for readability */
+  .text-widget-desc {
     @apply text-xs text-muted-foreground;
   }
 }

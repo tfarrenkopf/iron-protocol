@@ -203,7 +203,7 @@ export const XPPopup = ({
                       initial={{ opacity: 0 }}
                       animate={{ opacity: 1 }}
                       transition={{ delay: 0.15 }}
-                      className="text-xs text-muted-foreground italic mt-2 max-w-[260px] mx-auto"
+                      className="text-sm text-muted-foreground italic mt-2 max-w-[260px] mx-auto"
                     >
                       "{lorePhrase}"
                     </motion.p>

@@ -115,7 +115,7 @@ export function MilestoneNotification({ milestones }: MilestoneNotificationProps
                   initial={{ opacity: 0 }}
                   animate={{ opacity: 1 }}
                   transition={{ delay: 0.5 }}
-                  className="mt-4 text-xs text-muted-foreground"
+                  className="mt-4 text-sm text-muted-foreground"
                 >
                   {currentIndex + 1} of {milestones.length}
                 </motion.div>
@@ -126,7 +126,7 @@ export function MilestoneNotification({ milestones }: MilestoneNotificationProps
                 initial={{ opacity: 0 }}
                 animate={{ opacity: 1 }}
                 transition={{ delay: 0.6 }}
-                className="mt-4 text-xs text-muted-foreground"
+                className="mt-4 text-sm text-muted-foreground"
               >
                 Tap to continue
               </motion.div>

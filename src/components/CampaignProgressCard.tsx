@@ -79,7 +79,7 @@ export function CampaignProgressCard({
             value={progressPercent} 
             className={`h-3 ${isComplete ? '[&>div]:bg-secondary' : ''}`} 
           />
-          <div className="absolute right-0 top-0 -mt-5 text-[10px] text-muted-foreground">
+          <div className="absolute right-0 top-0 -mt-5 text-xs text-muted-foreground">
             {completedCount} / {totalMissions}
           </div>
         </div>
@@ -88,14 +88,14 @@ export function CampaignProgressCard({
         <div className="grid grid-cols-4 gap-2 text-center">
           <div className="p-2 bg-background/50 rounded border border-border/50">
             <div className="text-xl font-display text-primary">{progressPercent}%</div>
-            <div className="text-[9px] text-muted-foreground tracking-wider">PROGRESS</div>
+            <div className="text-xs text-muted-foreground tracking-wider">PROG</div>
           </div>
           <div className="p-2 bg-background/50 rounded border border-border/50">
             <div className="text-xl font-display text-secondary flex items-center justify-center gap-1">
               <RotateCcw className="w-3 h-3" />
               {totalRuns}
             </div>
-            <div className="text-[9px] text-muted-foreground tracking-wider">RUNS</div>
+            <div className="text-xs text-muted-foreground tracking-wider">RUNS</div>
           </div>
           <div className="p-2 bg-background/50 rounded border border-border/50">
             <div className="text-xl font-display text-accent">
@@ -103,7 +103,7 @@ export function CampaignProgressCard({
                 ? formatTime(progress.best_completion_time_seconds)
                 : '--:--'}
             </div>
-            <div className="text-[9px] text-muted-foreground tracking-wider">BEST TIME</div>
+            <div className="text-xs text-muted-foreground tracking-wider">BEST</div>
           </div>
           <div className="p-2 bg-background/50 rounded border border-border/50">
             <motion.div 
@@ -115,8 +115,8 @@ export function CampaignProgressCard({
             >
               {isComplete ? '✓' : '○'}
             </motion.div>
-            <div className="text-[9px] text-muted-foreground tracking-wider">
-              {isComplete ? 'CLEARED' : 'IN PROG'}
+            <div className="text-xs text-muted-foreground tracking-wider">
+              {isComplete ? 'DONE' : 'ACTIVE'}
             </div>
           </div>
         </div>
@@ -128,10 +128,10 @@ export function CampaignProgressCard({
             animate={{ opacity: 1, scale: 1 }}
             className="mt-4 p-3 bg-secondary/10 border border-secondary/30 rounded text-center"
           >
-            <p className="text-xs text-secondary font-display tracking-wider">
+            <p className="text-sm text-secondary font-display tracking-wider">
               ⚡ CAMPAIGN COMPLETE ⚡
             </p>
-            <p className="text-[10px] text-muted-foreground mt-1">
+            <p className="text-xs text-muted-foreground mt-1">
               Complete missions again to start a new run and beat your best time!
             </p>
           </motion.div>
@@ -140,7 +140,7 @@ export function CampaignProgressCard({
         {/* Next milestone hint */}
         {!isComplete && totalRuns > 0 && (
           <div className="mt-3 pt-3 border-t border-border/50 text-center">
-            <p className="text-[10px] text-muted-foreground">
+            <p className="text-xs text-muted-foreground">
               {completedCount > 0 
                 ? `${totalMissions - completedCount} missions left to complete this run`
                 : 'Start completing missions to begin your run'}

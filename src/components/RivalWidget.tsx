@@ -151,15 +151,15 @@ export function RivalWidget({ variant = 'compact' }: RivalWidgetProps) {
       <div className="grid grid-cols-3 gap-2 text-center">
         <div>
           <div className="font-display text-sm text-foreground">{stat.weekly_weight.toLocaleString()}</div>
-          <div className="text-[10px] text-muted-foreground uppercase">LBS</div>
+          <div className="text-xs text-muted-foreground uppercase">LBS</div>
         </div>
         <div>
           <div className="font-display text-sm text-foreground">{stat.weekly_sets}</div>
-          <div className="text-[10px] text-muted-foreground uppercase">SETS</div>
+          <div className="text-xs text-muted-foreground uppercase">SETS</div>
         </div>
         <div>
           <div className="font-display text-sm text-foreground">{stat.weekly_max_combo}x</div>
-          <div className="text-[10px] text-muted-foreground uppercase">MAX COMBO</div>
+          <div className="text-xs text-muted-foreground uppercase">COMBO</div>
         </div>
       </div>
     </motion.div>
@@ -217,13 +217,13 @@ export function RivalWidget({ variant = 'compact' }: RivalWidgetProps) {
                   <TrendingUp className="w-3 h-3" />
                   <span>WEEKLY LEADERBOARD</span>
                 </div>
-                <div className="text-[10px] text-muted-foreground flex items-center gap-1">
+                <div className="text-xs text-muted-foreground flex items-center gap-1">
                   <Calendar className="w-3 h-3" />
                   <span>{weekRangeText}</span>
                 </div>
               </div>
               
-              <p className="text-[10px] text-muted-foreground/70 mb-2">
+              <p className="text-xs text-muted-foreground/70 mb-2">
                 Resets every Sunday. Compete for missions completed this week.
               </p>
               
@@ -276,7 +276,7 @@ export function RivalWidget({ variant = 'compact' }: RivalWidgetProps) {
                             <p className={`text-sm font-display ${isCurrentUser ? 'text-primary' : 'text-foreground'}`}>
                               {stat.weekly_sessions}
                             </p>
-                            <p className="text-[10px] text-muted-foreground">
+                            <p className="text-xs text-muted-foreground">
                               MISSIONS
                             </p>
                           </div>
@@ -336,14 +336,14 @@ export function RivalWidget({ variant = 'compact' }: RivalWidgetProps) {
                             <span className="font-display text-sm text-section-intel">{activity.display_name}</span>
                             <span className="text-xs text-muted-foreground ml-1">completed</span>
                           </div>
-                          <span className="text-[10px] text-muted-foreground">{formatRelativeTime(activity.completed_at)}</span>
+                          <span className="text-xs text-muted-foreground">{formatRelativeTime(activity.completed_at)}</span>
                         </div>
                         
                         <div className="font-display text-section-missions mb-2">
                           {activity.mission_snapshot?.code_name || 'CLASSIFIED MISSION'}
                         </div>
                         
-                        <div className="flex items-center gap-3 text-[10px] text-muted-foreground mb-3">
+                        <div className="flex items-center gap-3 text-xs text-muted-foreground mb-3">
                           <span className="flex items-center gap-1">
                             <Target className="w-3 h-3" />
                             {activity.score_earned.toLocaleString()}
@@ -400,18 +400,18 @@ export function RivalWidget({ variant = 'compact' }: RivalWidgetProps) {
                       <div className="flex items-start justify-between gap-2 mb-2">
                         <div className="flex-1 min-w-0">
                           <span className="text-xs text-section-intel font-display">{activity.display_name}</span>
-                          <span className="text-[10px] text-muted-foreground"> completed </span>
+                          <span className="text-xs text-muted-foreground"> completed </span>
                           <span className="text-xs text-section-missions font-display">
                             {activity.mission_snapshot?.code_name || 'MISSION'}
                           </span>
                         </div>
-                        <span className="text-[10px] text-muted-foreground flex-shrink-0">
+                        <span className="text-xs text-muted-foreground flex-shrink-0">
                           {formatRelativeTime(activity.completed_at)}
                         </span>
                       </div>
                       
                       {/* Stats row */}
-                      <div className="flex items-center gap-3 text-[10px] text-muted-foreground mb-2">
+                      <div className="flex items-center gap-3 text-xs text-muted-foreground mb-2">
                         <span className="flex items-center gap-1">
                           <Target className="w-3 h-3" />
                           {activity.score_earned.toLocaleString()}

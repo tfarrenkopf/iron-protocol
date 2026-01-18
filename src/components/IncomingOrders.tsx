@@ -64,17 +64,17 @@ export function IncomingOrders() {
         <div className="grid grid-cols-3 gap-3">
           <div className="text-center">
             <div className="font-display text-xl text-section-orders">{activeAssignments.length}</div>
-            <div className="text-[10px] uppercase tracking-wide text-muted-foreground">ACTIVE</div>
+            <div className="text-xs uppercase tracking-wide text-muted-foreground">ACTIVE</div>
           </div>
           <div className="text-center">
             <div className="font-display text-xl text-success">{completedCount}</div>
-            <div className="text-[10px] uppercase tracking-wide text-muted-foreground">COMPLETE</div>
+            <div className="text-xs uppercase tracking-wide text-muted-foreground">DONE</div>
           </div>
           <div className="text-center">
             <div className="font-display text-xl text-muted-foreground">
               {totalCount > 0 ? Math.round((completedCount / totalCount) * 100) : 0}%
             </div>
-            <div className="text-[10px] uppercase tracking-wide text-muted-foreground">RATE</div>
+            <div className="text-xs uppercase tracking-wide text-muted-foreground">RATE</div>
           </div>
         </div>
       </div>
@@ -102,8 +102,8 @@ export function IncomingOrders() {
                   <div className="flex-1 min-w-0">
                     <div className="flex items-center gap-2 mb-1">
                       {isInProgress && (
-                        <span className="text-[10px] bg-secondary/20 text-secondary px-1.5 py-0.5 rounded font-display">
-                          IN PROGRESS
+                        <span className="text-xs bg-secondary/20 text-secondary px-1.5 py-0.5 rounded font-display">
+                          ACTIVE
                         </span>
                       )}
                       <span className="font-display text-sm text-primary truncate">
@@ -111,11 +111,11 @@ export function IncomingOrders() {
                       </span>
                     </div>
                     
-                    <p className="text-xs text-muted-foreground mb-2 line-clamp-1">
+                    <p className="text-sm text-muted-foreground mb-2 line-clamp-1">
                       {mission.description || mission.name}
                     </p>
 
-                    <div className="flex items-center gap-3 text-[10px] text-muted-foreground">
+                    <div className="flex items-center gap-3 text-xs text-muted-foreground">
                       <div className="flex items-center gap-1">
                         <User className="w-3 h-3" />
                         <span>{assignment.handler_name || 'Handler'}</span>
