@@ -420,7 +420,7 @@ const LiveFeedTab = ({ isGuest }: { isGuest: boolean }) => {
   const isLoading = isGuest ? false : feedLoading;
 
   const rankIcons = [Crown, Medal, Flame];
-  const rankColors = ['text-yellow-400', 'text-slate-300', 'text-orange-500'];
+  const rankColors = ['text-foreground', 'text-muted-foreground', 'text-muted-foreground'];
 
   const weekStart = startOfWeek(new Date(), { weekStartsOn: 1 });
   const weekEnd = endOfWeek(new Date(), { weekStartsOn: 1 });
@@ -495,9 +495,9 @@ const LiveFeedTab = ({ isGuest }: { isGuest: boolean }) => {
           {/* Top Performers */}
           <div className="grid grid-cols-3 gap-2">
             {communityStats.topDamageDealer && (
-              <div className="p-2 bg-destructive/10 border border-destructive/30 rounded text-center">
-                <Zap className="w-4 h-4 text-destructive mx-auto mb-1" />
-                <div className="text-xs text-destructive font-display uppercase">TOP DMG</div>
+              <div className="p-2 bg-muted/30 border border-border rounded text-center">
+                <Zap className="w-4 h-4 text-muted-foreground mx-auto mb-1" />
+                <div className="text-xs text-muted-foreground font-display uppercase">TOP DMG</div>
                 <div className="text-sm text-foreground truncate">{communityStats.topDamageDealer.name}</div>
                 <div className="text-xs text-muted-foreground">
                   {communityStats.topDamageDealer.damage.toLocaleString()}
@@ -505,9 +505,9 @@ const LiveFeedTab = ({ isGuest }: { isGuest: boolean }) => {
               </div>
             )}
             {communityStats.topWeightLifter && (
-              <div className="p-2 bg-accent/10 border border-accent/30 rounded text-center">
-                <Dumbbell className="w-4 h-4 text-accent mx-auto mb-1" />
-                <div className="text-xs text-accent font-display uppercase">TOP LBS</div>
+              <div className="p-2 bg-muted/30 border border-border rounded text-center">
+                <Dumbbell className="w-4 h-4 text-muted-foreground mx-auto mb-1" />
+                <div className="text-xs text-muted-foreground font-display uppercase">TOP LBS</div>
                 <div className="text-sm text-foreground truncate">{communityStats.topWeightLifter.name}</div>
                 <div className="text-xs text-muted-foreground">
                   {communityStats.topWeightLifter.weight.toLocaleString()}
@@ -515,9 +515,9 @@ const LiveFeedTab = ({ isGuest }: { isGuest: boolean }) => {
               </div>
             )}
             {communityStats.topMissionCompleter && (
-              <div className="p-2 bg-primary/10 border border-primary/30 rounded text-center">
-                <Trophy className="w-4 h-4 text-primary mx-auto mb-1" />
-                <div className="text-xs text-primary font-display uppercase">TOP OPS</div>
+              <div className="p-2 bg-muted/30 border border-border rounded text-center">
+                <Trophy className="w-4 h-4 text-muted-foreground mx-auto mb-1" />
+                <div className="text-xs text-muted-foreground font-display uppercase">TOP OPS</div>
                 <div className="text-sm text-foreground truncate">{communityStats.topMissionCompleter.name}</div>
                 <div className="text-xs text-muted-foreground">
                   {communityStats.topMissionCompleter.missions}
@@ -534,9 +534,9 @@ const LiveFeedTab = ({ isGuest }: { isGuest: boolean }) => {
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.1 }}
-          className="p-4 bg-card border border-accent/50 rounded-lg"
+          className="p-4 bg-card border border-border rounded-lg"
         >
-          <h2 className="font-display text-lg text-accent mb-4 flex items-center gap-2">
+          <h2 className="font-display text-lg text-muted-foreground mb-4 flex items-center gap-2">
             <Flame className="w-5 h-5" />
             ACTIVE STREAK CHAMPIONS
           </h2>
@@ -549,7 +549,7 @@ const LiveFeedTab = ({ isGuest }: { isGuest: boolean }) => {
                     <Icon className={`w-5 h-5 ${rankColors[i]}`} />
                     <span className="font-display text-foreground">{leader.display_name}</span>
                   </div>
-                  <span className="font-display text-accent">{leader.streak} DAY{leader.streak !== 1 ? 'S' : ''}</span>
+                  <span className="font-display text-foreground">{leader.streak} DAY{leader.streak !== 1 ? 'S' : ''}</span>
                 </div>
               );
             })}
@@ -591,14 +591,14 @@ const LiveFeedTab = ({ isGuest }: { isGuest: boolean }) => {
                   <div className="flex items-start justify-between gap-4">
                     <div className="flex-1">
                       <div className="flex items-center gap-2 mb-1">
-                        <span className="font-display text-primary">{displayName}</span>
+                        <span className="font-display text-foreground">{displayName}</span>
                         <span className="text-xs text-muted-foreground">completed</span>
                       </div>
-                      <div className="font-display text-lg text-secondary">{missionName}</div>
+                      <div className="font-display text-lg text-muted-foreground">{missionName}</div>
                       <div className="flex items-center gap-4 mt-2 text-xs text-muted-foreground">
                         <span>{session.sets_completed} sets</span>
                         <span>{Number(session.total_weight || 0).toLocaleString()} lbs</span>
-                        <span className="text-destructive">{session.damage_dealt || 0} dmg</span>
+                        <span>{session.damage_dealt || 0} dmg</span>
                       </div>
                     </div>
                     <div className="text-right flex-shrink-0">
@@ -611,7 +611,7 @@ const LiveFeedTab = ({ isGuest }: { isGuest: boolean }) => {
                   {session.mission_id && (
                     <button
                       onClick={() => navigate(`/mission/${session.mission_id}`)}
-                      className="mt-3 w-full py-2 border border-primary/50 rounded text-sm font-display text-primary hover:bg-primary/10 transition-colors flex items-center justify-center gap-2"
+                      className="mt-3 w-full py-2 border border-section-intel/50 rounded text-sm font-display text-section-intel hover:bg-section-intel/10 transition-colors flex items-center justify-center gap-2"
                     >
                       <Target className="w-4 h-4" />
                       JOIN THE MISSION
@@ -797,31 +797,15 @@ const CampaignSection = ({ title, icon, campaigns, isLoading, metric, navigate, 
   };
 
   const getMetricColor = () => {
-    switch (metric) {
-      case 'completions':
-        return 'text-secondary';
-      case 'speed':
-        return 'text-accent';
-      case 'replay':
-        return 'text-primary';
-      case 'score':
-        return 'text-section-campaigns';
-      default:
-        return 'text-primary';
-    }
+    return 'text-foreground';
   };
 
   const getBorderColor = () => {
-    switch (metric) {
-      case 'completions':
-        return 'border-secondary/30 hover:border-secondary/60';
-      case 'speed':
-        return 'border-accent/30 hover:border-accent/60';
-      case 'replay':
-        return 'border-primary/30 hover:border-primary/60';
-      default:
-        return 'border-section-campaigns/30 hover:border-section-campaigns/60';
-    }
+    return 'border-border hover:border-muted-foreground';
+  };
+
+  const getMetricNumberColor = () => {
+    return 'text-muted-foreground';
   };
 
   return (
@@ -855,7 +839,7 @@ const CampaignSection = ({ title, icon, campaigns, isLoading, metric, navigate, 
                 }`}
               >
                 <div className="flex items-center gap-3">
-                  <span className={`font-display text-lg w-6 ${getMetricColor()}`}>
+                  <span className={`font-display text-lg w-6 ${getMetricNumberColor()}`}>
                     {(index + 1).toString().padStart(2, '0')}
                   </span>
                   <div>
@@ -863,14 +847,14 @@ const CampaignSection = ({ title, icon, campaigns, isLoading, metric, navigate, 
                       {campaign.campaign_name}
                     </p>
                     <div className="flex items-center gap-2 mt-0.5">
-                      <Badge variant="outline" className="text-xs font-mono border-section-campaigns/50 text-section-campaigns">
+                      <Badge variant="outline" className="text-xs font-mono border-muted text-muted-foreground">
                         {getFocusAreaLabel(campaign)}
                       </Badge>
                     </div>
                   </div>
                 </div>
                 <div className="text-right">
-                  <p className={`font-display text-sm ${getMetricColor()}`}>
+                  <p className={`font-display text-sm ${getMetricNumberColor()}`}>
                     {getMetricValue(campaign)}
                   </p>
                 </div>
@@ -898,9 +882,9 @@ const RankingsTab = ({ isGuest }: { isGuest: boolean }) => {
 
   const getRankIcon = (rank: number) => {
     switch (rank) {
-      case 1: return <Crown className="w-5 h-5 text-warning" />;
+      case 1: return <Crown className="w-5 h-5 text-foreground" />;
       case 2: return <Medal className="w-5 h-5 text-muted-foreground" />;
-      case 3: return <Medal className="w-5 h-5 text-accent" />;
+      case 3: return <Medal className="w-5 h-5 text-muted-foreground" />;
       default: return <span className="w-5 h-5 flex items-center justify-center text-muted-foreground font-display">{rank}</span>;
     }
   };
@@ -930,11 +914,11 @@ const RankingsTab = ({ isGuest }: { isGuest: boolean }) => {
           const entryLevel = Math.max(1, Math.floor(Math.sqrt((entry.total_xp || 0) / 100)) + 1);
           const isCurrentUser = !isGuest && profile && entry.display_name === profile.display_name;
           return (
-            <div key={entry.rank || i} className={`grid grid-cols-4 gap-2 p-3 items-center ${isCurrentUser ? 'bg-primary/10 border-l-2 border-primary' : 'border-b border-border/50 last:border-b-0'}`}>
+            <div key={entry.rank || i} className={`grid grid-cols-4 gap-2 p-3 items-center ${isCurrentUser ? 'bg-section-intel/10 border-l-2 border-section-intel' : 'border-b border-border/50 last:border-b-0'}`}>
               <div>{getRankIcon(entry.rank || i + 1)}</div>
-              <div className={`font-display text-sm ${isCurrentUser ? 'text-primary' : 'text-foreground'} truncate`}>{entry.display_name || 'ANONYMOUS'}</div>
-              <div className="text-right font-display text-secondary">{(entry.total_score || 0).toLocaleString()}</div>
-              <div className="text-right font-display text-accent">{entryLevel}</div>
+              <div className={`font-display text-sm ${isCurrentUser ? 'text-section-intel' : 'text-foreground'} truncate`}>{entry.display_name || 'ANONYMOUS'}</div>
+              <div className="text-right font-display text-foreground">{(entry.total_score || 0).toLocaleString()}</div>
+              <div className="text-right font-display text-muted-foreground">{entryLevel}</div>
             </div>
           );
         })}
@@ -985,13 +969,13 @@ const MyStatsTab = ({ isGuest }: { isGuest: boolean }) => {
         {/* Quick Stats */}
         <div className="grid grid-cols-4 gap-2">
           {[
-            { label: 'SCORE', value: (displayProfile?.total_score || 0).toLocaleString(), color: 'text-primary' },
-            { label: 'LEVEL', value: level, color: 'text-secondary' },
-            { label: 'SETS', value: displayProfile?.total_sets || 0, color: 'text-accent' },
-            { label: 'COMBO', value: `${displayProfile?.max_combo || 0}x`, color: 'text-warning' },
+            { label: 'SCORE', value: (displayProfile?.total_score || 0).toLocaleString() },
+            { label: 'LEVEL', value: level },
+            { label: 'SETS', value: displayProfile?.total_sets || 0 },
+            { label: 'COMBO', value: `${displayProfile?.max_combo || 0}x` },
           ].map((stat) => (
           <div key={stat.label} className="bg-card border border-border rounded p-2 text-center">
-              <div className={`font-display text-lg ${stat.color}`}>{stat.value}</div>
+              <div className="font-display text-lg text-foreground">{stat.value}</div>
               <div className="text-xs text-muted-foreground">{stat.label}</div>
             </div>
           ))}
@@ -1006,11 +990,11 @@ const MyStatsTab = ({ isGuest }: { isGuest: boolean }) => {
         )}
 
         {/* Sign In CTA */}
-        <div className="bg-card border border-warning/30 rounded-lg p-6 text-center">
-          <Trophy className="w-8 h-8 mx-auto mb-3 text-warning" />
-          <p className="text-warning font-display mb-2">WANT YOUR OWN STATS?</p>
+        <div className="bg-card border border-section-intel/30 rounded-lg p-6 text-center">
+          <Trophy className="w-8 h-8 mx-auto mb-3 text-section-intel" />
+          <p className="text-section-intel font-display mb-2">WANT YOUR OWN STATS?</p>
           <p className="text-sm text-muted-foreground mb-4">Sign in to track achievements, milestones, and personal records.</p>
-          <button onClick={() => navigate("/auth")} className="px-4 py-2 bg-primary text-primary-foreground font-display rounded hover:box-glow-primary">SIGN IN</button>
+          <button onClick={() => navigate("/auth")} className="px-4 py-2 bg-section-intel text-white font-display rounded hover:opacity-90">SIGN IN</button>
         </div>
       </div>
     );
@@ -1021,13 +1005,13 @@ const MyStatsTab = ({ isGuest }: { isGuest: boolean }) => {
       {/* Quick Stats */}
       <div className="grid grid-cols-4 gap-2">
         {[
-          { label: 'SCORE', value: (profile?.total_score || 0).toLocaleString(), color: 'text-primary' },
-          { label: 'LEVEL', value: level, color: 'text-secondary' },
-          { label: 'SETS', value: profile?.total_sets || 0, color: 'text-accent' },
-          { label: 'COMBO', value: `${profile?.max_combo || 0}x`, color: 'text-warning' },
+          { label: 'SCORE', value: (profile?.total_score || 0).toLocaleString() },
+          { label: 'LEVEL', value: level },
+          { label: 'SETS', value: profile?.total_sets || 0 },
+          { label: 'COMBO', value: `${profile?.max_combo || 0}x` },
         ].map((stat) => (
         <div key={stat.label} className="bg-card border border-border rounded p-2 text-center">
-            <div className={`font-display text-lg ${stat.color}`}>{stat.value}</div>
+            <div className="font-display text-lg text-foreground">{stat.value}</div>
             <div className="text-xs text-muted-foreground">{stat.label}</div>
           </div>
         ))}
