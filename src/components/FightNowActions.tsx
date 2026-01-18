@@ -201,18 +201,18 @@ export function FightNowActions() {
 
         {/* Secondary action based on state */}
         {isGuest ? (
-          /* For guests: Intel as second option */
+          /* For guests: Browse Missions as second option (Intel is in utility row) */
           <button
-            onClick={() => navigate('/intel')}
-            className="group relative bg-card border-2 border-secondary/50 rounded-lg p-4 text-left transition-all hover:border-secondary hover:box-glow-secondary"
+            onClick={() => navigate('/command?tab=missions&source=public')}
+            className="group relative bg-card border-2 border-section-missions/50 rounded-lg p-4 text-left transition-all hover:border-section-missions hover:bg-section-missions/5"
           >
             <div className="flex items-center gap-3">
-              <div className="p-2 bg-secondary/10 rounded-lg group-hover:bg-secondary/20 transition-colors">
-                <Target className="w-6 h-6 text-secondary" />
+              <div className="p-2 bg-section-missions/10 rounded-lg group-hover:bg-section-missions/20 transition-colors">
+                <Crosshair className="w-6 h-6 text-section-missions" />
               </div>
               <div className="flex-1 min-w-0">
-                <h3 className="font-display text-base text-secondary">INTEL</h3>
-                <p className="text-xs text-muted-foreground">Live combat feed</p>
+                <h3 className="font-display text-base text-section-missions">ALL MISSIONS</h3>
+                <p className="text-xs text-muted-foreground">Full arsenal</p>
               </div>
             </div>
           </button>
