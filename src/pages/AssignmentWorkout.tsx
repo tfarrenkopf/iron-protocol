@@ -10,6 +10,11 @@ import { useCreateWorkoutSession } from "@/hooks/useWorkoutSessions";
 import { useMyAssignments, useUpdateAssignmentStatus } from "@/hooks/useAssignments";
 import { ExplosionEffect } from "@/components/ExplosionEffect";
 import { XPPopup } from "@/components/XPPopup";
+import { PRNotification } from "@/components/PRNotification";
+import { PRCheckResult } from "@/hooks/usePersonalRecords";
+import { useBatchPersist } from "@/hooks/useBatchPersist";
+import { getWeightedRandomLorePhrase } from "@/data/lorePhrases";
+import { GuestIndicator, MomentOfLossPrompt } from "@/components/AnonymousConversion";
 
 const AssignmentWorkout = () => {
   const { assignmentId } = useParams();
@@ -39,11 +44,15 @@ const AssignmentWorkout = () => {
   const [isCompleting, setIsCompleting] = useState(false);
   const [showExplosion, setShowExplosion] = useState(false);
   const [showXPPopup, setShowXPPopup] = useState(false);
-  const [lastXPGain, setLastXPGain] = useState({ xp: 0, score: 0, combo: 0, damage: 0 });
+  const [lastXPGain, setLastXPGain] = useState({ xp: 0, score: 0, combo: 0, damage: 0, totalWeight: 0, setsCompleted: 0, totalSets: 0 });
   const [showLore, setShowLore] = useState<"intro" | "outro" | null>(null);
   const [statsSaved, setStatsSaved] = useState(false);
   const [showAuthPrompt, setShowAuthPrompt] = useState(false);
   const [showCancelConfirm, setShowCancelConfirm] = useState(false);
+  const [showPRNotification, setShowPRNotification] = useState(false);
+  const [newPRs, setNewPRs] = useState<PRCheckResult[]>([]);
+  const [currentLorePhrase, setCurrentLorePhrase] = useState<string>('');
+  const [showMomentOfLoss, setShowMomentOfLoss] = useState(false);
   const hasInitialized = useRef(false);
 
   // Cache assignment data to prevent it from disappearing when marked complete
@@ -211,11 +220,18 @@ const AssignmentWorkout = () => {
         setShowAuthPrompt(true);
       }
 
-      if (missionSnapshot?.outro_lore) {
-        setShowLore("outro");
-      }
     }
   }, [currentSession?.status, statsSaved, mission, stats, user, assignment]);
+
+  // Show moment of loss prompt for anonymous users after mission complete
+  useEffect(() => {
+    if (isAnonymous && currentSession?.status === 'COMPLETED' && !showMomentOfLoss) {
+      const timer = setTimeout(() => {
+        setShowMomentOfLoss(true);
+      }, 2000);
+      return () => clearTimeout(timer);
+    }
+  }, [currentSession?.status, isAnonymous, showMomentOfLoss]);
 
   // Only show loading if no cached data exists yet
   if ((assignmentsLoading && !cachedAssignment) || !assignment || !mission) {
@@ -296,72 +312,89 @@ const AssignmentWorkout = () => {
         animate={{ opacity: 1 }}
         className="min-h-screen bg-background flex flex-col items-center justify-center p-4"
       >
+        {/* Guest indicator */}
+        {isAnonymous && (
+          <div className="absolute top-4 left-4">
+            <GuestIndicator variant="standard" />
+          </div>
+        )}
+
         <motion.div
           initial={{ scale: 0.8, opacity: 0 }}
           animate={{ scale: 1, opacity: 1 }}
           transition={{ delay: 0.2 }}
-          className="text-center"
+          className="text-center max-w-lg"
         >
-          <div className="text-xs text-warning mb-4 font-display">
+          <div className="text-xs text-section-orders mb-4 font-display">
             ORDERS FROM: {assignment.handler_name || "YOUR HANDLER"}
           </div>
-          <h1 className="font-display text-6xl md:text-8xl text-primary text-glow-primary mb-4">ORDERS COMPLETE</h1>
-          <p className="font-display text-4xl text-secondary mb-8">{mission.code_name}</p>
+          <h1 className="font-display text-5xl md:text-7xl text-primary text-glow-primary mb-2">ORDERS COMPLETE</h1>
+          <p className="font-display text-2xl text-secondary mb-4">{mission.code_name}</p>
+          
+          {/* Outro lore - shown inline if available */}
+          {missionSnapshot?.outro_lore && (
+            <p className="text-muted-foreground leading-relaxed mb-6 text-sm italic">
+              "{missionSnapshot.outro_lore}"
+            </p>
+          )}
 
-          <div className="grid grid-cols-2 gap-6 max-w-md mx-auto mb-6">
-            <div className="bg-card border border-border rounded-lg p-4">
-              <div className="font-display text-4xl text-accent">{stats.score.toLocaleString()}</div>
+          {/* Stats grid - compact */}
+          <div className="grid grid-cols-4 gap-3 mb-4">
+            <div className={`bg-card border rounded-lg p-3 ${isAnonymous ? 'border-warning/30' : 'border-border'}`}>
+              <div className="font-display text-2xl text-accent">{stats.score.toLocaleString()}</div>
               <div className="text-xs text-muted-foreground">SCORE</div>
             </div>
-            <div className="bg-card border border-border rounded-lg p-4">
-              <div className="font-display text-4xl text-secondary">{stats.maxCombo}x</div>
-              <div className="text-xs text-muted-foreground">MAX COMBO</div>
+            <div className={`bg-card border rounded-lg p-3 ${isAnonymous ? 'border-warning/30' : 'border-border'}`}>
+              <div className="font-display text-2xl text-secondary">{stats.maxCombo}x</div>
+              <div className="text-xs text-muted-foreground">COMBO</div>
             </div>
-            <div className="bg-card border border-border rounded-lg p-4">
-              <div className="font-display text-4xl text-primary">{stats.setsCompleted}</div>
+            <div className={`bg-card border rounded-lg p-3 ${isAnonymous ? 'border-warning/30' : 'border-border'}`}>
+              <div className="font-display text-2xl text-primary">{stats.setsCompleted}</div>
               <div className="text-xs text-muted-foreground">SETS</div>
             </div>
-            <div className="bg-card border border-border rounded-lg p-4">
-              <div className="font-display text-4xl text-success">{stats.xp}</div>
-              <div className="text-xs text-muted-foreground">XP EARNED</div>
+            <div className={`bg-card border rounded-lg p-3 ${isAnonymous ? 'border-warning/30' : 'border-border'}`}>
+              <div className="font-display text-2xl text-success">+{stats.xp}</div>
+              <div className="text-xs text-muted-foreground">XP</div>
             </div>
           </div>
 
-          <div className="bg-card border-2 border-accent rounded-lg p-4 max-w-md mx-auto mb-10">
-            <div className="font-display text-5xl text-accent">{stats.totalWeight.toLocaleString()}</div>
-            <div className="text-sm text-muted-foreground">TOTAL LBS LIFTED</div>
+          {/* Total Weight Lifted */}
+          <div className={`bg-card border-2 rounded-lg p-4 mb-6 ${isAnonymous ? 'border-warning/50' : 'border-accent'}`}>
+            <div className="font-display text-4xl text-accent">{stats.totalWeight.toLocaleString()}</div>
+            <div className="text-xs text-muted-foreground">TOTAL LBS LIFTED</div>
           </div>
-
-          {/* Auth prompt for guests */}
-          {showAuthPrompt && isAnonymous && (
-            <motion.div
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              className="mb-8 p-4 bg-warning/10 border border-warning/30 rounded-lg max-w-md mx-auto"
-            >
-              <p className="text-sm text-warning mb-3">
-                Create an account to save your progress, track your gains, and create custom missions and exercises!
-              </p>
-              <button
-                onClick={() => navigate("/auth")}
-                className="w-full flex items-center justify-center gap-2 px-4 py-3 bg-warning text-warning-foreground font-display rounded hover:opacity-90 transition-all"
-              >
-                <LogIn className="w-4 h-4" />
-                CREATE ACCOUNT
-              </button>
-            </motion.div>
-          )}
 
           <button
             onClick={() => {
               resetGame();
               navigate("/");
             }}
-            className="px-8 py-4 bg-primary text-primary-foreground font-display text-xl rounded hover:box-glow-primary transition-all"
+            className="w-full py-4 bg-primary text-primary-foreground font-display text-xl rounded hover:box-glow-primary transition-all"
           >
             CONTINUE
           </button>
         </motion.div>
+
+        {/* Moment of Loss Prompt for guests */}
+        <MomentOfLossPrompt
+          isOpen={showMomentOfLoss}
+          onClose={() => setShowMomentOfLoss(false)}
+          trigger="mission_complete"
+          missionId={mission.id}
+          missionSnapshot={{ name: mission.name, code_name: mission.code_name }}
+          stats={{
+            score: stats.score,
+            xp: stats.xp,
+            sets: stats.setsCompleted,
+            missions: 1,
+          }}
+          workoutData={{
+            totalReps: stats.totalReps,
+            totalWeight: stats.totalWeight,
+            maxCombo: stats.maxCombo,
+            damageDealt: stats.damageDealt,
+          }}
+        />
       </motion.div>
     );
   }
@@ -385,36 +418,38 @@ const AssignmentWorkout = () => {
   const progress = (completedSets / totalSets) * 100;
 
   const handleCompleteSet = async () => {
+    if (isCompleting) return;
     setIsCompleting(true);
     const prevStats = { ...stats };
+    
+    // Get a random lore phrase for this set
+    const lorePhrase = getWeightedRandomLorePhrase();
+    setCurrentLorePhrase(lorePhrase.text);
 
-    if (user && missionExercise.exercise_id) {
-      try {
-        await updateWeight.mutateAsync({
-          exerciseId: missionExercise.exercise_id,
-          weight,
-        });
-      } catch (e) {
-        // Non-blocking
-      }
-    }
+    // IMMEDIATELY update game state
+    completeSet(reps, weight);
 
+    // Trigger explosion immediately
+    setShowExplosion(true);
+
+    // Calculate gains for popup immediately
+    const newStats = useGameStore.getState().stats;
+    const missionTotalSets = missionExercises.reduce((acc, e) => acc + e.target_sets, 0);
+    setLastXPGain({
+      xp: newStats.xp - prevStats.xp,
+      score: newStats.score - prevStats.score,
+      combo: newStats.combo,
+      damage: newStats.damageDealt - prevStats.damageDealt,
+      totalWeight: newStats.totalWeight,
+      setsCompleted: newStats.setsCompleted,
+      totalSets: missionTotalSets,
+    });
+
+    // Show XP popup with minimal delay
     setTimeout(() => {
-      completeSet(reps, weight);
+      setShowXPPopup(true);
       setIsCompleting(false);
-      setShowExplosion(true);
-
-      setTimeout(() => {
-        const newStats = useGameStore.getState().stats;
-        setLastXPGain({
-          xp: newStats.xp - prevStats.xp,
-          score: newStats.score - prevStats.score,
-          combo: newStats.combo,
-          damage: newStats.damageDealt - prevStats.damageDealt,
-        });
-        setShowXPPopup(true);
-      }, 300);
-    }, 200);
+    }, 100);
   };
 
   const adjustValue = (setter: React.Dispatch<React.SetStateAction<number>>, delta: number, min = 0) => {
@@ -459,7 +494,7 @@ const AssignmentWorkout = () => {
       {/* Progress bar */}
       <div className="h-1 bg-muted flex-shrink-0">
         <motion.div
-          className="h-full bg-gradient-to-r from-warning via-secondary to-accent"
+          className="h-full bg-gradient-to-r from-primary via-secondary to-accent"
           initial={{ width: 0 }}
           animate={{ width: `${progress}%` }}
           transition={{ duration: 0.3 }}
@@ -470,13 +505,28 @@ const AssignmentWorkout = () => {
       <main className="flex-1 relative z-10 flex flex-col p-4 overflow-y-auto min-h-0">
         <ExplosionEffect trigger={showExplosion} onComplete={() => setShowExplosion(false)} />
 
+        {/* XP Popup - matching WorkoutSession */}
         <XPPopup
           show={showXPPopup}
           xp={lastXPGain.xp}
           score={lastXPGain.score}
           combo={lastXPGain.combo}
           damage={lastXPGain.damage}
+          totalWeight={lastXPGain.totalWeight}
+          setsCompleted={lastXPGain.setsCompleted}
+          totalSets={lastXPGain.totalSets}
+          lorePhrase={currentLorePhrase}
           onComplete={() => setShowXPPopup(false)}
+        />
+        
+        {/* PR Notification */}
+        <PRNotification
+          prs={newPRs}
+          show={showPRNotification}
+          onComplete={() => {
+            setShowPRNotification(false);
+            setNewPRs([]);
+          }}
         />
 
         {/* Exercise Info */}

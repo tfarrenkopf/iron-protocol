@@ -170,20 +170,20 @@ export function RivalWidget({ variant = 'compact' }: RivalWidgetProps) {
       <motion.div
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
-        className="bg-card border border-section-rivals/50 rounded-lg p-4"
+        className="bg-card border border-section-intel/50 rounded-lg p-4"
       >
         {/* Header */}
         <div className="flex items-center justify-between mb-4">
           <div className="flex items-center gap-2">
-            <Swords className="w-5 h-5 text-section-rivals" />
-            <h3 className="font-display text-lg text-section-rivals">RIVAL MODE</h3>
+            <Swords className="w-5 h-5 text-section-intel" />
+            <h3 className="font-display text-lg text-section-intel">RIVAL MODE</h3>
           </div>
           <button
             onClick={shareRivalLink}
-            className="p-1.5 hover:bg-section-rivals/10 rounded transition-colors"
+            className="p-1.5 hover:bg-section-intel/10 rounded transition-colors"
             title="Challenge a rival"
           >
-            <Share2 className="w-4 h-4 text-section-rivals" />
+            <Share2 className="w-4 h-4 text-section-intel" />
           </button>
         </div>
 
@@ -329,11 +329,11 @@ export function RivalWidget({ variant = 'compact' }: RivalWidgetProps) {
                         initial={{ opacity: 0, y: 10 }}
                         animate={{ opacity: 1, y: 0 }}
                         transition={{ delay: index * 0.05 }}
-                        className="p-3 bg-background border border-section-rivals/30 rounded-lg hover:border-section-rivals/60 transition-colors"
+                        className="p-3 bg-background border border-section-intel/30 rounded-lg hover:border-section-intel/60 transition-colors"
                       >
                         <div className="flex items-start justify-between gap-2 mb-2">
                           <div>
-                            <span className="font-display text-sm text-section-rivals">{activity.display_name}</span>
+                            <span className="font-display text-sm text-section-intel">{activity.display_name}</span>
                             <span className="text-xs text-muted-foreground ml-1">completed</span>
                           </div>
                           <span className="text-[10px] text-muted-foreground">{formatRelativeTime(activity.completed_at)}</span>
@@ -395,11 +395,11 @@ export function RivalWidget({ variant = 'compact' }: RivalWidgetProps) {
                   {rivalActivity.slice(0, 2).map((activity) => (
                     <div
                       key={activity.id}
-                      className="p-3 bg-background border border-section-rivals/30 rounded-lg"
+                      className="p-3 bg-background border border-section-intel/30 rounded-lg"
                     >
                       <div className="flex items-start justify-between gap-2 mb-2">
                         <div className="flex-1 min-w-0">
-                          <span className="text-xs text-section-rivals font-display">{activity.display_name}</span>
+                          <span className="text-xs text-section-intel font-display">{activity.display_name}</span>
                           <span className="text-[10px] text-muted-foreground"> completed </span>
                           <span className="text-xs text-section-missions font-display">
                             {activity.mission_snapshot?.code_name || 'MISSION'}

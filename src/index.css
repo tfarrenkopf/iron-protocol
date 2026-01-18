@@ -66,8 +66,11 @@
     /* HIIT: Destructive Red - combat mode, intensity */
     --section-hiit: 0 85% 50%;
     
-    /* RIVALS: Warning Amber - competition */
-    --section-rivals: 45 100% 55%;
+    /* RIVALS: Purple - competition, intelligence */
+    --section-rivals: 280 100% 65%;
+    
+    /* ORDERS/HANDLER: Warning Amber - assigned missions */
+    --section-orders: 45 100% 55%;
 
     /* Borders and inputs */
     --border: 240 10% 20%;

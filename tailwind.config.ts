@@ -55,6 +55,7 @@ export default {
           intel: "hsl(var(--section-intel))",
           hiit: "hsl(var(--section-hiit))",
           rivals: "hsl(var(--section-rivals))",
+          orders: "hsl(var(--section-orders))",
         },
         popover: {
           DEFAULT: "hsl(var(--popover))",
