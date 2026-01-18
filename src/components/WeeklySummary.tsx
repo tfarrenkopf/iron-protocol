@@ -102,6 +102,8 @@ export function useWeeklySummary() {
       };
     },
     enabled: !!user,
+    staleTime: 2 * 60 * 1000, // 2 minutes - weekly summary is session-relevant
+    gcTime: 5 * 60 * 1000,
   });
 }
 

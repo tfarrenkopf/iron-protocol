@@ -21,6 +21,8 @@ export function useActiveCampaign() {
       return data?.active_campaign_id as string | null;
     },
     enabled: !!user,
+    staleTime: 2 * 60 * 1000, // 2 minutes
+    gcTime: 5 * 60 * 1000,
   });
 
   const setActiveCampaign = useMutation({
@@ -182,6 +184,8 @@ export function useActiveCampaignDetails() {
       return data;
     },
     enabled: !!activeCampaignId,
+    staleTime: 5 * 60 * 1000, // 5 minutes - campaign definition doesn't change often
+    gcTime: 10 * 60 * 1000,
   });
 
   // Get progress for active campaign

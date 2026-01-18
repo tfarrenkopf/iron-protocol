@@ -51,6 +51,8 @@ export function useAchievements() {
         hint: a.hint,
       })) as Achievement[];
     },
+    staleTime: 10 * 60 * 1000, // 10 minutes - achievements definition rarely changes
+    gcTime: 30 * 60 * 1000,
   });
 }
 
@@ -95,6 +97,8 @@ export function useUserAchievements() {
       })) as UserAchievement[];
     },
     enabled: !!user,
+    staleTime: 2 * 60 * 1000, // 2 minutes
+    gcTime: 5 * 60 * 1000,
   });
 }
 

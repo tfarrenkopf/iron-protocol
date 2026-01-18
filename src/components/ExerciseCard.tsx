@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, memo } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useNavigate } from 'react-router-dom';
 import { ChevronDown, ChevronUp, Pencil, Trash2, Dumbbell, Target, Plus, Check, Loader2, X } from 'lucide-react';
@@ -54,7 +54,7 @@ interface ExerciseCardProps {
   onDelete?: (exerciseId: string, name: string) => void;
 }
 
-export function ExerciseCard({ 
+export const ExerciseCard = memo(function ExerciseCard({ 
   exercise, 
   index = 0, 
   isOwner = false,
@@ -362,4 +362,4 @@ export function ExerciseCard({
       </AlertDialog>
     </>
   );
-}
+});

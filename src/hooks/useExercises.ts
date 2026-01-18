@@ -19,6 +19,8 @@ export function useExercises() {
       if (error) throw error;
       return data as Exercise[];
     },
+    staleTime: 5 * 60 * 1000, // 5 minutes - exercises rarely change
+    gcTime: 10 * 60 * 1000,
   });
 }
 
@@ -40,6 +42,8 @@ export function useUserExercises() {
       return data as Exercise[];
     },
     enabled: !!user,
+    staleTime: 5 * 60 * 1000,
+    gcTime: 10 * 60 * 1000,
   });
 }
 
@@ -57,6 +61,8 @@ export function usePublicMissionExercises() {
       if (error) throw error;
       return data as Exercise[];
     },
+    staleTime: 5 * 60 * 1000,
+    gcTime: 10 * 60 * 1000,
   });
 }
 
