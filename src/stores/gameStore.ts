@@ -10,6 +10,9 @@ export interface DBMissionExercise {
   exercises?: {
     id: string;
     name: string;
+    instructions_setup?: string;
+    instructions_execution?: string;
+    instructions_tips?: string;
   };
 }
 
@@ -18,6 +21,8 @@ export interface DBMission {
   id: string;
   code_name: string;
   name: string;
+  intro_lore?: string;
+  outro_lore?: string;
   mission_exercises: DBMissionExercise[];
 }
 
