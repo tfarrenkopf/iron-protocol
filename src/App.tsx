@@ -20,7 +20,6 @@ import Guide from "./pages/Guide";
 import HandlerDashboard from "./pages/HandlerDashboard";
 import JoinSquad from "./pages/JoinSquad";
 import AssignMission from "./pages/AssignMission";
-import AssignmentWorkout from "./pages/AssignmentWorkout";
 import CampaignDetail from "./pages/CampaignDetail";
 import RivalInvite from "./pages/RivalInvite";
 import NotFound from "./pages/NotFound";
@@ -46,7 +45,7 @@ function AppContent() {
         <Route path="/campaign/:collectionId" element={<CampaignDetail />} />
         <Route path="/mission/:missionId" element={<MissionDetail />} />
         <Route path="/workout/:missionId" element={<WorkoutSession />} />
-        <Route path="/workout/assignment/:assignmentId" element={<AssignmentWorkout />} />
+        <Route path="/workout/assignment/:assignmentId" element={<WorkoutSession />} />
         <Route path="/hiit" element={<HIITTimer />} />
         <Route path="/exercises" element={<ExerciseManager />} />
         <Route path="/intel" element={<Intel />} />

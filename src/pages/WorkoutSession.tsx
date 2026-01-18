@@ -3,12 +3,13 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { useParams, useNavigate, useSearchParams } from 'react-router-dom';
 import { X, Plus, Minus, Check, ChevronRight, Info, Scroll, AlertTriangle } from 'lucide-react';
 import { useQueryClient } from '@tanstack/react-query';
-import { useGameStore } from '@/stores/gameStore';
+import { useGameStore, DBMission } from '@/stores/gameStore';
 import { useMission } from '@/hooks/useMissions';
 import { useWeightHistory } from '@/hooks/useWeightHistory';
 import { useAuth } from '@/hooks/useAuth';
 import { useUpdateProfileStats, useProfile } from '@/hooks/useProfile';
 import { useCreateWorkoutSession } from '@/hooks/useWorkoutSessions';
+import { useMyAssignments, useUpdateAssignmentStatus } from '@/hooks/useAssignments';
 import { ExplosionEffect } from '@/components/ExplosionEffect';
 import { XPPopup } from '@/components/XPPopup';
 import { PRNotification } from '@/components/PRNotification';
@@ -20,13 +21,20 @@ import { useBatchPersist } from '@/hooks/useBatchPersist';
 import { useUpdateCampaignProgress } from '@/hooks/useCampaignProgress';
 
 const WorkoutSession = () => {
-  const { missionId } = useParams();
+  const { missionId, assignmentId } = useParams();
   const [searchParams] = useSearchParams();
   const campaignId = searchParams.get('campaignId');
   const navigate = useNavigate();
   const queryClient = useQueryClient();
   const { user, isAnonymous } = useAuth();
-  const { data: mission, isLoading: missionLoading } = useMission(missionId);
+  
+  // Assignment mode: fetch assignment data
+  const { data: assignments, isLoading: assignmentsLoading } = useMyAssignments();
+  const updateAssignmentStatus = useUpdateAssignmentStatus();
+  
+  // Regular mode: fetch mission from DB
+  const { data: dbMission, isLoading: missionLoading } = useMission(missionId);
+  
   const { data: weightHistory } = useWeightHistory();
   const { data: profile } = useProfile();
   const updateProfileStats = useUpdateProfileStats();
@@ -65,39 +73,92 @@ const WorkoutSession = () => {
   const prevStatsRef = useRef(stats);
   const hasInitialized = useRef(false);
 
-  // Reset game state when entering a new mission
+  // Cache assignment data to prevent it from disappearing when marked complete
+  const [cachedAssignment, setCachedAssignment] = useState<any>(null);
+  const [cachedMissionSnapshot, setCachedMissionSnapshot] = useState<any>(null);
+
+  // Determine if we're in assignment mode
+  const isAssignmentMode = !!assignmentId;
+  
+  // Find the live assignment or use cached
+  const liveAssignment = assignments?.find((a) => a.id === assignmentId);
+  const assignment = liveAssignment || cachedAssignment;
+  const missionSnapshot = assignment?.mission_snapshot || cachedMissionSnapshot;
+
+  // Cache assignment when first loaded
   useEffect(() => {
-    // Reset on mount to clear any leftover state from previous sessions
+    if (liveAssignment && !cachedAssignment) {
+      setCachedAssignment(liveAssignment);
+      setCachedMissionSnapshot(liveAssignment.mission_snapshot);
+    }
+  }, [liveAssignment, cachedAssignment]);
+
+  // Convert assignment snapshot OR use DB mission
+  const mission: DBMission | null = isAssignmentMode
+    ? missionSnapshot
+      ? {
+          id: missionSnapshot.id,
+          code_name: missionSnapshot.code_name,
+          name: missionSnapshot.name,
+          intro_lore: missionSnapshot.intro_lore,
+          outro_lore: missionSnapshot.outro_lore,
+          mission_exercises: (missionSnapshot.mission_exercises || []).map(
+            (me: any) => ({
+              exercise_id: me.exercise_id,
+              target_sets: me.target_sets,
+              target_reps: me.target_reps,
+              rest_between_sets_sec: me.rest_between_sets_sec,
+              exercises: me.exercises,
+            }),
+          ),
+        }
+      : null
+    : dbMission || null;
+
+  // Determine loading state
+  const isLoading = isAssignmentMode 
+    ? (assignmentsLoading && !cachedAssignment) 
+    : missionLoading;
+
+  // Reset game state when entering a new mission/assignment
+  useEffect(() => {
     resetGame();
     hasInitialized.current = false;
     setStatsSaved(false);
     setShowLore(null);
-  }, [missionId, resetGame]);
+  }, [missionId, assignmentId, resetGame]);
+
+  // Mark assignment as in progress when starting
+  useEffect(() => {
+    if (isAssignmentMode && user && assignment && assignment.status === 'NOT_STARTED' && !hasInitialized.current) {
+      updateAssignmentStatus.mutate({
+        assignmentId: assignment.id,
+        status: 'IN_PROGRESS',
+      });
+    }
+  }, [isAssignmentMode, user, assignment, hasInitialized.current]);
 
   // Show intro lore when mission is loaded (after reset)
   useEffect(() => {
-    if (mission && missionId && !hasInitialized.current && !currentSession) {
+    if (mission && !hasInitialized.current && !currentSession) {
       hasInitialized.current = true;
-      // Show intro lore if available
       if (mission.intro_lore) {
         setShowLore('intro');
       }
     }
-  }, [mission, missionId, currentSession]);
+  }, [mission, currentSession]);
 
   // Track the last exercise index to only reset reps/weight when moving to a new exercise
   const lastExerciseIndexRef = useRef<number>(-1);
 
-  // Set initial reps and weight when exercise changes (only when moving to a NEW exercise)
+  // Set initial reps and weight when exercise changes
   useEffect(() => {
     if (mission && mission.mission_exercises && currentExerciseIndex < mission.mission_exercises.length) {
-      // Only reset reps/weight when the exercise actually changes
       if (lastExerciseIndexRef.current !== currentExerciseIndex) {
         lastExerciseIndexRef.current = currentExerciseIndex;
         const missionExercise = mission.mission_exercises[currentExerciseIndex];
         setReps(missionExercise.target_reps);
         
-        // Get last weight for this exercise
         const exerciseId = missionExercise.exercise_id;
         const lastWeight = weightHistory?.[exerciseId]?.lastWeight;
         setWeight(lastWeight || 20);
@@ -107,18 +168,16 @@ const WorkoutSession = () => {
 
   // Start the workout store session
   useEffect(() => {
-    if (mission && missionId && !currentSession && showLore !== 'intro') {
-      // Pass the full mission object to the store
+    if (mission && !currentSession && showLore !== 'intro') {
       startMission(mission);
     }
-  }, [mission, missionId, currentSession, showLore, startMission]);
+  }, [mission, currentSession, showLore, startMission]);
 
   // Save stats and session when mission completes (only once)
   useEffect(() => {
-    if (user && currentSession?.status === 'COMPLETED' && !statsSaved && mission) {
+    if (currentSession?.status === 'COMPLETED' && !statsSaved && mission) {
       setStatsSaved(true);
       
-      // Collect all sets from the session for database persistence
       const allSets: Array<{
         exerciseId: string;
         setNumber: number;
@@ -129,7 +188,6 @@ const WorkoutSession = () => {
         scoreEarned: number;
       }> = [];
       
-      // Also collect data for batch weight/PR persist
       const batchSets: Array<{
         exerciseId: string;
         exerciseName: string;
@@ -163,29 +221,104 @@ const WorkoutSession = () => {
         });
       });
 
-      // Calculate session duration in seconds
       const startTime = new Date(currentSession.startedAt).getTime();
       const endTime = currentSession.completedAt ? new Date(currentSession.completedAt).getTime() : Date.now();
       const durationSeconds = Math.floor((endTime - startTime) / 1000);
 
-      // Run all persistence in parallel - profile stats, workout session, weight history, and PRs
-      Promise.all([
-        // Save profile stats
-        updateProfileStats.mutateAsync({
-          score: stats.score,
-          xp: stats.xp,
-          sets: stats.setsCompleted,
-          reps: stats.totalReps,
-          weight: stats.totalWeight,
-          maxCombo: stats.maxCombo,
-        }).catch(() => {}),
-        
-        // Save workout session to database with individual sets
-        createWorkoutSession.mutateAsync({
+      // For logged-in users, save everything
+      if (user) {
+        Promise.all([
+          updateProfileStats.mutateAsync({
+            score: stats.score,
+            xp: stats.xp,
+            sets: stats.setsCompleted,
+            reps: stats.totalReps,
+            weight: stats.totalWeight,
+            maxCombo: stats.maxCombo,
+          }).catch(() => {}),
+          
+          createWorkoutSession.mutateAsync({
+            missionId: mission.id,
+            missionSnapshot: {
+              name: mission.name,
+              code_name: mission.code_name,
+              ...(isAssignmentMode && assignment ? {
+                assignment_id: assignment.id,
+                handler_name: assignment.handler_name,
+              } : {}),
+            },
+            scoreEarned: stats.score,
+            xpEarned: stats.xp,
+            setsCompleted: stats.setsCompleted,
+            totalReps: stats.totalReps,
+            totalWeight: stats.totalWeight,
+            maxCombo: stats.maxCombo,
+            damageDealt: stats.damageDealt,
+            sets: allSets,
+            durationSeconds,
+          }).then((session) => {
+            // Update assignment as completed if in assignment mode
+            if (isAssignmentMode && assignment) {
+              updateAssignmentStatus.mutate({
+                assignmentId: assignment.id,
+                status: 'COMPLETED',
+                sessionId: session?.id,
+              });
+            }
+          }).catch(() => {}),
+          
+          campaignId ? updateCampaignProgress.mutateAsync({
+            campaignId,
+            missionId: mission.id,
+            sessionData: {
+              score: stats.score,
+              weight: stats.totalWeight,
+              duration_seconds: durationSeconds,
+            },
+          }).then(() => {
+            queryClient.invalidateQueries({ queryKey: ['collection', campaignId] });
+            queryClient.invalidateQueries({ queryKey: ['campaign-progress', campaignId] });
+            queryClient.invalidateQueries({ queryKey: ['active-campaign-details'] });
+            queryClient.invalidateQueries({ queryKey: ['active-campaign-completed-missions'] });
+          }).catch(() => {}) : Promise.resolve(),
+          
+          batchPersist.mutateAsync({
+            sets: batchSets,
+            sessionId: currentSession.id,
+          }).then(result => {
+            if (result.newPRs.length > 0) {
+              setNewPRs(result.newPRs);
+              setTimeout(() => setShowPRNotification(true), 1500);
+            }
+          }).catch(() => {}),
+          
+          (async () => {
+            try {
+              const unlocked = await checkAndUnlock({
+                setsCompleted: (profile?.total_sets || 0) + stats.setsCompleted,
+                weightLifted: (profile?.total_weight || 0) + stats.totalWeight,
+                prsSet: 0,
+                comboReached: stats.maxCombo,
+                workoutHour: new Date().getHours(),
+              });
+              if (unlocked.length > 0) {
+                setCurrentSetAchievement(unlocked[0]);
+              }
+            } catch (e) {}
+          })(),
+        ]);
+      } else {
+        // Guest: create anonymous session
+        createWorkoutSession.mutate({
           missionId: mission.id,
           missionSnapshot: {
             name: mission.name,
             code_name: mission.code_name,
+            is_guest: true,
+            ...(isAssignmentMode && assignment ? {
+              assignment_id: assignment.id,
+              handler_name: assignment.handler_name,
+            } : {}),
           },
           scoreEarned: stats.score,
           xpEarned: stats.xp,
@@ -194,65 +327,12 @@ const WorkoutSession = () => {
           totalWeight: stats.totalWeight,
           maxCombo: stats.maxCombo,
           damageDealt: stats.damageDealt,
-          sets: allSets,
-          durationSeconds,
-        }).catch(() => {}),
-        
-        // Update campaign progress if this is a campaign mission
-        campaignId ? updateCampaignProgress.mutateAsync({
-          campaignId,
-          missionId: mission.id,
-          sessionData: {
-            score: stats.score,
-            weight: stats.totalWeight,
-            duration_seconds: durationSeconds,
-          },
-        }).then(() => {
-          // Invalidate all campaign-related queries to ensure fresh data
-          queryClient.invalidateQueries({ queryKey: ['collection', campaignId] });
-          queryClient.invalidateQueries({ queryKey: ['campaign-progress', campaignId] });
-          queryClient.invalidateQueries({ queryKey: ['active-campaign-details'] });
-          queryClient.invalidateQueries({ queryKey: ['active-campaign-completed-missions'] });
-        }).catch(() => {}) : Promise.resolve(),
-        
-        // Batch persist weight history and PRs (replaces per-set calls)
-        batchPersist.mutateAsync({
-          sets: batchSets,
-          sessionId: currentSession.id,
-        }).then(result => {
-          // Show PR notification if any new PRs were set
-          if (result.newPRs.length > 0) {
-            setNewPRs(result.newPRs);
-            setTimeout(() => setShowPRNotification(true), 1500);
-          }
-        }).catch(() => {}),
-        
-        // Check achievements based on final stats
-        (async () => {
-          try {
-            const unlocked = await checkAndUnlock({
-              setsCompleted: (profile?.total_sets || 0) + stats.setsCompleted,
-              weightLifted: (profile?.total_weight || 0) + stats.totalWeight,
-              prsSet: 0, // Will be updated by batch persist
-              comboReached: stats.maxCombo,
-              workoutHour: new Date().getHours(),
-            });
-            if (unlocked.length > 0) {
-              setCurrentSetAchievement(unlocked[0]);
-            }
-          } catch (e) {
-            // Non-blocking
-          }
-        })(),
-      ]);
-      
-      // Skip separate outro lore screen - go directly to combined summary
-      // The outro lore will be shown in the completion screen
+        });
+      }
     }
-  }, [currentSession?.status, user, statsSaved, mission, stats, updateProfileStats, createWorkoutSession, batchPersist, checkAndUnlock, profile, campaignId, updateCampaignProgress, queryClient]);
+  }, [currentSession?.status, statsSaved, mission, stats, user, assignment, isAssignmentMode, updateProfileStats, createWorkoutSession, batchPersist, checkAndUnlock, profile, campaignId, updateCampaignProgress, queryClient, updateAssignmentStatus]);
 
   // Show moment of loss prompt for anonymous users after mission complete
-  // MUST be before any conditional returns to satisfy React hooks rules
   useEffect(() => {
     if (isAnonymous && currentSession?.status === 'COMPLETED' && !showMomentOfLoss) {
       const timer = setTimeout(() => {
@@ -263,10 +343,12 @@ const WorkoutSession = () => {
     }
   }, [currentSession?.status, isAnonymous, showMomentOfLoss]);
 
-  if (missionLoading || !mission) {
+  if (isLoading || !mission) {
     return (
       <div className="min-h-screen bg-background flex items-center justify-center">
-        <div className="font-display text-2xl text-primary animate-neon-pulse">LOADING MISSION...</div>
+        <div className="font-display text-2xl text-primary animate-neon-pulse">
+          {isAssignmentMode ? 'LOADING ORDERS...' : 'LOADING MISSION...'}
+        </div>
       </div>
     );
   }
@@ -286,6 +368,11 @@ const WorkoutSession = () => {
           transition={{ delay: 0.2 }}
           className="max-w-lg text-center relative z-10"
         >
+          {isAssignmentMode && assignment && (
+            <div className="text-xs text-section-orders mb-4 font-display">
+              ORDERS FROM: {assignment.handler_name || 'YOUR HANDLER'}
+            </div>
+          )}
           <Scroll className="w-12 h-12 text-secondary mx-auto mb-6" />
           <h1 className="font-display text-4xl md:text-5xl text-primary text-glow-primary mb-4">
             {mission.code_name}
@@ -306,7 +393,7 @@ const WorkoutSession = () => {
 
   const missionExercises = mission.mission_exercises || [];
 
-  // COMBINED COMPLETION SCREEN - shows outro lore + stats together
+  // COMBINED COMPLETION SCREEN
   if (currentSession?.status === 'COMPLETED') {
     return (
       <motion.div 
@@ -327,19 +414,24 @@ const WorkoutSession = () => {
           transition={{ delay: 0.2 }}
           className="text-center max-w-lg"
         >
+          {isAssignmentMode && assignment && (
+            <div className="text-xs text-section-orders mb-4 font-display">
+              ORDERS FROM: {assignment.handler_name || 'YOUR HANDLER'}
+            </div>
+          )}
           <h1 className="font-display text-5xl md:text-7xl text-primary text-glow-primary mb-2">
-            MISSION COMPLETE
+            {isAssignmentMode ? 'ORDERS COMPLETE' : 'MISSION COMPLETE'}
           </h1>
           <p className="font-display text-2xl text-secondary mb-4">{mission.code_name}</p>
           
-          {/* Outro lore - shown inline if available */}
+          {/* Outro lore */}
           {mission.outro_lore && (
             <p className="text-muted-foreground leading-relaxed mb-6 text-sm italic">
               "{mission.outro_lore}"
             </p>
           )}
           
-          {/* Stats grid - compact */}
+          {/* Stats grid */}
           <div className="grid grid-cols-4 gap-3 mb-4">
             <div className={`bg-card border rounded-lg p-3 ${isAnonymous ? 'border-warning/30' : 'border-border'}`}>
               <div className="font-display text-2xl text-accent">{stats.score.toLocaleString()}</div>
@@ -359,7 +451,7 @@ const WorkoutSession = () => {
             </div>
           </div>
           
-          {/* Total Weight Lifted */}
+          {/* Total Weight */}
           <div className={`bg-card border-2 rounded-lg p-4 mb-6 ${isAnonymous ? 'border-warning/50' : 'border-accent'}`}>
             <div className="font-display text-4xl text-accent">{stats.totalWeight.toLocaleString()}</div>
             <div className="text-xs text-muted-foreground">TOTAL LBS LIFTED</div>
@@ -430,23 +522,16 @@ const WorkoutSession = () => {
   const progress = totalSets > 0 ? Math.min(100, (completedSets / totalSets) * 100) : 0;
 
   const handleCompleteSet = () => {
-    if (isCompleting) return; // Prevent double-tap
+    if (isCompleting) return;
     setIsCompleting(true);
     
-    // Capture stats before completing
     const prevStats = { ...stats };
-    
-    // Get a random lore phrase for this set (Story 14.1)
     const lorePhrase = getWeightedRandomLorePhrase();
     setCurrentLorePhrase(lorePhrase.text);
     
-    // IMMEDIATELY update game state - NO DB operations here!
     completeSet(reps, weight);
-    
-    // Trigger explosion immediately
     setShowExplosion(true);
     
-    // Calculate gains for popup immediately
     const newStats = useGameStore.getState().stats;
     const missionTotalSets = missionExercises.reduce((acc, e) => acc + e.target_sets, 0);
     setLastXPGain({
@@ -459,14 +544,10 @@ const WorkoutSession = () => {
       totalSets: missionTotalSets,
     });
     
-    // Show XP popup with minimal delay
     setTimeout(() => {
       setShowXPPopup(true);
       setIsCompleting(false);
     }, 100);
-    
-    // All DB operations (weight history, PRs, achievements) are now batched
-    // and executed once at mission end - see the useEffect for session.status === 'COMPLETED'
   };
 
   const adjustValue = (setter: React.Dispatch<React.SetStateAction<number>>, delta: number, min = 0) => {
@@ -482,7 +563,6 @@ const WorkoutSession = () => {
       <header className="relative z-10 flex items-center justify-between p-4 border-b border-border flex-shrink-0">
         <button 
           onClick={() => {
-            // If at least one set is logged, show confirmation
             if (stats.setsCompleted > 0) {
               setShowCancelConfirm(true);
             } else {
@@ -500,6 +580,9 @@ const WorkoutSession = () => {
         </button>
         
         <div className="text-center">
+          {isAssignmentMode && (
+            <div className="text-xs text-section-orders mb-1">ORDERS</div>
+          )}
           <div className="font-display text-lg text-primary">{mission.code_name}</div>
           <div className="text-xs text-muted-foreground">
             {safeExerciseIndex + 1}/{missionExercises.length}
@@ -523,15 +606,13 @@ const WorkoutSession = () => {
         />
       </div>
 
-      {/* Main content - scrollable area */}
+      {/* Main content */}
       <main className="flex-1 relative z-10 flex flex-col p-4 overflow-y-auto min-h-0">
-        {/* Explosion Effect */}
         <ExplosionEffect 
           trigger={showExplosion} 
           onComplete={() => setShowExplosion(false)} 
         />
         
-        {/* XP Popup - Story 14.2: Now includes achievement and lore phrase */}
         <XPPopup
           show={showXPPopup}
           xp={lastXPGain.xp}
@@ -549,7 +630,6 @@ const WorkoutSession = () => {
           }}
         />
         
-        {/* PR Notification */}
         <PRNotification
           prs={newPRs}
           show={showPRNotification}
@@ -617,8 +697,7 @@ const WorkoutSession = () => {
 
         {/* Weight Control */}
         <div className="bg-card border border-border rounded-lg p-4 mb-3 flex-shrink-0">
-          <div className="text-xs text-muted-foreground text-center mb-1">WEIGHT (LB)</div>
-          <p className="text-xs text-muted-foreground/60 text-center mb-2">0 = bodyweight</p>
+          <div className="text-xs text-muted-foreground text-center mb-3">WEIGHT (LB)</div>
           <div className="flex items-center justify-center gap-4">
             <button 
               onClick={() => adjustValue(setWeight, -5)}
@@ -626,9 +705,7 @@ const WorkoutSession = () => {
             >
               <Minus className="w-8 h-8" />
             </button>
-            <div className="arcade-number text-secondary min-w-[120px] text-center text-5xl md:text-7xl">
-              {weight}
-            </div>
+            <div className="arcade-number text-secondary min-w-[120px] text-center text-5xl md:text-7xl">{weight}</div>
             <button 
               onClick={() => adjustValue(setWeight, 5)}
               className="tap-target-xl bg-muted rounded-lg hover:bg-muted/80 transition-colors"
@@ -640,8 +717,7 @@ const WorkoutSession = () => {
 
         {/* Reps Control */}
         <div className="bg-card border border-border rounded-lg p-4 mb-4 flex-shrink-0">
-          <div className="text-xs text-muted-foreground text-center mb-1">REPS</div>
-          <p className="text-[10px] text-muted-foreground/60 text-center mb-2">Adjust to match what you actually completed</p>
+          <div className="text-xs text-muted-foreground text-center mb-3">REPS</div>
           <div className="flex items-center justify-center gap-4">
             <button 
               onClick={() => adjustValue(setReps, -1)}
@@ -649,9 +725,7 @@ const WorkoutSession = () => {
             >
               <Minus className="w-8 h-8" />
             </button>
-            <div className="arcade-number text-accent min-w-[120px] text-center text-5xl md:text-7xl">
-              {reps}
-            </div>
+            <div className="arcade-number text-accent min-w-[120px] text-center text-5xl md:text-7xl">{reps}</div>
             <button 
               onClick={() => adjustValue(setReps, 1)}
               className="tap-target-xl bg-muted rounded-lg hover:bg-muted/80 transition-colors"
@@ -661,22 +735,11 @@ const WorkoutSession = () => {
           </div>
         </div>
 
-        {/* Spacer to push button to bottom */}
-        <div className="flex-1 min-h-0" />
-
-        {/* Score display */}
-        <div className="flex justify-between text-sm mb-3 flex-shrink-0">
-          <div className="text-muted-foreground">
-            <span className="text-secondary font-display">{stats.score.toLocaleString()}</span> pts
-          </div>
-          <div className="text-muted-foreground">
-            <span className="text-success font-display">{stats.xp}</span> XP
-          </div>
-        </div>
+        <div className="flex-1" />
       </main>
 
-      {/* Fixed Complete Set Button - ALWAYS visible at bottom */}
-      <div className="sticky bottom-0 left-0 right-0 p-4 bg-background border-t border-border z-20 flex-shrink-0">
+      {/* Complete Button */}
+      <div className="sticky bottom-0 left-0 right-0 p-4 bg-background/95 backdrop-blur border-t border-border z-20 flex-shrink-0">
         <motion.button
           onClick={handleCompleteSet}
           disabled={isCompleting}
@@ -718,12 +781,18 @@ const WorkoutSession = () => {
               className="bg-card border-2 border-destructive rounded-lg p-6 max-w-sm w-full text-center"
             >
               <AlertTriangle className="w-12 h-12 text-destructive mx-auto mb-4" />
-              <h2 className="font-display text-2xl text-destructive mb-2">ABORT MISSION?</h2>
+              <h2 className="font-display text-2xl text-destructive mb-2">
+                {isAssignmentMode ? 'ABANDON ORDERS?' : 'ABORT MISSION?'}
+              </h2>
               <p className="text-muted-foreground text-sm mb-2">
-                You've logged <span className="text-primary font-display">{stats.setsCompleted}</span> sets so far.
+                You've logged <span className="text-primary font-display">{stats.setsCompleted}</span> sets
+                {isAssignmentMode ? ' for your handler' : ' so far'}.
               </p>
               <p className="text-muted-foreground text-sm mb-6">
-                Retreating now means losing your XP, combo streak, and the glory you've earned. The battlefield doesn't reward quitters.
+                {isAssignmentMode 
+                  ? "Deserting your post means losing your XP, combo streak, and disappointing your handler. Real soldiers finish what they start."
+                  : "Retreating now means losing your XP, combo streak, and the glory you've earned. The battlefield doesn't reward quitters."
+                }
               </p>
               
               <div className="space-y-3">
@@ -731,7 +800,7 @@ const WorkoutSession = () => {
                   onClick={() => setShowCancelConfirm(false)}
                   className="w-full py-3 bg-primary text-primary-foreground font-display rounded hover:box-glow-primary transition-all"
                 >
-                  KEEP FIGHTING
+                  {isAssignmentMode ? 'COMPLETE ORDERS' : 'KEEP FIGHTING'}
                 </button>
                 <button
                   onClick={() => {
@@ -744,15 +813,13 @@ const WorkoutSession = () => {
                   }}
                   className="w-full py-3 border border-destructive text-destructive font-display rounded hover:bg-destructive/10 transition-all"
                 >
-                  RETREAT ANYWAY
+                  {isAssignmentMode ? 'ABANDON ANYWAY' : 'RETREAT ANYWAY'}
                 </button>
               </div>
             </motion.div>
           </motion.div>
         )}
       </AnimatePresence>
-
-      {/* Story 14.2: Achievements now shown inside XPPopup, no separate notification */}
     </div>
   );
 };
