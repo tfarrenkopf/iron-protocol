@@ -50,102 +50,84 @@ export const FirstVisitPopup = () => {
             animate={{ scale: 1, opacity: 1, y: 0 }}
             exit={{ scale: 0.9, opacity: 0, y: 20 }}
             transition={{ type: 'spring', damping: 25, stiffness: 300 }}
-            className="bg-card border-2 border-primary rounded-lg p-6 max-w-md w-full relative"
+            className="bg-card border-2 border-primary rounded-lg p-4 max-w-sm w-full relative"
           >
             {/* Close button */}
             <button
               onClick={handleDismiss}
-              className="absolute top-4 right-4 p-1 text-muted-foreground hover:text-foreground transition-colors"
+              className="absolute top-3 right-3 p-1 text-muted-foreground hover:text-foreground transition-colors"
             >
               <X className="w-5 h-5" />
             </button>
 
             {/* Icon */}
-            <div className="flex justify-center mb-4">
+            <div className="flex justify-center mb-3">
               <motion.div
                 initial={{ rotate: -10 }}
                 animate={{ rotate: 10 }}
                 transition={{ repeat: Infinity, repeatType: 'reverse', duration: 1 }}
-                className="p-4 bg-primary/10 border border-primary/30 rounded-full"
+                className="p-3 bg-primary/10 border border-primary/30 rounded-full"
               >
-                <Target className="w-12 h-12 text-primary" />
+                <Target className="w-8 h-8 text-primary" />
               </motion.div>
             </div>
 
             {/* Content */}
-            <div className="text-center mb-5">
-              <h2 className="font-display text-3xl text-primary text-glow-primary mb-2">
+            <div className="text-center mb-4">
+              <h2 className="font-display text-2xl text-primary text-glow-primary mb-1">
                 WELCOME, AGENT
               </h2>
-              <p className="text-muted-foreground text-sm leading-relaxed">
-                Turn your workouts into tactical missions. Log sets, build combos, 
-                earn XP, and climb the global leaderboard.
+              <p className="text-muted-foreground text-sm">
+                Gamify your workouts. Earn XP. Compete.
               </p>
             </div>
 
             {/* Content Structure */}
-            <div className="bg-background rounded-lg p-4 mb-4 border border-border">
-              <p className="text-sm text-muted-foreground mb-3 uppercase tracking-wide">How It Works:</p>
-              <div className="space-y-3">
-                <div className="flex items-start gap-3">
-                  <div className="p-1.5 rounded bg-section-campaigns/20 mt-0.5">
-                    <Flame className="w-4 h-4 text-section-campaigns" />
+            <div className="bg-background rounded-lg p-3 mb-3 border border-border">
+              <div className="space-y-2">
+                <div className="flex items-center gap-2">
+                  <div className="p-1 rounded bg-section-campaigns/20">
+                    <Flame className="w-3.5 h-3.5 text-section-campaigns" />
                   </div>
-                  <div className="text-sm">
-                    <span className="text-section-campaigns font-medium">Campaigns</span>
-                    <p className="text-muted-foreground text-sm mt-0.5 leading-snug">Training programs with multiple missions (e.g., Push Pull Legs)</p>
-                  </div>
+                  <span className="text-section-campaigns font-medium text-sm">Campaigns</span>
+                  <span className="text-muted-foreground text-sm">— multi-mission programs</span>
                 </div>
-                <div className="flex items-start gap-3">
-                  <div className="p-1.5 rounded bg-section-missions/20 mt-0.5">
-                    <Crosshair className="w-4 h-4 text-section-missions" />
+                <div className="flex items-center gap-2">
+                  <div className="p-1 rounded bg-section-missions/20">
+                    <Crosshair className="w-3.5 h-3.5 text-section-missions" />
                   </div>
-                  <div className="text-sm">
-                    <span className="text-section-missions font-medium">Missions</span>
-                    <p className="text-muted-foreground text-sm mt-0.5 leading-snug">Individual workouts with exercises and rep targets</p>
-                  </div>
+                  <span className="text-section-missions font-medium text-sm">Missions</span>
+                  <span className="text-muted-foreground text-sm">— individual workouts</span>
                 </div>
-                <div className="flex items-start gap-3">
-                  <div className="p-1.5 rounded bg-section-exercises/20 mt-0.5">
-                    <Dumbbell className="w-4 h-4 text-section-exercises" />
+                <div className="flex items-center gap-2">
+                  <div className="p-1 rounded bg-section-exercises/20">
+                    <Dumbbell className="w-3.5 h-3.5 text-section-exercises" />
                   </div>
-                  <div className="text-sm">
-                    <span className="text-section-exercises font-medium">Exercises</span>
-                    <p className="text-muted-foreground text-sm mt-0.5 leading-snug">The building blocks — squats, curls, presses, etc.</p>
-                  </div>
+                  <span className="text-section-exercises font-medium text-sm">Exercises</span>
+                  <span className="text-muted-foreground text-sm">— squats, curls, etc.</span>
                 </div>
               </div>
             </div>
 
             {/* Social Features */}
-            <div className="bg-background rounded-lg p-4 mb-5 border border-border">
-              <p className="text-sm text-muted-foreground mb-3 uppercase tracking-wide">Compete & Train Together:</p>
+            <div className="bg-background rounded-lg p-3 mb-4 border border-border">
               <div className="space-y-2">
-                <div className="flex items-center gap-3">
-                  <div className="p-1.5 rounded bg-section-intel/20">
-                    <Target className="w-4 h-4 text-section-intel" />
+                <div className="flex items-center gap-2">
+                  <div className="p-1 rounded bg-section-intel/20">
+                    <Target className="w-3.5 h-3.5 text-section-intel" />
                   </div>
-                  <div className="text-sm">
-                    <span className="text-section-intel font-medium">Rival Mode</span>
-                    <span className="text-muted-foreground"> — challenge friends head-to-head</span>
-                  </div>
+                  <span className="text-section-intel font-medium text-sm">Rivals</span>
+                  <span className="text-muted-foreground text-sm">— compete with friends</span>
                 </div>
-                <div className="flex items-center gap-3">
-                  <div className="p-1.5 rounded bg-section-orders/20">
-                    <Flame className="w-4 h-4 text-section-orders" />
+                <div className="flex items-center gap-2">
+                  <div className="p-1 rounded bg-section-orders/20">
+                    <Flame className="w-3.5 h-3.5 text-section-orders" />
                   </div>
-                  <div className="text-sm">
-                    <span className="text-section-orders font-medium">Squads</span>
-                    <span className="text-muted-foreground"> — trainers assign missions to athletes</span>
-                  </div>
+                  <span className="text-section-orders font-medium text-sm">Squads</span>
+                  <span className="text-muted-foreground text-sm">— trainer-assigned workouts</span>
                 </div>
               </div>
             </div>
-
-            {/* Key tip */}
-            <p className="text-sm text-center text-accent mb-5 italic">
-              Tip: Sign up to save your progress. Guest mode doesn't persist data.
-            </p>
 
             {/* Actions */}
             <div className="space-y-2">
