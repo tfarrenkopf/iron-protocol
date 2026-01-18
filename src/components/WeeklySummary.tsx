@@ -193,13 +193,13 @@ export function WeeklySummary() {
           <>
             <div className="grid grid-cols-4 gap-3 mb-3">
               <div className="text-center">
-                <div className={`font-display text-2xl ${isAnonymous ? 'text-muted-foreground' : 'text-primary'}`}>
+                <div className={`font-display text-2xl ${isAnonymous ? 'text-muted-foreground' : 'text-foreground'}`}>
                   {displayStats.sessionsCompleted}
                 </div>
                 <div className="text-xs uppercase tracking-wide text-muted-foreground">MISSIONS</div>
               </div>
               <div className="text-center">
-                <div className={`font-display text-2xl ${isAnonymous ? 'text-muted-foreground' : 'text-accent'}`}>
+                <div className={`font-display text-2xl ${isAnonymous ? 'text-muted-foreground' : 'text-foreground'}`}>
                   {displayStats.totalWeight >= 1000 
                     ? `${(displayStats.totalWeight / 1000).toFixed(1)}k` 
                     : displayStats.totalWeight}
@@ -208,15 +208,15 @@ export function WeeklySummary() {
               </div>
               <div className="text-center">
                 <div className="flex items-center justify-center gap-1">
-                  <Trophy className={`w-4 h-4 ${isAnonymous ? 'text-muted-foreground' : 'text-warning'}`} />
-                  <span className={`font-display text-2xl ${isAnonymous ? 'text-muted-foreground' : 'text-warning'}`}>
+                  <Trophy className={`w-4 h-4 ${isAnonymous ? 'text-muted-foreground' : 'text-secondary'}`} />
+                  <span className={`font-display text-2xl ${isAnonymous ? 'text-muted-foreground' : 'text-foreground'}`}>
                     {displayStats.prsSet}
                   </span>
                 </div>
                 <div className="text-xs uppercase tracking-wide text-muted-foreground">PRs</div>
               </div>
               <div className="text-center">
-                <div className={`font-display text-2xl ${isAnonymous ? 'text-muted-foreground' : 'text-destructive'}`}>
+                <div className={`font-display text-2xl ${isAnonymous ? 'text-muted-foreground' : 'text-foreground'}`}>
                   {displayStats.totalDamage >= 1000 
                     ? `${(displayStats.totalDamage / 1000).toFixed(1)}k` 
                     : displayStats.totalDamage}
@@ -248,8 +248,8 @@ export function WeeklySummary() {
       <div className="p-4 bg-background/30">
         <div className="flex items-center justify-between mb-3">
           <div className="flex items-center gap-2">
-            <Target className="w-4 h-4 text-primary" />
-            <span className="font-display text-sm text-primary">AGENT STATUS</span>
+            <Target className="w-4 h-4 text-secondary" />
+            <span className="font-display text-sm text-secondary">AGENT STATUS</span>
           </div>
         </div>
 
@@ -258,10 +258,10 @@ export function WeeklySummary() {
           <div className={`flex-shrink-0 w-16 h-16 rounded-lg border flex flex-col items-center justify-center ${
             isAnonymous 
               ? 'bg-muted/20 border-muted-foreground/30' 
-              : 'bg-gradient-to-br from-primary/20 to-accent/20 border-primary/50'
+              : 'bg-secondary/10 border-secondary/30'
           }`}>
             <div className="text-xs uppercase tracking-wide text-muted-foreground">LVL</div>
-            <div className={`font-display text-2xl ${isAnonymous ? 'text-muted-foreground' : 'text-primary'}`}>
+            <div className={`font-display text-2xl ${isAnonymous ? 'text-muted-foreground' : 'text-secondary'}`}>
               {level}
             </div>
           </div>
@@ -270,12 +270,12 @@ export function WeeklySummary() {
           <div className="flex-1">
             <div className="flex items-center justify-between mb-1">
               <span className="text-xs text-muted-foreground">
-                <span className={`font-display ${isAnonymous ? 'text-muted-foreground' : 'text-success'}`}>
+                <span className={`font-display ${isAnonymous ? 'text-muted-foreground' : 'text-foreground'}`}>
                   {xp.toLocaleString()}
                 </span> XP
               </span>
               <span className="text-xs text-muted-foreground">
-                <span className={`font-display ${isAnonymous ? 'text-muted-foreground' : 'text-primary'}`}>
+                <span className={`font-display ${isAnonymous ? 'text-muted-foreground' : 'text-foreground'}`}>
                   {xpUntilNext.toLocaleString()}
                 </span> to Level {level + 1}
               </span>
@@ -285,7 +285,7 @@ export function WeeklySummary() {
                 initial={{ width: 0 }}
                 animate={{ width: `${progressPercent}%` }}
                 transition={{ duration: 0.5, ease: "easeOut" }}
-                className={`h-full ${isAnonymous ? 'bg-muted-foreground/50' : 'bg-gradient-to-r from-primary to-accent'}`}
+                className={`h-full ${isAnonymous ? 'bg-muted-foreground/50' : 'bg-secondary'}`}
               />
             </div>
 

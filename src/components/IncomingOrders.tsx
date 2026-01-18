@@ -63,15 +63,15 @@ export function IncomingOrders() {
         {/* Quick Stats */}
         <div className="grid grid-cols-3 gap-3">
           <div className="text-center">
-            <div className="font-display text-xl text-section-orders">{activeAssignments.length}</div>
+            <div className="font-display text-xl text-foreground">{activeAssignments.length}</div>
             <div className="text-xs uppercase tracking-wide text-muted-foreground">ACTIVE</div>
           </div>
           <div className="text-center">
-            <div className="font-display text-xl text-success">{completedCount}</div>
+            <div className="font-display text-xl text-foreground">{completedCount}</div>
             <div className="text-xs uppercase tracking-wide text-muted-foreground">DONE</div>
           </div>
           <div className="text-center">
-            <div className="font-display text-xl text-muted-foreground">
+            <div className="font-display text-xl text-foreground">
               {totalCount > 0 ? Math.round((completedCount / totalCount) * 100) : 0}%
             </div>
             <div className="text-xs uppercase tracking-wide text-muted-foreground">RATE</div>
