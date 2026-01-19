@@ -158,8 +158,8 @@ const Donate = () => {
                 Your iron is your business.
               </p>
               <p className="text-foreground">
-                You control your visibility. Share your stats with your squad, or keep 
-                everything private. The choice is always yours.
+                Your workout data stays yours. We only share what's necessary—like 
+                mission completion status with your squad handlers.
               </p>
             </div>
           </motion.section>
