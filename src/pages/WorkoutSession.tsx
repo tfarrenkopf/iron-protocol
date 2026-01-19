@@ -19,6 +19,7 @@ import { GuestIndicator, MomentOfLossPrompt, ConversionNudge } from '@/component
 import { getWeightedRandomLorePhrase } from '@/data/lorePhrases';
 import { useBatchPersist } from '@/hooks/useBatchPersist';
 import { useUpdateCampaignProgress } from '@/hooks/useCampaignProgress';
+import { useWeeklyBoss, useApplyBossDamage, calculateBossDamage } from '@/hooks/useWeeklyBoss';
 
 const WorkoutSession = () => {
   const { missionId, assignmentId } = useParams();
@@ -42,6 +43,8 @@ const WorkoutSession = () => {
   const batchPersist = useBatchPersist();
   const { checkAndUnlock } = useCheckAchievements();
   const updateCampaignProgress = useUpdateCampaignProgress();
+  const { data: activeBoss } = useWeeklyBoss();
+  const applyBossDamage = useApplyBossDamage();
 
   const { 
     currentSession, 
@@ -263,6 +266,28 @@ const WorkoutSession = () => {
                 assignmentId: assignment.id,
                 status: 'COMPLETED',
                 sessionId: session?.id,
+              });
+            }
+            
+            // Apply boss damage if there's an active boss
+            if (activeBoss && session?.id && user) {
+              // Get focus areas from the original database mission
+              const focusAreas = dbMission?.focus_areas || [];
+              const damageResult = calculateBossDamage(
+                stats.setsCompleted,
+                stats.totalReps,
+                stats.totalWeight,
+                focusAreas,
+                activeBoss.weaknesses,
+                activeBoss.weakness_multiplier
+              );
+              
+              applyBossDamage.mutate({
+                userId: user.id,
+                sessionId: session.id,
+                baseDamage: damageResult.baseDamage,
+                bonusDamage: damageResult.bonusDamage,
+                weaknessHits: damageResult.weaknessHits,
               });
             }
           }).catch(() => {}),

@@ -12,6 +12,7 @@ import { FirstVisitPopup } from "@/components/FirstVisitPopup";
 import { WeeklySummary } from "@/components/WeeklySummary";
 import { RivalWidget } from "@/components/RivalWidget";
 import { FightNowActions } from "@/components/FightNowActions";
+import { WeeklyBossWidget } from "@/components/WeeklyBossWidget";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -170,6 +171,15 @@ const Dashboard = () => {
               )}
             </motion.div>
           </div>
+
+          {/* Weekly Boss Widget */}
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.25 }}
+          >
+            <WeeklyBossWidget />
+          </motion.div>
 
           {/* Weekly Summary */}
           <WeeklySummary />

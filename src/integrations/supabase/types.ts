@@ -1170,6 +1170,118 @@ export type Database = {
           },
         ]
       }
+      weekly_boss_damage: {
+        Row: {
+          base_damage: number
+          bonus_damage: number
+          boss_id: string
+          created_at: string
+          id: string
+          session_id: string | null
+          total_damage: number
+          user_id: string
+          weakness_hits: string[] | null
+        }
+        Insert: {
+          base_damage?: number
+          bonus_damage?: number
+          boss_id: string
+          created_at?: string
+          id?: string
+          session_id?: string | null
+          total_damage?: number
+          user_id: string
+          weakness_hits?: string[] | null
+        }
+        Update: {
+          base_damage?: number
+          bonus_damage?: number
+          boss_id?: string
+          created_at?: string
+          id?: string
+          session_id?: string | null
+          total_damage?: number
+          user_id?: string
+          weakness_hits?: string[] | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "weekly_boss_damage_boss_id_fkey"
+            columns: ["boss_id"]
+            isOneToOne: false
+            referencedRelation: "weekly_bosses"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "weekly_boss_damage_session_id_fkey"
+            columns: ["session_id"]
+            isOneToOne: true
+            referencedRelation: "workout_sessions"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "weekly_boss_damage_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      weekly_bosses: {
+        Row: {
+          code_name: string
+          created_at: string
+          current_hp: number
+          defeated_at: string | null
+          id: string
+          image_url: string | null
+          is_active: boolean
+          is_defeated: boolean
+          lore: string
+          max_hp: number
+          name: string
+          weakness_multiplier: number
+          weaknesses: string[]
+          week_end: string
+          week_start: string
+        }
+        Insert: {
+          code_name: string
+          created_at?: string
+          current_hp?: number
+          defeated_at?: string | null
+          id?: string
+          image_url?: string | null
+          is_active?: boolean
+          is_defeated?: boolean
+          lore: string
+          max_hp?: number
+          name: string
+          weakness_multiplier?: number
+          weaknesses?: string[]
+          week_end: string
+          week_start: string
+        }
+        Update: {
+          code_name?: string
+          created_at?: string
+          current_hp?: number
+          defeated_at?: string | null
+          id?: string
+          image_url?: string | null
+          is_active?: boolean
+          is_defeated?: boolean
+          lore?: string
+          max_hp?: number
+          name?: string
+          weakness_multiplier?: number
+          weaknesses?: string[]
+          week_end?: string
+          week_start?: string
+        }
+        Relationships: []
+      }
       workout_sessions: {
         Row: {
           completed_at: string | null
@@ -1380,6 +1492,38 @@ export type Database = {
       }
     }
     Functions: {
+      apply_boss_damage: {
+        Args: {
+          p_base_damage: number
+          p_bonus_damage: number
+          p_session_id: string
+          p_user_id: string
+          p_weakness_hits: string[]
+        }
+        Returns: {
+          code_name: string
+          created_at: string
+          current_hp: number
+          defeated_at: string | null
+          id: string
+          image_url: string | null
+          is_active: boolean
+          is_defeated: boolean
+          lore: string
+          max_hp: number
+          name: string
+          weakness_multiplier: number
+          weaknesses: string[]
+          week_end: string
+          week_start: string
+        }
+        SetofOptions: {
+          from: "*"
+          to: "weekly_bosses"
+          isOneToOne: true
+          isSetofReturn: false
+        }
+      }
       calculate_mission_difficulty: {
         Args: {
           p_estimated_minutes: number
@@ -1389,6 +1533,26 @@ export type Database = {
         Returns: number
       }
       generate_war_report_snapshot: { Args: never; Returns: undefined }
+      get_active_weekly_boss: {
+        Args: never
+        Returns: {
+          code_name: string
+          current_hp: number
+          defeated_at: string
+          id: string
+          image_url: string
+          is_defeated: boolean
+          lore: string
+          max_hp: number
+          name: string
+          total_damage_dealt: number
+          unique_contributors: number
+          weakness_multiplier: number
+          weaknesses: string[]
+          week_end: string
+          week_start: string
+        }[]
+      }
       get_completed_mission_count: {
         Args: { p_user_id: string }
         Returns: number
@@ -1414,6 +1578,14 @@ export type Database = {
           mission_snapshot: Json
           squad_name: string
           status: string
+        }[]
+      }
+      get_user_boss_damage: {
+        Args: { p_user_id: string }
+        Returns: {
+          contribution_count: number
+          total_damage: number
+          weakness_hits_count: number
         }[]
       }
       get_user_mission_rank: {
