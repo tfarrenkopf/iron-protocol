@@ -340,8 +340,7 @@ const Command = () => {
                   }`}
                 >
                   <Icon className="w-4 h-4 flex-shrink-0" />
-                  <span className="hidden xs:inline sm:inline">{tab.label}</span>
-                  <span className="xs:hidden sm:hidden">{tab.label.slice(0, 4)}</span>
+                  <span>{tab.label}</span>
                 </button>
               );
             })}
