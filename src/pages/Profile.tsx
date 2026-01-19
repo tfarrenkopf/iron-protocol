@@ -20,6 +20,10 @@ import {
   Shield,
   ChevronRight,
   Users,
+  ClipboardList,
+  Clock,
+  Eye,
+  FileText,
 } from "lucide-react";
 import { GlobalNav } from "@/components/GlobalNav";
 import { AppFooter } from "@/components/AppFooter";
@@ -34,8 +38,9 @@ import {
   useLeaveSquad,
   useUpdateMemberStats,
 } from "@/hooks/useHandlerMode";
-import { format } from "date-fns";
-import { displayNameSchema, validateDisplayName } from "@/lib/displayNameValidation";
+import { useMyAssignments } from "@/hooks/useAssignments";
+import { format, formatDistanceToNow } from "date-fns";
+import { validateDisplayName } from "@/lib/displayNameValidation";
 
 const ProfilePage = () => {
   const navigate = useNavigate();
@@ -44,6 +49,7 @@ const ProfilePage = () => {
   const { data: sessions, isLoading: sessionsLoading } = useCompletedSessions();
   const { data: isHandler, isLoading: handlerLoading } = useIsHandler();
   const { data: mySquads, isLoading: squadsLoading } = useMySquads();
+  const { data: myAssignments, isLoading: assignmentsLoading } = useMyAssignments();
   const updateProfile = useUpdateProfile();
   const deleteSession = useDeleteSession();
   const wipeAllData = useWipeAllData();
@@ -59,6 +65,7 @@ const ProfilePage = () => {
   const [showWipeConfirm, setShowWipeConfirm] = useState(false);
   const [wipeConfirmText, setWipeConfirmText] = useState("");
   const [showSquads, setShowSquads] = useState(true);
+  const [showOrders, setShowOrders] = useState(true);
 
   useEffect(() => {
     if (profile?.display_name) {
@@ -153,10 +160,10 @@ const ProfilePage = () => {
       <div className="fixed inset-0 pointer-events-none scanlines opacity-30" />
 
       <div className="relative z-10 container mx-auto px-4 py-6 max-w-3xl">
-        {/* Header */}
+        {/* Header - Calmer, reflective tone */}
         <GlobalNav 
-          title="AGENT PROFILE"
-          subtitle="PERSONNEL FILE"
+          title="SERVICE RECORD"
+          subtitle="YOUR HISTORY • OBLIGATIONS • SETTINGS"
         />
 
         {isLoading ? (
@@ -165,18 +172,18 @@ const ProfilePage = () => {
           </div>
         ) : (
           <>
-            {/* Level Display */}
+            {/* Level Display - Calm, stable tones */}
             <motion.div
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: 0.1 }}
               className="bg-card border border-border rounded-lg p-6 mb-6 text-center"
             >
-              <div className="font-display text-6xl text-primary text-glow-primary mb-2">{level}</div>
+              <div className="font-display text-6xl text-foreground mb-2">{level}</div>
               <div className="text-sm text-muted-foreground mb-4">LEVEL</div>
               <div className="h-2 bg-muted rounded-full overflow-hidden">
                 <motion.div
-                  className="h-full bg-gradient-to-r from-primary to-secondary"
+                  className="h-full bg-gradient-to-r from-muted-foreground to-foreground"
                   initial={{ width: 0 }}
                   animate={{ width: `${Math.min(100, xpProgress)}%` }}
                   transition={{ duration: 0.5, delay: 0.3 }}
@@ -187,7 +194,7 @@ const ProfilePage = () => {
               </div>
             </motion.div>
 
-            {/* Stats Grid - responsive sizing */}
+            {/* Stats Grid - Muted, stable tones for Profile */}
             <motion.div
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
@@ -195,22 +202,22 @@ const ProfilePage = () => {
               className="grid grid-cols-2 gap-3 sm:gap-4 mb-6"
             >
               <div className="bg-card border border-border rounded-lg p-3 sm:p-4 text-center">
-                <Trophy className="w-4 h-4 sm:w-5 sm:h-5 mx-auto mb-1.5 sm:mb-2 text-primary" />
+                <Trophy className="w-4 h-4 sm:w-5 sm:h-5 mx-auto mb-1.5 sm:mb-2 text-muted-foreground" />
                 <div className="font-display text-lg sm:text-2xl text-foreground">{(profile?.total_score || 0).toLocaleString()}</div>
                 <div className="text-xs text-muted-foreground">TOTAL SCORE</div>
               </div>
               <div className="bg-card border border-border rounded-lg p-3 sm:p-4 text-center">
-                <Zap className="w-4 h-4 sm:w-5 sm:h-5 mx-auto mb-1.5 sm:mb-2 text-primary" />
+                <Zap className="w-4 h-4 sm:w-5 sm:h-5 mx-auto mb-1.5 sm:mb-2 text-muted-foreground" />
                 <div className="font-display text-lg sm:text-2xl text-foreground">{profile?.max_combo || 0}x</div>
                 <div className="text-xs text-muted-foreground">MAX COMBO</div>
               </div>
               <div className="bg-card border border-border rounded-lg p-3 sm:p-4 text-center">
-                <Target className="w-4 h-4 sm:w-5 sm:h-5 mx-auto mb-1.5 sm:mb-2 text-primary" />
+                <Target className="w-4 h-4 sm:w-5 sm:h-5 mx-auto mb-1.5 sm:mb-2 text-muted-foreground" />
                 <div className="font-display text-lg sm:text-2xl text-foreground">{profile?.total_sets || 0}</div>
                 <div className="text-xs text-muted-foreground">TOTAL SETS</div>
               </div>
               <div className="bg-card border border-border rounded-lg p-3 sm:p-4 text-center">
-                <Dumbbell className="w-4 h-4 sm:w-5 sm:h-5 mx-auto mb-1.5 sm:mb-2 text-primary" />
+                <Dumbbell className="w-4 h-4 sm:w-5 sm:h-5 mx-auto mb-1.5 sm:mb-2 text-muted-foreground" />
                 <div className="font-display text-lg sm:text-2xl text-foreground">
                   {((profile?.total_weight || 0) / 1000).toFixed(1)}k
                 </div>
@@ -370,6 +377,151 @@ const ProfilePage = () => {
                           </div>
                         </div>
                       ))}
+                    </motion.div>
+                  )}
+                </AnimatePresence>
+              </motion.section>
+            )}
+
+            {/* Handler Orders (Assignments TO this user) */}
+            {myAssignments && myAssignments.length > 0 && (
+              <motion.section
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: 0.39 }}
+                className="bg-card border border-section-orders/30 rounded-lg p-6 mb-6"
+              >
+                <button
+                  onClick={() => setShowOrders(!showOrders)}
+                  className="w-full flex items-center justify-between font-display text-lg text-section-orders mb-4"
+                >
+                  <span className="flex items-center gap-2">
+                    <ClipboardList className="w-4 h-4" />
+                    ORDERS ({myAssignments.length})
+                  </span>
+                  {showOrders ? <ChevronUp className="w-5 h-5" /> : <ChevronDown className="w-5 h-5" />}
+                </button>
+
+                {/* Privacy notice */}
+                <div className="flex items-start gap-2 p-3 bg-muted/30 border border-border rounded-lg mb-4 text-xs text-muted-foreground">
+                  <FileText className="w-4 h-4 mt-0.5 flex-shrink-0" />
+                  <div>
+                    <span className="text-foreground font-medium">What handlers see:</span> Only your call sign and missions completed. No personal data, no tracking.
+                  </div>
+                </div>
+
+                <AnimatePresence>
+                  {showOrders && (
+                    <motion.div
+                      initial={{ height: 0, opacity: 0 }}
+                      animate={{ height: "auto", opacity: 1 }}
+                      exit={{ height: 0, opacity: 0 }}
+                      className="overflow-hidden space-y-2"
+                    >
+                      {/* Quick Stats */}
+                      <div className="grid grid-cols-3 gap-2 mb-3">
+                        <div className="text-center p-2 bg-background border border-border rounded">
+                          <div className="font-display text-lg text-foreground">
+                            {myAssignments.filter((a: any) => a.status !== 'COMPLETED').length}
+                          </div>
+                          <div className="text-xs text-muted-foreground">PENDING</div>
+                        </div>
+                        <div className="text-center p-2 bg-background border border-border rounded">
+                          <div className="font-display text-lg text-foreground">
+                            {myAssignments.filter((a: any) => a.status === 'COMPLETED').length}
+                          </div>
+                          <div className="text-xs text-muted-foreground">DONE</div>
+                        </div>
+                        <div className="text-center p-2 bg-background border border-border rounded">
+                          <div className="font-display text-lg text-foreground">
+                            {myAssignments.length > 0 
+                              ? Math.round((myAssignments.filter((a: any) => a.status === 'COMPLETED').length / myAssignments.length) * 100)
+                              : 0}%
+                          </div>
+                          <div className="text-xs text-muted-foreground">RATE</div>
+                        </div>
+                      </div>
+
+                      {/* Orders List */}
+                      {myAssignments.slice(0, 5).map((assignment: any) => {
+                        const mission = assignment.mission_snapshot;
+                        const isCompleted = assignment.status === 'COMPLETED';
+                        const isInProgress = assignment.status === 'IN_PROGRESS';
+                        
+                        return (
+                          <div 
+                            key={assignment.id} 
+                            className={`bg-background border rounded-lg p-3 ${
+                              isCompleted 
+                                ? 'border-border opacity-60' 
+                                : isInProgress 
+                                  ? 'border-secondary/50' 
+                                  : 'border-section-orders/30'
+                            }`}
+                          >
+                            <div className="flex items-start justify-between gap-3">
+                              <div className="flex-1 min-w-0">
+                                <div className="flex items-center gap-2 mb-1">
+                                  {isCompleted && (
+                                    <span className="text-xs bg-muted text-muted-foreground px-1.5 py-0.5 rounded font-display">
+                                      DONE
+                                    </span>
+                                  )}
+                                  {isInProgress && (
+                                    <span className="text-xs bg-secondary/20 text-secondary px-1.5 py-0.5 rounded font-display">
+                                      ACTIVE
+                                    </span>
+                                  )}
+                                  <span className="font-display text-sm text-foreground truncate">
+                                    {mission?.code_name || 'CLASSIFIED'}
+                                  </span>
+                                </div>
+                                
+                                <div className="flex items-center gap-3 text-xs text-muted-foreground">
+                                  <div className="flex items-center gap-1">
+                                    <User className="w-3 h-3" />
+                                    <span>{assignment.handler_name || 'Handler'}</span>
+                                  </div>
+                                  
+                                  {assignment.squad_name && (
+                                    <div className="flex items-center gap-1">
+                                      <Users className="w-3 h-3" />
+                                      <span>{assignment.squad_name}</span>
+                                    </div>
+                                  )}
+                                  
+                                  <div className="flex items-center gap-1">
+                                    <Clock className="w-3 h-3" />
+                                    <span>{formatDistanceToNow(new Date(assignment.assigned_at))} ago</span>
+                                  </div>
+                                </div>
+                              </div>
+
+                              {!isCompleted && (
+                                <button
+                                  onClick={() => {
+                                    if (mission?.is_campaign && mission?.campaign_id) {
+                                      navigate(`/campaign/${mission.campaign_id}`);
+                                    } else if (mission?.id) {
+                                      navigate(`/mission/${mission.id}`);
+                                    }
+                                  }}
+                                  className="flex-shrink-0 p-2 rounded-lg bg-section-orders/10 text-section-orders hover:bg-section-orders/20 transition-all"
+                                  title="Review order"
+                                >
+                                  <Eye className="w-4 h-4" />
+                                </button>
+                              )}
+                            </div>
+                          </div>
+                        );
+                      })}
+                      
+                      {myAssignments.length > 5 && (
+                        <div className="text-center text-xs text-muted-foreground pt-2">
+                          +{myAssignments.length - 5} more orders
+                        </div>
+                      )}
                     </motion.div>
                   )}
                 </AnimatePresence>
