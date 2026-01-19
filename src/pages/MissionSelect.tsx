@@ -98,7 +98,7 @@ const MissionSelect = () => {
 
   const handleEditClick = (e: React.MouseEvent, missionId: string) => {
     e.stopPropagation();
-    navigate(`/exercises?editMission=${missionId}&returnTo=missions`);
+    navigate(`/command?tab=missions&source=personal&editMission=${missionId}`);
   };
 
   const clearFilters = () => {
@@ -187,7 +187,7 @@ const MissionSelect = () => {
             </button>
             {user && (
               <button
-                onClick={() => navigate('/exercises?newMission=true')}
+                onClick={() => navigate('/command?tab=missions&source=personal')}
                 className="p-2 border border-primary text-primary rounded hover:bg-primary/10 transition-colors"
                 title="Create new mission"
               >
@@ -366,7 +366,7 @@ const MissionSelect = () => {
             <p className="text-muted-foreground">No missions found. {hasFilters && 'Try clearing filters.'}</p>
             {showOnlyMine && (
               <button
-                onClick={() => navigate('/exercises?newMission=true')}
+                onClick={() => navigate('/command?tab=missions&source=personal')}
                 className="mt-4 text-sm text-secondary hover:text-glow-secondary font-display"
               >
                 + CREATE YOUR FIRST MISSION

@@ -13,7 +13,6 @@ import HIITTimer from "./pages/HIITTimer";
 import Intel from "./pages/Intel";
 import AuthPage from "./pages/Auth";
 import ProfilePage from "./pages/Profile";
-import ExerciseManager from "./pages/ExerciseManager";
 import Legal from "./pages/Legal";
 import Donate from "./pages/Donate";
 import Guide from "./pages/Guide";
@@ -38,16 +37,16 @@ function AppContent() {
         <Route path="/auth" element={<AuthPage />} />
         <Route path="/profile" element={<ProfilePage />} />
         <Route path="/command" element={<Command />} />
-        {/* Legacy redirects */}
+        {/* Legacy redirects - all point to Command Center */}
         <Route path="/missions" element={<Command />} />
         <Route path="/collections" element={<Command />} />
+        <Route path="/exercises" element={<Command />} />
         <Route path="/stats" element={<Intel />} />
         <Route path="/campaign/:collectionId" element={<CampaignDetail />} />
         <Route path="/mission/:missionId" element={<MissionDetail />} />
         <Route path="/workout/:missionId" element={<WorkoutSession />} />
         <Route path="/workout/assignment/:assignmentId" element={<WorkoutSession />} />
         <Route path="/hiit" element={<HIITTimer />} />
-        <Route path="/exercises" element={<ExerciseManager />} />
         <Route path="/intel" element={<Intel />} />
         <Route path="/front-lines" element={<Intel />} />
         <Route path="/war-report" element={<Intel />} />
