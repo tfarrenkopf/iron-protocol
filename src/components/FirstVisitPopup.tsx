@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useNavigate } from 'react-router-dom';
-import { Target, BookOpen, X, ChevronRight, Flame, Crosshair, Dumbbell } from 'lucide-react';
+import { Target, BookOpen, X, ChevronRight, Flame, Crosshair, Dumbbell, Skull, Swords } from 'lucide-react';
 
 const STORAGE_KEY = 'iron-protocol-visited';
 
@@ -109,12 +109,19 @@ export const FirstVisitPopup = () => {
               </div>
             </div>
 
-            {/* Social Features */}
+            {/* Community Features */}
             <div className="bg-background rounded-lg p-3 mb-4 border border-border">
               <div className="space-y-2">
                 <div className="flex items-center gap-2">
+                  <div className="p-1 rounded bg-destructive/20">
+                    <Skull className="w-3.5 h-3.5 text-destructive" />
+                  </div>
+                  <span className="text-destructive font-medium text-sm">Weekly Raid</span>
+                  <span className="text-muted-foreground text-sm">— defeat the boss together</span>
+                </div>
+                <div className="flex items-center gap-2">
                   <div className="p-1 rounded bg-section-intel/20">
-                    <Target className="w-3.5 h-3.5 text-section-intel" />
+                    <Swords className="w-3.5 h-3.5 text-section-intel" />
                   </div>
                   <span className="text-section-intel font-medium text-sm">Rivals</span>
                   <span className="text-muted-foreground text-sm">— compete with friends</span>
