@@ -15,7 +15,8 @@ import { XPPopup } from '@/components/XPPopup';
 import { PRNotification } from '@/components/PRNotification';
 import { PRCheckResult } from '@/hooks/usePersonalRecords';
 import { useCheckAchievements, Achievement } from '@/hooks/useAchievements';
-import { GuestIndicator, MomentOfLossPrompt, ConversionNudge } from '@/components/AnonymousConversion';
+import { GuestIndicator } from '@/components/AnonymousConversion';
+import { MissionCompleteScreen } from '@/components/MissionCompleteScreen';
 import { getWeightedRandomLorePhrase } from '@/data/lorePhrases';
 import { useBatchPersist } from '@/hooks/useBatchPersist';
 import { useUpdateCampaignProgress } from '@/hooks/useCampaignProgress';
@@ -71,8 +72,6 @@ const WorkoutSession = () => {
   const [newPRs, setNewPRs] = useState<PRCheckResult[]>([]);
   const [currentSetAchievement, setCurrentSetAchievement] = useState<Achievement | null>(null);
   const [currentLorePhrase, setCurrentLorePhrase] = useState<string>('');
-  const [showMomentOfLoss, setShowMomentOfLoss] = useState(false);
-  const [momentOfLossTrigger, setMomentOfLossTrigger] = useState<'mission_complete' | 'pr_set'>('mission_complete');
   const prevStatsRef = useRef(stats);
   const hasInitialized = useRef(false);
 
@@ -357,16 +356,7 @@ const WorkoutSession = () => {
     }
   }, [currentSession?.status, statsSaved, mission, stats, user, assignment, isAssignmentMode, updateProfileStats, createWorkoutSession, batchPersist, checkAndUnlock, profile, campaignId, updateCampaignProgress, queryClient, updateAssignmentStatus]);
 
-  // Show moment of loss prompt for anonymous users after mission complete
-  useEffect(() => {
-    if (isAnonymous && currentSession?.status === 'COMPLETED' && !showMomentOfLoss) {
-      const timer = setTimeout(() => {
-        setMomentOfLossTrigger('mission_complete');
-        setShowMomentOfLoss(true);
-      }, 2000);
-      return () => clearTimeout(timer);
-    }
-  }, [currentSession?.status, isAnonymous, showMomentOfLoss]);
+  // (Moment of Loss removed - now unified in MissionCompleteScreen)
 
   if (isLoading || !mission) {
     return (
@@ -418,114 +408,47 @@ const WorkoutSession = () => {
 
   const missionExercises = mission.mission_exercises || [];
 
-  // COMBINED COMPLETION SCREEN
+  // UNIFIED COMPLETION SCREEN
   if (currentSession?.status === 'COMPLETED') {
+    const handleContinue = () => {
+      resetGame();
+      if (campaignId) {
+        navigate(`/campaign/${campaignId}`);
+      } else {
+        navigate('/');
+      }
+    };
+
     return (
-      <motion.div 
-        initial={{ opacity: 0 }}
-        animate={{ opacity: 1 }}
-        className="min-h-screen bg-background flex flex-col items-center justify-center p-4"
-      >
-        {/* Guest indicator */}
-        {isAnonymous && (
-          <div className="absolute top-4 left-4">
-            <GuestIndicator variant="standard" />
-          </div>
-        )}
-
-        <motion.div
-          initial={{ scale: 0.8, opacity: 0 }}
-          animate={{ scale: 1, opacity: 1 }}
-          transition={{ delay: 0.2 }}
-          className="text-center max-w-lg"
-        >
-          {isAssignmentMode && assignment && (
-            <div className="text-xs text-section-orders mb-4 font-display">
-              ORDERS FROM: {assignment.handler_name || 'YOUR HANDLER'}
-            </div>
-          )}
-          <h1 className="font-display text-5xl md:text-7xl text-primary text-glow-primary mb-2">
-            {isAssignmentMode ? 'ORDERS COMPLETE' : 'MISSION COMPLETE'}
-          </h1>
-          <p className="font-display text-2xl text-secondary mb-4">{mission.code_name}</p>
-          
-          {/* Outro lore */}
-          {mission.outro_lore && (
-            <p className="text-muted-foreground leading-relaxed mb-6 text-sm italic">
-              "{mission.outro_lore}"
-            </p>
-          )}
-          
-          {/* Stats grid */}
-          <div className="grid grid-cols-4 gap-3 mb-4">
-            <div className={`bg-card border rounded-lg p-3 ${isAnonymous ? 'border-warning/30' : 'border-border'}`}>
-              <div className="font-display text-2xl text-accent">{stats.score.toLocaleString()}</div>
-              <div className="text-xs text-muted-foreground">SCORE</div>
-            </div>
-            <div className={`bg-card border rounded-lg p-3 ${isAnonymous ? 'border-warning/30' : 'border-border'}`}>
-              <div className="font-display text-2xl text-secondary">{stats.maxCombo}x</div>
-              <div className="text-xs text-muted-foreground">COMBO</div>
-            </div>
-            <div className={`bg-card border rounded-lg p-3 ${isAnonymous ? 'border-warning/30' : 'border-border'}`}>
-              <div className="font-display text-2xl text-primary">{stats.setsCompleted}</div>
-              <div className="text-xs text-muted-foreground">SETS</div>
-            </div>
-            <div className={`bg-card border rounded-lg p-3 ${isAnonymous ? 'border-warning/30' : 'border-border'}`}>
-              <div className="font-display text-2xl text-success">+{stats.xp}</div>
-              <div className="text-xs text-muted-foreground">XP</div>
-            </div>
-          </div>
-          
-          {/* Total Weight */}
-          <div className={`bg-card border-2 rounded-lg p-4 mb-6 ${isAnonymous ? 'border-warning/50' : 'border-accent'}`}>
-            <div className="font-display text-4xl text-accent">{stats.totalWeight.toLocaleString()}</div>
-            <div className="text-xs text-muted-foreground">TOTAL LBS LIFTED</div>
-          </div>
-
-          {/* Anonymous conversion nudge */}
-          {isAnonymous && (
-            <ConversionNudge 
-              message="This progress won't be saved" 
-              className="mb-6"
-            />
-          )}
-
-          <button
-            onClick={() => {
-              resetGame();
-              if (campaignId) {
-                navigate(`/campaign/${campaignId}`);
-              } else {
-                navigate('/');
-              }
-            }}
-            className="w-full py-4 bg-primary text-primary-foreground font-display text-xl rounded hover:box-glow-primary transition-all"
-          >
-            {campaignId ? 'RETURN TO CAMPAIGN' : 'CONTINUE'}
-          </button>
-        </motion.div>
-
-        {/* Moment of Loss Prompt */}
-        <MomentOfLossPrompt
-          isOpen={showMomentOfLoss}
-          onClose={() => setShowMomentOfLoss(false)}
-          trigger={momentOfLossTrigger}
-          missionId={mission.id}
-          missionSnapshot={{ name: mission.name, code_name: mission.code_name }}
-          stats={{
-            score: stats.score,
-            xp: stats.xp,
-            sets: stats.setsCompleted,
-            missions: 1,
-          }}
-          workoutData={{
-            totalReps: stats.totalReps,
-            totalWeight: stats.totalWeight,
-            maxCombo: stats.maxCombo,
-            damageDealt: stats.damageDealt,
-          }}
-        />
-      </motion.div>
+      <MissionCompleteScreen
+        isGuest={isAnonymous}
+        isAssignmentMode={isAssignmentMode}
+        assignment={assignment}
+        mission={{
+          id: mission.id,
+          name: mission.name,
+          code_name: mission.code_name,
+          outro_lore: mission.outro_lore,
+        }}
+        stats={{
+          score: stats.score,
+          xp: stats.xp,
+          setsCompleted: stats.setsCompleted,
+          totalReps: stats.totalReps,
+          totalWeight: stats.totalWeight,
+          maxCombo: stats.maxCombo,
+          damageDealt: stats.damageDealt,
+        }}
+        boss={activeBoss ? {
+          name: activeBoss.name,
+          current_hp: activeBoss.current_hp,
+          max_hp: activeBoss.max_hp,
+          is_defeated: activeBoss.is_defeated,
+          weaknesses: activeBoss.weaknesses || [],
+        } : null}
+        campaignId={campaignId}
+        onContinue={handleContinue}
+      />
     );
   }
 
