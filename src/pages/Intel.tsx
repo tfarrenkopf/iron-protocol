@@ -34,7 +34,7 @@ import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { format, subHours, subDays } from 'date-fns';
 import { getWeekBoundaries, getWeekRangeText, WEEK_CONFIG } from '@/lib/weekUtils';
-import { SecondaryNav, SecondaryNavTab, TabsContent } from '@/components/SecondaryNav';
+import { SecondaryNav, SecondaryNavTab } from '@/components/SecondaryNav';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Skeleton } from '@/components/ui/skeleton';
@@ -1012,9 +1012,9 @@ const Intel = () => {
   const tabs: SecondaryNavTab[] = [
     { id: 'overview', label: 'OVERVIEW', shortLabel: 'OVERVIEW', icon: Eye },
     { id: 'feed', label: 'FEED', shortLabel: 'FEED', icon: Swords },
-    { id: 'boss', label: 'BOSS', shortLabel: 'BOSS', icon: Skull, activeColor: 'destructive' },
+    { id: 'boss', label: 'BOSS', shortLabel: 'BOSS', icon: Skull },
     { id: 'campaigns', label: 'CAMPAIGNS', shortLabel: 'OPS', icon: Flame },
-    { id: 'rivals', label: 'RIVALS', shortLabel: 'RIVALS', icon: Users, activeColor: 'section-rivals', activeTextColor: 'text-black' },
+    { id: 'rivals', label: 'RIVALS', shortLabel: 'RIVALS', icon: Users },
     { id: 'rankings', label: 'RANKINGS', shortLabel: 'RANKS', icon: Trophy },
   ];
 
@@ -1040,14 +1040,17 @@ const Intel = () => {
           activeTab={activeTab}
           onTabChange={setActiveTab}
           section="intel"
-        >
-          <TabsContent value="overview"><OverviewTab isGuest={isGuest} /></TabsContent>
-          <TabsContent value="feed"><FeedTab isGuest={isGuest} /></TabsContent>
-          <TabsContent value="boss"><BossTab isGuest={isGuest} /></TabsContent>
-          <TabsContent value="campaigns"><CampaignsTab isGuest={isGuest} /></TabsContent>
-          <TabsContent value="rivals"><RivalsTab isGuest={isGuest} /></TabsContent>
-          <TabsContent value="rankings"><RankingsTab isGuest={isGuest} /></TabsContent>
-        </SecondaryNav>
+        />
+
+        {/* Tab Content */}
+        <div className="mt-6">
+          {activeTab === 'overview' && <OverviewTab isGuest={isGuest} />}
+          {activeTab === 'feed' && <FeedTab isGuest={isGuest} />}
+          {activeTab === 'boss' && <BossTab isGuest={isGuest} />}
+          {activeTab === 'campaigns' && <CampaignsTab isGuest={isGuest} />}
+          {activeTab === 'rivals' && <RivalsTab isGuest={isGuest} />}
+          {activeTab === 'rankings' && <RankingsTab isGuest={isGuest} />}
+        </div>
 
         <AppFooter />
       </div>

@@ -11,7 +11,7 @@ import {
 } from "lucide-react";
 import { GlobalNav } from "@/components/GlobalNav";
 import { AppFooter } from "@/components/AppFooter";
-import { SecondaryNav, SecondaryNavTab, TabsContent } from "@/components/SecondaryNav";
+import { SecondaryNav, SecondaryNavTab } from "@/components/SecondaryNav";
 import { useAuth } from "@/hooks/useAuth";
 import { useProfile } from "@/hooks/useProfile";
 import { useMyAssignments } from "@/hooks/useAssignments";
@@ -91,14 +91,17 @@ const ProfilePage = () => {
               activeTab={activeTab}
               onTabChange={setActiveTab}
               section="profile"
-            >
-              <TabsContent value="overview"><ProfileOverviewTab /></TabsContent>
-              <TabsContent value="handler-ops"><ProfileHandlerOpsTab /></TabsContent>
-              <TabsContent value="progress"><ProfileProgressTab /></TabsContent>
-              <TabsContent value="history"><ProfileHistoryTab /></TabsContent>
-              <TabsContent value="notifications"><ProfileNotificationsTab /></TabsContent>
-              <TabsContent value="settings"><ProfileSettingsTab /></TabsContent>
-            </SecondaryNav>
+            />
+
+            {/* Tab Content */}
+            <div className="min-h-[300px]">
+              {activeTab === 'overview' && <ProfileOverviewTab />}
+              {activeTab === 'handler-ops' && <ProfileHandlerOpsTab />}
+              {activeTab === 'progress' && <ProfileProgressTab />}
+              {activeTab === 'history' && <ProfileHistoryTab />}
+              {activeTab === 'notifications' && <ProfileNotificationsTab />}
+              {activeTab === 'settings' && <ProfileSettingsTab />}
+            </div>
           </div>
         )}
 
