@@ -93,8 +93,8 @@ export function validateDisplayName(input: string): { isValid: boolean; error?: 
     return { isValid: false, error: 'Display name must be at least 3 characters' };
   }
   
-  if (trimmed.length > 15) {
-    return { isValid: false, error: 'Display name must be 15 characters or less' };
+  if (trimmed.length > 25) {
+    return { isValid: false, error: 'Display name must be 25 characters or less' };
   }
   
   // Character validation (alphanumeric, underscore, dash only)
@@ -130,9 +130,9 @@ export const displayNameSchema = z.string()
   .refine(
     (val) => {
       if (!val) return true;
-      return val.length <= 15;
+      return val.length <= 25;
     },
-    { message: 'Display name must be 15 characters or less' }
+    { message: 'Display name must be 25 characters or less' }
   )
   .refine(
     (val) => {
