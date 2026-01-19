@@ -13,6 +13,7 @@ import { AppFooter } from '@/components/AppFooter';
 import { useAuth } from '@/hooks/useAuth';
 import { useWeeklyBoss } from '@/hooks/useWeeklyBoss';
 import { MissionCompleteScreen } from '@/components/MissionCompleteScreen';
+import { trackHIITSession, trackFeatureUsed } from '@/lib/analytics';
 import {
   AlertDialog,
   AlertDialogAction,
@@ -157,7 +158,7 @@ const HIITTimer = () => {
     prevRoundRef.current = currentRound;
   }, [currentRound]);
 
-  // Track phase changes for sounds
+  // Track phase changes for sounds and analytics
   useEffect(() => {
     if (prevPhaseRef.current !== timerPhase) {
       if (timerPhase === 'WORK' && prevPhaseRef.current !== 'IDLE') {
@@ -166,10 +167,19 @@ const HIITTimer = () => {
         playRestStart();
       } else if (timerPhase === 'COMPLETED') {
         playComplete();
+        // Track HIIT completion
+        if (selectedConfig) {
+          const totalDuration = selectedConfig.rounds * (selectedConfig.workDurationSec + selectedConfig.restDurationSec);
+          trackHIITSession({
+            config_name: selectedConfig.name,
+            rounds_completed: currentRound,
+            total_duration_seconds: totalDuration,
+          });
+        }
       }
       prevPhaseRef.current = timerPhase;
     }
-  }, [timerPhase, playWorkStart, playRestStart, playComplete]);
+  }, [timerPhase, playWorkStart, playRestStart, playComplete, selectedConfig, currentRound]);
 
   // Countdown tick sound - 5 second countdown
   useEffect(() => {

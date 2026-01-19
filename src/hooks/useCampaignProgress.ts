@@ -1,6 +1,7 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from './useAuth';
+import { trackCampaignComplete } from '@/lib/analytics';
 
 export interface CampaignProgress {
   id: string;
@@ -211,6 +212,14 @@ export function useUpdateCampaignProgress() {
               total_weight: sessionData.weight,
             });
 
+          // Track campaign completion
+          trackCampaignComplete({
+            campaign_id: campaignId,
+            campaign_name: campaignId, // We don't have the name here, just pass ID
+            duration_seconds: sessionData.duration_seconds,
+            is_personal_record: isPR,
+          });
+
           return { isComplete: true, isPR, completedCount, totalMissions };
         }
 
@@ -249,6 +258,14 @@ export function useUpdateCampaignProgress() {
               total_score: sessionData.score,
               total_weight: sessionData.weight,
             });
+
+          // Track campaign completion
+          trackCampaignComplete({
+            campaign_id: campaignId,
+            campaign_name: campaignId, // We don't have the name here, just pass ID
+            duration_seconds: sessionData.duration_seconds,
+            is_personal_record: true,
+          });
 
           return { isComplete: true, isPR: true, completedCount, totalMissions };
         }

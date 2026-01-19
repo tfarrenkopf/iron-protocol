@@ -21,6 +21,7 @@ import { getWeightedRandomLorePhrase } from '@/data/lorePhrases';
 import { useBatchPersist } from '@/hooks/useBatchPersist';
 import { useUpdateCampaignProgress } from '@/hooks/useCampaignProgress';
 import { useWeeklyBoss, useApplyBossDamage, calculateBossDamage } from '@/hooks/useWeeklyBoss';
+import { trackMissionStart, trackMissionComplete, trackBossDamage, trackCampaignComplete } from '@/lib/analytics';
 
 const WorkoutSession = () => {
   const { missionId, assignmentId } = useParams();
@@ -172,8 +173,15 @@ const WorkoutSession = () => {
   useEffect(() => {
     if (mission && !currentSession && showLore !== 'intro') {
       startMission(mission);
+      // Track mission start
+      trackMissionStart({
+        mission_id: mission.id,
+        mission_name: mission.name,
+        difficulty: dbMission?.difficulty || 1,
+        is_assignment: isAssignmentMode,
+      });
     }
-  }, [mission, currentSession, showLore, startMission]);
+  }, [mission, dbMission, currentSession, showLore, startMission, isAssignmentMode]);
 
   // Save stats and session when mission completes (only once)
   useEffect(() => {
@@ -226,6 +234,18 @@ const WorkoutSession = () => {
       const startTime = new Date(currentSession.startedAt).getTime();
       const endTime = currentSession.completedAt ? new Date(currentSession.completedAt).getTime() : Date.now();
       const durationSeconds = Math.floor((endTime - startTime) / 1000);
+
+      // Track mission complete (for all users including guests)
+      trackMissionComplete({
+        mission_id: mission.id,
+        mission_name: mission.name,
+        duration_seconds: durationSeconds,
+        total_sets: stats.setsCompleted,
+        total_reps: stats.totalReps,
+        total_weight: stats.totalWeight,
+        score: stats.score,
+        xp_earned: stats.xp,
+      });
 
       // For logged-in users, save everything
       if (user) {
@@ -287,6 +307,13 @@ const WorkoutSession = () => {
                 baseDamage: damageResult.baseDamage,
                 bonusDamage: damageResult.bonusDamage,
                 weaknessHits: damageResult.weaknessHits,
+              });
+              
+              // Track boss damage
+              trackBossDamage({
+                boss_id: activeBoss.id,
+                damage_dealt: damageResult.baseDamage + damageResult.bonusDamage,
+                weakness_hits: damageResult.weaknessHits.length,
               });
             }
           }).catch(() => {}),
