@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useRef, useCallback } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useNavigate, useParams, useLocation } from 'react-router-dom';
 import { useQuery } from '@tanstack/react-query';
@@ -26,6 +26,22 @@ const MissionDetail = () => {
   const { data: userRank } = useUserMissionRank(missionId);
   const [expandedExercise, setExpandedExercise] = useState<string | null>(null);
   const [showLeaderboard, setShowLeaderboard] = useState(false);
+  const exerciseRefs = useRef<Map<string, HTMLDivElement>>(new Map());
+
+  const handleExpandExercise = useCallback((exerciseId: string) => {
+    const isCurrentlyExpanded = expandedExercise === exerciseId;
+    setExpandedExercise(isCurrentlyExpanded ? null : exerciseId);
+    
+    // Scroll into view after expansion animation
+    if (!isCurrentlyExpanded) {
+      setTimeout(() => {
+        const element = exerciseRefs.current.get(exerciseId);
+        if (element) {
+          element.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+        }
+      }, 50);
+    }
+  }, [expandedExercise]);
 
   // Fetch user's last completion of this mission
   const { data: lastCompletion } = useQuery({
@@ -352,13 +368,16 @@ const MissionDetail = () => {
               return (
                 <motion.div
                   key={missionExercise.id}
+                  ref={(el) => {
+                    if (el) exerciseRefs.current.set(missionExercise.id, el);
+                  }}
                   initial={{ opacity: 0, x: -10 }}
                   animate={{ opacity: 1, x: 0 }}
                   transition={{ delay: 0.1 + index * 0.03 }}
                   className="bg-card border border-border rounded-lg overflow-hidden"
                 >
                   <button
-                    onClick={() => setExpandedExercise(isExpanded ? null : missionExercise.id)}
+                    onClick={() => handleExpandExercise(missionExercise.id)}
                     className="w-full p-3 text-left hover:bg-muted/30 transition-colors"
                   >
                     <div className="flex items-center justify-between gap-3">
