@@ -56,8 +56,11 @@ const Dashboard = () => {
 
         {/* All Dashboard Widgets - Normalized spacing */}
         <div className="space-y-6">
-          {/* Primary Actions */}
+          {/* Primary Actions (includes Active Campaign) */}
           <FightNowActions />
+
+          {/* Incoming Orders - Only for logged-in users, right after active campaign */}
+          {!isAnonymous && <IncomingOrders />}
 
           {/* Utility Actions Row - HIIT, INTEL, HANDLER */}
           <motion.div
@@ -117,9 +120,6 @@ const Dashboard = () => {
               <ChevronRight className="w-5 h-5 text-section-command group-hover:translate-x-1 transition-transform flex-shrink-0" />
             </motion.button>
           )}
-
-          {/* Incoming Orders - Only for logged-in users, appears after Command Center */}
-          {!isAnonymous && <IncomingOrders />}
 
           {/* Weekly Boss Widget */}
           <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.25 }}>
