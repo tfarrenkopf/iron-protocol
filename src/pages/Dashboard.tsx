@@ -125,18 +125,12 @@ const Dashboard = () => {
           <div className="space-y-4">
             <FightNowActions />
 
-            {/* Utility Actions Row - uniform sizing */}
+            {/* Utility Actions Row - HIIT, INTEL, HANDLER */}
             <motion.div
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: 0.2 }}
-              className={`grid gap-3 sm:gap-4 ${
-                isAnonymous 
-                  ? "grid-cols-2" 
-                  : isHandler 
-                    ? "grid-cols-2 sm:grid-cols-4" 
-                    : "grid-cols-2 sm:grid-cols-3"
-              }`}
+              className={`grid gap-3 sm:gap-4 grid-cols-2 ${isHandler ? "sm:grid-cols-3" : ""}`}
             >
               <button
                 onClick={() => navigate("/hiit")}
@@ -156,22 +150,10 @@ const Dashboard = () => {
                 <p className="text-xs text-muted-foreground mt-0.5 sm:mt-1 hidden sm:block">Global Activity</p>
               </button>
 
-              {/* COMMAND - Only for logged-in users (guests have primary CTA) */}
-              {!isAnonymous && (
-                <button
-                  onClick={() => navigate("/command")}
-                  className="group relative bg-card border border-section-command/50 rounded-lg p-3 sm:p-4 text-center transition-all hover:border-section-command hover:bg-section-command/5 active:scale-[0.98] min-h-[72px]"
-                >
-                  <Crosshair className="w-5 h-5 sm:w-6 sm:h-6 text-section-command mx-auto mb-1.5 sm:mb-2" />
-                  <h2 className="font-display text-xs sm:text-sm text-section-command">COMMAND</h2>
-                  <p className="text-xs text-muted-foreground mt-0.5 sm:mt-1 hidden sm:block">Mission Arsenal</p>
-                </button>
-              )}
-
               {isHandler && (
                 <button
                   onClick={() => navigate("/handler")}
-                  className="group relative bg-card border border-warning/50 rounded-lg p-3 sm:p-4 text-center transition-all hover:border-warning hover:bg-warning/5 active:scale-[0.98] min-h-[72px]"
+                  className="group relative bg-card border border-warning/50 rounded-lg p-3 sm:p-4 text-center transition-all hover:border-warning hover:bg-warning/5 active:scale-[0.98] min-h-[72px] col-span-2 sm:col-span-1"
                 >
                   <Users className="w-5 h-5 sm:w-6 sm:h-6 text-warning mx-auto mb-1.5 sm:mb-2" />
                   <h2 className="font-display text-xs sm:text-sm text-warning">HANDLER</h2>
@@ -179,6 +161,32 @@ const Dashboard = () => {
                 </button>
               )}
             </motion.div>
+
+            {/* COMMAND CENTER - Full width for logged-in users */}
+            {!isAnonymous && (
+              <motion.button
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: 0.25 }}
+                onClick={() => navigate("/command")}
+                className="w-full group bg-card border-2 border-section-command/50 rounded-lg p-4 flex items-center justify-between hover:border-section-command hover:box-glow-command transition-all active:scale-[0.99]"
+              >
+                <div className="flex items-center gap-3">
+                  <div className="p-2 bg-section-command/10 rounded-lg">
+                    <Crosshair className="w-6 h-6 text-section-command" />
+                  </div>
+                  <div className="text-left">
+                    <h2 className="font-display text-base sm:text-lg text-section-command">
+                      COMMAND CENTER
+                    </h2>
+                    <p className="text-xs text-muted-foreground">
+                      Select or create exercises, missions, campaigns
+                    </p>
+                  </div>
+                </div>
+                <ChevronRight className="w-5 h-5 text-section-command group-hover:translate-x-1 transition-transform flex-shrink-0" />
+              </motion.button>
+            )}
           </div>
 
           {/* Weekly Boss Widget */}
