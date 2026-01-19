@@ -3,7 +3,7 @@ import { Skull, Zap, Clock, Users, Swords, Target, Shield } from 'lucide-react';
 import { useWeeklyBoss, useUserBossDamage, getSyntheticBossData, getSyntheticUserDamage } from '@/hooks/useWeeklyBoss';
 import { useAuth } from '@/hooks/useAuth';
 import { formatDistanceToNow } from 'date-fns';
-import { Progress } from '@/components/ui/progress';
+import { SampleDataBanner } from './SampleDataBanner';
 
 export function WeeklyBossWidget() {
   const { user } = useAuth();
@@ -60,13 +60,7 @@ export function WeeklyBossWidget() {
       <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_top_right,_var(--tw-gradient-stops))] from-destructive/10 via-transparent to-transparent opacity-50" />
       
       {/* Guest banner */}
-      {isGuest && (
-        <div className="bg-amber-500/20 border-b border-amber-500/30 px-4 py-2">
-          <p className="text-xs text-amber-200 font-mono tracking-wide text-center">
-            SAMPLE DATA PREVIEW — Sign in to contribute damage
-          </p>
-        </div>
-      )}
+      {isGuest && <SampleDataBanner message="Sign in to contribute damage" showCTA={false} />}
       
       <div className="relative p-4 sm:p-5 space-y-4">
         {/* Header */}
