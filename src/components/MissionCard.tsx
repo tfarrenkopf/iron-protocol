@@ -62,22 +62,21 @@ export const MissionCard = memo(function MissionCard({
   const navigate = useNavigate();
   const [isExpanded, setIsExpanded] = useState(false);
 
-  const handleClick = (e: React.MouseEvent) => {
-    // If clicking in default mode, toggle expansion instead of navigating
-    if (variant === 'default') {
-      e.stopPropagation();
-      setIsExpanded(!isExpanded);
-      return;
-    }
-    
+  const handleCardClick = () => {
     if (onClick) {
       onClick();
     } else if (variant === 'picker') {
       // In picker mode, clicking adds the mission
       if (!isAdded && onAdd) onAdd();
     } else {
+      // Default: navigate to mission details
       navigate(`/mission/${mission.id}${window.location.pathname.includes('/campaign/') ? `?campaignId=${window.location.pathname.split('/campaign/')[1]}` : ''}`);
     }
+  };
+
+  const handleExpandClick = (e: React.MouseEvent) => {
+    e.stopPropagation();
+    setIsExpanded(!isExpanded);
   };
 
   const getDifficultyColor = (difficulty: number) => {
@@ -124,10 +123,10 @@ export const MissionCard = memo(function MissionCard({
       {/* Glow effect on hover */}
       <div className="absolute inset-0 bg-gradient-to-r from-primary/0 via-primary/5 to-primary/0 opacity-0 group-hover:opacity-100 transition-opacity" />
       
-      {/* Main clickable area */}
+      {/* Main clickable area - navigates to details */}
       <div 
-        className="relative z-10 p-3 sm:p-4 cursor-pointer"
-        onClick={handleClick}
+        className="relative z-10 p-3 sm:p-4 cursor-pointer active:scale-[0.99] transition-transform"
+        onClick={handleCardClick}
       >
         {/* Custom top-right slot for page-specific controls */}
         {topRightSlot && (
@@ -270,18 +269,24 @@ export const MissionCard = memo(function MissionCard({
               ))}
             </div>
 
-            {/* Expand indicator for default variant */}
+            {/* Expand toggle button - separate from card click */}
             {variant === 'default' && exerciseDetails.length > 0 && (
-              <div className="flex items-center justify-center mt-3 text-xs text-muted-foreground">
+              <button
+                onClick={handleExpandClick}
+                className="flex items-center justify-center gap-1 mt-3 py-2 w-full text-xs text-muted-foreground hover:text-foreground hover:bg-muted/50 rounded transition-colors"
+              >
                 {isExpanded ? (
-                  <ChevronUp className="w-4 h-4" />
+                  <>
+                    <ChevronUp className="w-4 h-4" />
+                    <span>HIDE EXERCISES</span>
+                  </>
                 ) : (
                   <>
-                    <ChevronDown className="w-4 h-4 mr-1" />
+                    <ChevronDown className="w-4 h-4" />
                     <span>VIEW EXERCISES</span>
                   </>
                 )}
-              </div>
+              </button>
             )}
           </div>
 
