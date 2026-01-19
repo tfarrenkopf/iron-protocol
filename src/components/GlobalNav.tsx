@@ -97,6 +97,8 @@ interface GlobalNavProps {
   section?: SectionType;
   /** Optional action buttons to display next to nav icons */
   actions?: React.ReactNode;
+  /** Hide the IRON PROTOCOL branding text (useful when page has its own hero branding) */
+  hideBranding?: boolean;
 }
 
 export function GlobalNav({ 
@@ -107,6 +109,7 @@ export function GlobalNav({
   className,
   section: sectionOverride,
   actions,
+  hideBranding = false,
 }: GlobalNavProps) {
   const navigate = useNavigate();
   const location = useLocation();
@@ -177,10 +180,12 @@ export function GlobalNav({
             <div className="w-9 flex-shrink-0" /> // Spacer for alignment
           )}
 
-          {/* IRON PROTOCOL branding */}
-          <span className="font-display text-sm text-muted-foreground tracking-wider truncate">
-            IRON PROTOCOL
-          </span>
+          {/* IRON PROTOCOL branding - hidden when page has hero branding */}
+          {!hideBranding && (
+            <span className="font-display text-sm text-muted-foreground tracking-wider truncate">
+              IRON PROTOCOL
+            </span>
+          )}
         </div>
 
         {/* Right side: Nav icons + Auth controls */}
