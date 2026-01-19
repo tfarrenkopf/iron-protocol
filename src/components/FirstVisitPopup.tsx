@@ -33,7 +33,7 @@ export const FirstVisitPopup = () => {
   const handleStartNow = () => {
     localStorage.setItem(STORAGE_KEY, 'true');
     setShow(false);
-    navigate('/command');
+    navigate('/command?tab=missions');
   };
 
   return (
