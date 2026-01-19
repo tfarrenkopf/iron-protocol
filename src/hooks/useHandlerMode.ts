@@ -72,7 +72,6 @@ export function useSquads() {
           squad_members (
             id,
             user_id,
-            share_stats,
             joined_at,
             profiles (
               display_name
@@ -245,7 +244,6 @@ export function useMySquads() {
         .from('squad_members')
         .select(`
           id,
-          share_stats,
           joined_at,
           squads (
             id,
@@ -267,24 +265,3 @@ export function useMySquads() {
   });
 }
 
-export function useUpdateMemberStats() {
-  const queryClient = useQueryClient();
-  const { user } = useAuth();
-
-  return useMutation({
-    mutationFn: async ({ squadId, shareStats }: { squadId: string; shareStats: boolean }) => {
-      if (!user) throw new Error('Must be logged in');
-      
-      const { error } = await supabase
-        .from('squad_members')
-        .update({ share_stats: shareStats })
-        .eq('squad_id', squadId)
-        .eq('user_id', user.id);
-      
-      if (error) throw error;
-    },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['my-squads'] });
-    },
-  });
-}

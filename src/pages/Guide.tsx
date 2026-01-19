@@ -118,7 +118,7 @@ const GUIDE_SECTIONS = [
       { type: 'step', label: '2', value: 'Copy the unique recruitment link to share with athletes' },
       { type: 'step', label: '3', value: 'Athletes click the link to join — they can be in multiple squads' },
       { type: 'text', value: 'Squads are the foundation for assigning orders. Athletes in a squad receive the missions and campaigns you assign.' },
-      { type: 'tip', value: 'Athletes choose whether to share their detailed stats with you' },
+      { type: 'tip', value: 'Handlers can see member call signs and mission completion status' },
     ]
   },
   {

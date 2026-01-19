@@ -2,7 +2,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import { ClipboardList, User, Users, Clock, Eye, FileText, Shield, ChevronRight } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { useMyAssignments } from "@/hooks/useAssignments";
-import { useIsHandler, useMySquads, useLeaveSquad, useUpdateMemberStats } from "@/hooks/useHandlerMode";
+import { useIsHandler, useMySquads, useLeaveSquad } from "@/hooks/useHandlerMode";
 import { formatDistanceToNow } from "date-fns";
 
 export function ProfileHandlerOpsTab() {
@@ -11,7 +11,6 @@ export function ProfileHandlerOpsTab() {
   const { data: isHandler } = useIsHandler();
   const { data: mySquads } = useMySquads();
   const leaveSquad = useLeaveSquad();
-  const updateMemberStats = useUpdateMemberStats();
 
   const activeAssignments = myAssignments?.filter((a: any) => a.status !== 'COMPLETED') || [];
   const completedAssignments = myAssignments?.filter((a: any) => a.status === 'COMPLETED') || [];
@@ -63,24 +62,8 @@ export function ProfileHandlerOpsTab() {
                     Leave
                   </button>
                 </div>
-                <div className="flex items-center justify-between text-xs">
-                  <span className="text-muted-foreground">
-                    Handler: {membership.squads?.profiles?.display_name || "Unknown"}
-                  </span>
-                  <label className="flex items-center gap-2 cursor-pointer">
-                    <span className="text-muted-foreground">Share stats</span>
-                    <input
-                      type="checkbox"
-                      checked={membership.share_stats}
-                      onChange={(e) =>
-                        updateMemberStats.mutateAsync({
-                          squadId: membership.squads?.id,
-                          shareStats: e.target.checked,
-                        })
-                      }
-                      className="w-3 h-3 accent-secondary"
-                    />
-                  </label>
+                <div className="text-xs text-muted-foreground">
+                  Handler: {membership.squads?.profiles?.display_name || "Unknown"}
                 </div>
               </div>
             ))}
