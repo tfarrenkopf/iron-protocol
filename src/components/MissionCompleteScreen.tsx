@@ -1,11 +1,12 @@
 import { motion } from 'framer-motion';
 import { useNavigate } from 'react-router-dom';
-import { Crosshair, Shield, Flame, Skull, Heart, Zap, Target, BarChart3 } from 'lucide-react';
+import { Crosshair, Shield, Flame, Skull, Heart, Zap, Target, BarChart3, Timer } from 'lucide-react';
 import { GuestIndicator } from './AnonymousConversion';
 
 interface MissionCompleteScreenProps {
   isGuest: boolean;
   isAssignmentMode?: boolean;
+  isHIIT?: boolean; // New: indicates this is a HIIT session
   assignment?: {
     handler_name?: string;
   } | null;
@@ -18,8 +19,8 @@ interface MissionCompleteScreenProps {
   stats: {
     score: number;
     xp: number;
-    setsCompleted: number;
-    totalReps: number;
+    setsCompleted: number; // For HIIT: rounds completed
+    totalReps: number; // For HIIT: total work time in seconds
     totalWeight: number;
     maxCombo: number;
     damageDealt: number;
@@ -39,6 +40,7 @@ interface MissionCompleteScreenProps {
 export function MissionCompleteScreen({
   isGuest,
   isAssignmentMode = false,
+  isHIIT = false,
   assignment,
   mission,
   stats,
@@ -48,6 +50,9 @@ export function MissionCompleteScreen({
   onSaveProgress,
 }: MissionCompleteScreenProps) {
   const navigate = useNavigate();
+  
+  // Detect HIIT from mission id pattern
+  const isHIITSession = isHIIT || mission.id.startsWith('hiit-');
   
   // Calculate damage dealt to boss (approximation based on workout stats)
   const damageDealt = stats.damageDealt || Math.floor(stats.setsCompleted * stats.totalReps + stats.totalWeight / 10);
@@ -267,11 +272,11 @@ export function MissionCompleteScreen({
           </div>
           <div className="bg-card border border-border rounded-lg p-2">
             <div className="font-display text-lg text-secondary">{stats.maxCombo}x</div>
-            <div className="text-[10px] text-muted-foreground">COMBO</div>
+            <div className="text-[10px] text-muted-foreground">{isHIITSession ? 'ROUNDS' : 'COMBO'}</div>
           </div>
           <div className="bg-card border border-border rounded-lg p-2">
             <div className="font-display text-lg text-primary">{stats.setsCompleted}</div>
-            <div className="text-[10px] text-muted-foreground">SETS</div>
+            <div className="text-[10px] text-muted-foreground">{isHIITSession ? 'ROUNDS' : 'SETS'}</div>
           </div>
           <div className="bg-card border border-border rounded-lg p-2">
             <div className="font-display text-lg text-success">+{stats.xp}</div>
@@ -279,15 +284,29 @@ export function MissionCompleteScreen({
           </div>
         </motion.div>
         
-        {/* Total Weight highlight */}
+        {/* Total Weight/Time highlight */}
         <motion.div 
           initial={{ opacity: 0, scale: 0.9 }}
           animate={{ opacity: 1, scale: 1 }}
           transition={{ delay: 0.55 }}
-          className={`bg-card border-2 rounded-lg p-3 mb-6 ${isGuest ? 'border-warning/50' : 'border-accent'}`}
+          className={`bg-card border-2 rounded-lg p-3 mb-6 ${isGuest ? 'border-warning/50' : isHIITSession ? 'border-section-hiit' : 'border-accent'}`}
         >
-          <div className="font-display text-3xl text-accent">{stats.totalWeight.toLocaleString()}</div>
-          <div className="text-xs text-muted-foreground">TOTAL LBS LIFTED</div>
+          {isHIITSession ? (
+            <>
+              <div className="flex items-center justify-center gap-2">
+                <Timer className="w-6 h-6 text-section-hiit" />
+                <div className="font-display text-3xl text-section-hiit">
+                  {Math.floor(stats.totalReps / 60)}:{String(stats.totalReps % 60).padStart(2, '0')}
+                </div>
+              </div>
+              <div className="text-xs text-muted-foreground">TOTAL WORK TIME</div>
+            </>
+          ) : (
+            <>
+              <div className="font-display text-3xl text-accent">{stats.totalWeight.toLocaleString()}</div>
+              <div className="text-xs text-muted-foreground">TOTAL LBS LIFTED</div>
+            </>
+          )}
         </motion.div>
 
         {/* CTAs */}
