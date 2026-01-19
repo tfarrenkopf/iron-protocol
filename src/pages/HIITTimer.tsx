@@ -245,10 +245,20 @@ const HIITTimer = () => {
   const getPhaseColor = () => {
     switch (timerPhase) {
       case 'WORK': return 'bg-destructive';
-      case 'REST': return 'bg-secondary';
-      case 'COUNTDOWN': return 'bg-primary';
+      case 'REST': return 'bg-emerald-600';
+      case 'COUNTDOWN': return 'bg-amber-500';
       case 'COMPLETED': return 'bg-success';
       default: return 'bg-muted';
+    }
+  };
+
+  const getPhaseTextColor = () => {
+    switch (timerPhase) {
+      case 'WORK': return 'text-white';
+      case 'REST': return 'text-white';
+      case 'COUNTDOWN': return 'text-black';
+      case 'COMPLETED': return 'text-white';
+      default: return 'text-foreground';
     }
   };
 
@@ -559,11 +569,11 @@ const HIITTimer = () => {
     );
   }
 
-  // ACTIVE TIMER SCREEN - Redesigned like WorkoutSession
+  // ACTIVE TIMER SCREEN - Fullscreen, phase-colored background
   return (
-    <div className="min-h-screen bg-background relative flex flex-col">
-      {/* Scanlines */}
-      <div className="fixed inset-0 pointer-events-none scanlines opacity-20" />
+    <div className={`fixed inset-0 ${getPhaseColor()} ${getPhaseTextColor()} flex flex-col overflow-hidden transition-colors duration-300`}>
+      {/* Scanlines overlay */}
+      <div className="absolute inset-0 pointer-events-none scanlines opacity-10" />
 
       {/* Explosion Effect */}
       <ExplosionEffect 
@@ -571,156 +581,115 @@ const HIITTimer = () => {
         onComplete={() => setShowExplosion(false)} 
       />
 
-      {/* Header - Workout-session style */}
-      <header className="relative z-10 bg-card/80 backdrop-blur border-b border-border p-4">
-        <div className="flex items-center justify-between">
-          {/* Left: Exit button */}
-          <button 
-            onClick={handleBackPress}
-            className="p-3 bg-muted/50 rounded-full border border-border hover:border-destructive transition-colors min-h-[48px] min-w-[48px] flex items-center justify-center"
-            aria-label="Exit"
-          >
-            <X className="w-5 h-5" />
-          </button>
+      {/* Minimal Header - just essentials */}
+      <header className="relative z-10 flex items-center justify-between p-4 pt-safe">
+        {/* Left: Sound toggle */}
+        <button 
+          onClick={() => setSoundEnabled(!soundEnabled)}
+          className="p-3 bg-black/20 backdrop-blur rounded-full min-h-[48px] min-w-[48px] flex items-center justify-center"
+          aria-label={soundEnabled ? "Mute sounds" : "Enable sounds"}
+        >
+          {soundEnabled ? <Volume2 className="w-6 h-6" /> : <VolumeX className="w-6 h-6" />}
+        </button>
 
-          {/* Center: Protocol name + round */}
-          <div className="text-center flex-1 mx-4">
-            <div className="font-display text-sm text-muted-foreground">
-              {selectedConfig?.codeName || 'HIIT'}
-            </div>
-            <div className="font-display text-lg">
-              ROUND <span className="text-section-hiit">{currentRound}</span>
-              <span className="text-muted-foreground">/{hiitConfig?.rounds}</span>
-            </div>
+        {/* Center: Protocol name */}
+        <div className="text-center">
+          <div className="font-display text-sm opacity-70">
+            {selectedConfig?.codeName || 'HIIT'}
           </div>
-
-          {/* Right: Sound toggle */}
-          <button 
-            onClick={() => setSoundEnabled(!soundEnabled)}
-            className="p-3 bg-muted/50 rounded-full border border-border hover:border-foreground/50 transition-colors min-h-[48px] min-w-[48px] flex items-center justify-center"
-            aria-label={soundEnabled ? "Mute sounds" : "Enable sounds"}
-          >
-            {soundEnabled ? <Volume2 className="w-5 h-5" /> : <VolumeX className="w-5 h-5" />}
-          </button>
         </div>
 
-        {/* Progress Bar */}
-        <div className="mt-4">
-          <div className="flex justify-between text-xs text-muted-foreground mb-1">
-            <span>PROGRESS</span>
-            <span>{Math.round(calculateProgress())}%</span>
-          </div>
-          <Progress 
-            value={calculateProgress()} 
-            className="h-2"
-          />
-        </div>
+        {/* Right: Pause/Play toggle */}
+        <button 
+          onClick={() => setIsPaused(!isPaused)}
+          className="p-3 bg-black/20 backdrop-blur rounded-full min-h-[48px] min-w-[48px] flex items-center justify-center"
+          aria-label={isPaused ? "Resume" : "Pause"}
+        >
+          {isPaused ? <Play className="w-6 h-6" /> : <Pause className="w-6 h-6" />}
+        </button>
       </header>
 
-      {/* Main timer display */}
+      {/* Main Content - Massive timer for visibility from afar */}
       <main className="flex-1 relative z-10 flex flex-col items-center justify-center px-4">
         <AnimatePresence mode="wait">
           <motion.div
             key={timerPhase}
-            initial={{ scale: 0.8, opacity: 0 }}
+            initial={{ scale: 0.9, opacity: 0 }}
             animate={{ scale: 1, opacity: 1 }}
-            exit={{ scale: 0.8, opacity: 0 }}
-            className="text-center w-full max-w-md"
+            exit={{ scale: 0.9, opacity: 0 }}
+            transition={{ duration: 0.2 }}
+            className="text-center w-full"
           >
-            {/* Phase indicator pill */}
-            <motion.div
-              className={`inline-flex items-center gap-2 px-6 py-2 rounded-full mb-6 ${getPhaseColor()}`}
-            >
-              {timerPhase === 'WORK' && <Flame className="w-5 h-5 text-white" />}
-              {timerPhase === 'REST' && <Timer className="w-5 h-5 text-secondary-foreground" />}
-              <span className="font-display text-xl text-white drop-shadow-md">
+            {/* Phase label - Large and clear */}
+            <motion.div className="mb-2">
+              <span className="font-display text-3xl sm:text-4xl tracking-widest opacity-90">
                 {getPhaseLabel()}
               </span>
             </motion.div>
             
-            {/* Timer */}
+            {/* Timer - MASSIVE for visibility */}
             <motion.div 
               key={timeRemaining}
-              initial={{ scale: 1.05 }}
+              initial={{ scale: 1.02 }}
               animate={{ scale: 1 }}
-              className={`arcade-number text-[25vw] md:text-[180px] leading-none ${
-                timeRemaining <= 3 && timerPhase === 'WORK' ? 'text-destructive animate-pulse' : 'text-foreground'
+              className={`arcade-number text-[40vw] sm:text-[35vw] md:text-[280px] leading-none font-bold ${
+                timeRemaining <= 3 && timerPhase !== 'REST' ? 'animate-pulse' : ''
               }`}
+              style={{ textShadow: '0 0 40px rgba(0,0,0,0.3)' }}
             >
               {timeRemaining}
             </motion.div>
 
-            {/* Next up preview */}
-            <div className="mt-4 text-sm text-muted-foreground">
-              {timerPhase === 'WORK' && currentRound < (hiitConfig?.rounds || 0) && (
-                <span>Next: <span className="text-primary font-display">RECOVER</span> ({hiitConfig?.restDurationSec}s)</span>
-              )}
-              {timerPhase === 'WORK' && currentRound >= (hiitConfig?.rounds || 0) && (
-                <span className="text-success font-display">FINAL ROUND</span>
-              )}
-              {timerPhase === 'REST' && (
-                <span>Next: <span className="text-destructive font-display">FIGHT</span> ({hiitConfig?.workDurationSec}s)</span>
-              )}
-              {timerPhase === 'COUNTDOWN' && (
-                <span>First up: <span className="text-destructive font-display">FIGHT</span></span>
-              )}
-            </div>
-
-            {/* Round indicators */}
-            <div className="flex justify-center gap-1.5 mt-6">
-              {Array.from({ length: hiitConfig?.rounds || 0 }).map((_, i) => (
-                <div 
-                  key={i}
-                  className={`h-2 w-6 rounded-full transition-all ${
-                    i < currentRound - 1 
-                      ? 'bg-success' 
-                      : i === currentRound - 1 
-                        ? getPhaseColor()
-                        : 'bg-muted'
-                  }`}
-                />
-              ))}
+            {/* Round indicator */}
+            <div className="mt-4 font-display text-2xl sm:text-3xl opacity-80">
+              ROUND {currentRound} / {hiitConfig?.rounds}
             </div>
           </motion.div>
         </AnimatePresence>
       </main>
 
-      {/* Controls - Workout-session style footer */}
-      <footer className="relative z-10 bg-card/80 backdrop-blur border-t border-border p-4 space-y-3">
-        {/* Main pause/resume button */}
-        <button
-          onClick={() => setIsPaused(!isPaused)}
-          className={`w-full py-5 rounded-lg font-display text-xl flex items-center justify-center gap-3 min-h-[64px] transition-all ${
-            isPaused 
-              ? 'bg-success text-success-foreground hover:bg-success/90' 
-              : 'bg-muted text-foreground hover:bg-muted/80'
-          }`}
-        >
-          {isPaused ? (
-            <>
-              <Play className="w-7 h-7" /> RESUME
-            </>
-          ) : (
-            <>
-              <Pause className="w-7 h-7" /> PAUSE
-            </>
-          )}
-        </button>
+      {/* Round Progress Dots - Visual indicator */}
+      <div className="relative z-10 flex justify-center gap-2 px-4 pb-4">
+        {Array.from({ length: hiitConfig?.rounds || 0 }).map((_, i) => (
+          <div 
+            key={i}
+            className={`h-3 w-3 sm:h-4 sm:w-4 rounded-full transition-all ${
+              i < currentRound - 1 
+                ? 'bg-white' 
+                : i === currentRound - 1 
+                  ? 'bg-white/80 ring-2 ring-white ring-offset-2 ring-offset-transparent'
+                  : 'bg-white/30'
+            }`}
+          />
+        ))}
+      </div>
 
-        {/* Secondary actions row */}
+      {/* Footer Controls - Minimal, accessible */}
+      <footer className="relative z-10 p-4 pb-safe space-y-3">
+        {/* Pause indicator when paused */}
+        {isPaused && (
+          <motion.div 
+            initial={{ opacity: 0, y: 10 }}
+            animate={{ opacity: 1, y: 0 }}
+            className="text-center py-3 bg-black/30 backdrop-blur rounded-lg"
+          >
+            <span className="font-display text-xl tracking-widest">PAUSED</span>
+          </motion.div>
+        )}
+
+        {/* Action buttons row */}
         <div className="flex gap-3">
           <button
             onClick={() => setShowResetDialog(true)}
-            className="flex-1 py-3 bg-card border border-border text-foreground font-display text-sm rounded-lg hover:border-section-hiit/50 transition-colors flex items-center justify-center gap-2 min-h-[48px]"
+            className="flex-1 py-4 bg-black/20 backdrop-blur font-display text-base rounded-lg flex items-center justify-center gap-2 min-h-[56px] active:scale-95 transition-transform"
           >
-            <RotateCcw className="w-4 h-4" />
+            <RotateCcw className="w-5 h-5" />
             RESET
           </button>
           <button
             onClick={handleBackPress}
-            className="flex-1 py-3 bg-card border border-border text-foreground font-display text-sm rounded-lg hover:border-destructive/50 transition-colors flex items-center justify-center gap-2 min-h-[48px]"
+            className="flex-1 py-4 bg-black/20 backdrop-blur font-display text-base rounded-lg flex items-center justify-center gap-2 min-h-[56px] active:scale-95 transition-transform"
           >
-            <X className="w-4 h-4" />
             FORFEIT
           </button>
         </div>
@@ -728,7 +697,7 @@ const HIITTimer = () => {
 
       {/* Exit Confirmation Dialog */}
       <AlertDialog open={showExitDialog} onOpenChange={setShowExitDialog}>
-        <AlertDialogContent className="bg-card border-border">
+        <AlertDialogContent className="bg-card border-border text-foreground">
           <AlertDialogHeader>
             <AlertDialogTitle className="font-display text-destructive">ABORT MISSION?</AlertDialogTitle>
             <AlertDialogDescription className="text-muted-foreground">
@@ -750,7 +719,7 @@ const HIITTimer = () => {
 
       {/* Reset Confirmation Dialog */}
       <AlertDialog open={showResetDialog} onOpenChange={setShowResetDialog}>
-        <AlertDialogContent className="bg-card border-border">
+        <AlertDialogContent className="bg-card border-border text-foreground">
           <AlertDialogHeader>
             <AlertDialogTitle className="font-display text-section-hiit">RESET TIMER?</AlertDialogTitle>
             <AlertDialogDescription className="text-muted-foreground">
