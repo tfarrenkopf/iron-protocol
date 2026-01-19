@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useNavigate } from 'react-router-dom';
-import { Target, BookOpen, X, ChevronRight, Crosshair, Skull } from 'lucide-react';
+import { Target, BookOpen, X, ChevronRight, Crosshair, Skull, Users, Send } from 'lucide-react';
 
 const STORAGE_KEY = 'iron-protocol-visited';
 
@@ -110,15 +110,28 @@ export const FirstVisitPopup = () => {
                 </div>
               </div>
 
-              {/* No Nonsense */}
+              {/* Rivals */}
               <div className="flex items-start gap-3">
-                <div className="p-1.5 rounded bg-secondary/20 mt-0.5">
-                  <Target className="w-4 h-4 text-secondary" />
+                <div className="p-1.5 rounded bg-section-intel/20 mt-0.5">
+                  <Users className="w-4 h-4 text-section-intel" />
                 </div>
                 <div>
-                  <span className="text-secondary font-display text-sm">NO NONSENSE</span>
+                  <span className="text-section-intel font-display text-sm">RIVALS</span>
                   <p className="text-muted-foreground text-xs">
-                    No ads. No subscriptions. Just train.
+                    Challenge friends. Compare weekly stats.
+                  </p>
+                </div>
+              </div>
+
+              {/* Send Orders */}
+              <div className="flex items-start gap-3">
+                <div className="p-1.5 rounded bg-warning/20 mt-0.5">
+                  <Send className="w-4 h-4 text-warning" />
+                </div>
+                <div>
+                  <span className="text-warning font-display text-sm">SEND ORDERS</span>
+                  <p className="text-muted-foreground text-xs">
+                    Assign workouts to others. Hold them accountable.
                   </p>
                 </div>
               </div>
