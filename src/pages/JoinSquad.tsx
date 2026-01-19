@@ -4,6 +4,7 @@ import { useNavigate, useParams } from 'react-router-dom';
 import { Users, Check, AlertCircle, X, ChevronRight, UserPlus, Shield, Send, Eye, Crosshair, Skull, Loader2 } from 'lucide-react';
 import { useAuth } from '@/hooks/useAuth';
 import { useSquadByInviteCode, useJoinSquad, useMySquads } from '@/hooks/useHandlerMode';
+import { trackSquadJoined } from '@/lib/analytics';
 
 const JoinSquad = () => {
   const navigate = useNavigate();
@@ -25,6 +26,7 @@ const JoinSquad = () => {
 
     try {
       await joinSquad.mutateAsync(squad.id);
+      trackSquadJoined();
       setJoined(true);
       localStorage.setItem('iron-protocol-visited', 'true');
       setTimeout(() => navigate('/'), 2000);

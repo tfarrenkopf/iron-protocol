@@ -7,6 +7,7 @@ import { useUpdateProfile, useUpdateProfileStats } from '@/hooks/useProfile';
 import { useCreateWorkoutSession } from '@/hooks/useWorkoutSessions';
 import { z } from 'zod';
 import { displayNameSchema, validateDisplayName } from '@/lib/displayNameValidation';
+import { trackSignUp, trackLogin } from '@/lib/analytics';
 
 const authSchema = z.object({
   email: z.string().trim().email({ message: 'Invalid email address' }).max(255),
@@ -141,6 +142,9 @@ const AuthPage = () => {
             setError(error.message);
           }
         } else {
+          // Track successful signup
+          trackSignUp('email');
+          
           // Set display name if provided - wait for profile to be created by trigger
           if (displayName.trim()) {
             // Wait a moment for the database trigger to create the profile
@@ -168,6 +172,8 @@ const AuthPage = () => {
             setError(error.message);
           }
         } else {
+          // Track successful login
+          trackLogin('email');
           navigate(redirectTo);
         }
       }
