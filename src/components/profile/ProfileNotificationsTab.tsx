@@ -147,7 +147,10 @@ export function ProfileNotificationsTab() {
   const hasNotifications = notifications && notifications.length > 0;
 
   const handleNavigate = (path: string) => {
-    navigate(path);
+    // Add returnTo parameter to ensure back navigation returns to notifications tab
+    const separator = path.includes('?') ? '&' : '?';
+    const returnTo = encodeURIComponent('/profile?tab=notifications');
+    navigate(`${path}${separator}returnTo=${returnTo}`);
   };
 
   if (isLoading) {
