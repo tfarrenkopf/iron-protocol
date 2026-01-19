@@ -37,8 +37,8 @@ const Dashboard = () => {
       </div>
 
       <div className="relative z-10 container mx-auto px-4 py-6 max-w-3xl">
-        {/* GlobalNav - consistent with other pages */}
-        <GlobalNav showBack={false} section="home" />
+        {/* GlobalNav - consistent with other pages, hide branding since hero has it */}
+        <GlobalNav showBack={false} section="home" hideBranding />
 
         {/* Hero Branding Section */}
         <motion.header 
@@ -50,7 +50,7 @@ const Dashboard = () => {
             IRON PROTOCOL
           </h1>
           <p className="font-body text-muted-foreground text-xs sm:text-sm tracking-widest uppercase">
-            Execute. Conquer. Repeat.
+            Crush workouts. Deal damage. Dominate the weekly raid.
           </p>
         </motion.header>
 
