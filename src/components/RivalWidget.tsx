@@ -58,7 +58,7 @@ export function RivalWidget({ variant = 'compact' }: RivalWidgetProps) {
       return;
     }
 
-    const baseUrl = window.location.origin;
+    const baseUrl = 'https://iron-protocol.fitness';
     const shareUrl = `${baseUrl}/rival/${profile.rival_code}`;
     const shareText = `⚔️ YOU'VE BEEN MARKED. Accept the challenge or stay weak.`;
     const fullMessage = `${shareText} ${shareUrl}`;
