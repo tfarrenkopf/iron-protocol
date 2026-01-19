@@ -1,12 +1,12 @@
 import { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { TrendingUp, Flame, Calendar, Trophy, Dumbbell, Target, Zap, ChevronDown, ChevronUp } from 'lucide-react';
+import { Calendar, Trophy, Dumbbell, Target, ChevronDown, ChevronUp } from 'lucide-react';
 import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/hooks/useAuth';
 import { useProfile } from '@/hooks/useProfile';
 import { startOfWeek, endOfWeek, format } from 'date-fns';
-
+import { SampleDataBanner } from './SampleDataBanner';
 interface WeeklyStats {
   sessionsCompleted: number;
   totalSets: number;
@@ -172,17 +172,10 @@ export function WeeklySummary({ collapsible = false, defaultCollapsed = false }:
     <motion.div
       initial={{ opacity: 0, y: 20 }}
       animate={{ opacity: 1, y: 0 }}
-      className={`bg-card border rounded-lg overflow-hidden ${
-        isAnonymous ? 'border-warning/30' : 'border-secondary/30'
-      }`}
+      className="bg-card border border-border rounded-lg overflow-hidden"
     >
       {/* Guest Banner */}
-      {isAnonymous && (
-        <div className="px-4 py-2 bg-warning/10 border-b border-warning/20 flex items-center gap-2">
-          <span className="text-xs text-warning font-display">👤 SAMPLE DATA</span>
-          <span className="text-xs text-muted-foreground">Sign in to track your real progress</span>
-        </div>
-      )}
+      {isAnonymous && <SampleDataBanner message="Sign in to track your real progress" />}
 
       {/* Weekly Stats Section Header */}
       <button
