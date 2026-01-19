@@ -68,6 +68,45 @@ export type Database = {
         }
         Relationships: []
       }
+      boss_templates: {
+        Row: {
+          code_name: string
+          created_at: string
+          id: string
+          image_url: string | null
+          is_active: boolean
+          lore: string
+          name: string
+          sort_order: number
+          weakness_multiplier: number
+          weaknesses: string[]
+        }
+        Insert: {
+          code_name: string
+          created_at?: string
+          id?: string
+          image_url?: string | null
+          is_active?: boolean
+          lore: string
+          name: string
+          sort_order?: number
+          weakness_multiplier?: number
+          weaknesses?: string[]
+        }
+        Update: {
+          code_name?: string
+          created_at?: string
+          id?: string
+          image_url?: string | null
+          is_active?: boolean
+          lore?: string
+          name?: string
+          sort_order?: number
+          weakness_multiplier?: number
+          weaknesses?: string[]
+        }
+        Relationships: []
+      }
       campaign_completions: {
         Row: {
           campaign_id: string
@@ -1241,6 +1280,7 @@ export type Database = {
           lore: string
           max_hp: number
           name: string
+          template_id: string | null
           weakness_multiplier: number
           weaknesses: string[]
           week_end: string
@@ -1258,6 +1298,7 @@ export type Database = {
           lore: string
           max_hp?: number
           name: string
+          template_id?: string | null
           weakness_multiplier?: number
           weaknesses?: string[]
           week_end: string
@@ -1275,12 +1316,21 @@ export type Database = {
           lore?: string
           max_hp?: number
           name?: string
+          template_id?: string | null
           weakness_multiplier?: number
           weaknesses?: string[]
           week_end?: string
           week_start?: string
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "weekly_bosses_template_id_fkey"
+            columns: ["template_id"]
+            isOneToOne: false
+            referencedRelation: "boss_templates"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       workout_sessions: {
         Row: {
@@ -1490,6 +1540,35 @@ export type Database = {
           },
         ]
       }
+      weekly_boss_leaderboard: {
+        Row: {
+          base_damage: number | null
+          bonus_damage: number | null
+          boss_id: string | null
+          contribution_count: number | null
+          display_name: string | null
+          rank: number | null
+          total_damage: number | null
+          user_id: string | null
+          weakness_hits_count: number | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "weekly_boss_damage_boss_id_fkey"
+            columns: ["boss_id"]
+            isOneToOne: false
+            referencedRelation: "weekly_bosses"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "weekly_boss_damage_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
     }
     Functions: {
       apply_boss_damage: {
@@ -1512,6 +1591,7 @@ export type Database = {
           lore: string
           max_hp: number
           name: string
+          template_id: string | null
           weakness_multiplier: number
           weaknesses: string[]
           week_end: string
@@ -1550,6 +1630,20 @@ export type Database = {
           weakness_multiplier: number
           weaknesses: string[]
           week_end: string
+          week_start: string
+        }[]
+      }
+      get_boss_defeat_stats: {
+        Args: { p_boss_id: string }
+        Returns: {
+          boss_name: string
+          defeated_at: string
+          max_hp: number
+          time_to_defeat_seconds: number
+          total_contributions: number
+          total_damage_dealt: number
+          total_weakness_hits: number
+          unique_contributors: number
           week_start: string
         }[]
       }
@@ -1610,6 +1704,33 @@ export type Database = {
       is_squad_member: {
         Args: { _squad_id: string; _user_id: string }
         Returns: boolean
+      }
+      rotate_weekly_boss: {
+        Args: never
+        Returns: {
+          code_name: string
+          created_at: string
+          current_hp: number
+          defeated_at: string | null
+          id: string
+          image_url: string | null
+          is_active: boolean
+          is_defeated: boolean
+          lore: string
+          max_hp: number
+          name: string
+          template_id: string | null
+          weakness_multiplier: number
+          weaknesses: string[]
+          week_end: string
+          week_start: string
+        }
+        SetofOptions: {
+          from: "*"
+          to: "weekly_bosses"
+          isOneToOne: true
+          isSetofReturn: false
+        }
       }
     }
     Enums: {

@@ -1,14 +1,17 @@
+import { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Skull, Zap, Clock, Users, Swords, Target, Shield } from 'lucide-react';
+import { Skull, Zap, Clock, Users, Swords, Target, Shield, Trophy } from 'lucide-react';
 import { useWeeklyBoss, useUserBossDamage, getSyntheticBossData, getSyntheticUserDamage } from '@/hooks/useWeeklyBoss';
 import { useAuth } from '@/hooks/useAuth';
 import { formatDistanceToNow } from 'date-fns';
 import { SampleDataBanner } from './SampleDataBanner';
+import { BossVictoryScreen } from './BossVictoryScreen';
+import { Button } from './ui/button';
 
 export function WeeklyBossWidget() {
   const { user } = useAuth();
   const isGuest = !user;
-  
+  const [showVictoryScreen, setShowVictoryScreen] = useState(false);
   const { data: boss, isLoading: bossLoading } = useWeeklyBoss();
   const { data: userDamage } = useUserBossDamage();
   
@@ -181,14 +184,14 @@ export function WeeklyBossWidget() {
         </div>
       </div>
       
-      {/* Defeat animation overlay */}
+      {/* Defeat overlay with scoreboard button */}
       <AnimatePresence>
         {displayBoss.is_defeated && (
           <motion.div
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
-            className="absolute inset-0 bg-green-500/10 flex items-center justify-center pointer-events-none"
+            className="absolute inset-0 bg-gradient-to-t from-green-500/20 to-transparent flex flex-col items-center justify-center"
           >
             <motion.div
               initial={{ scale: 0 }}
@@ -196,12 +199,32 @@ export function WeeklyBossWidget() {
               transition={{ type: 'spring', bounce: 0.5 }}
               className="text-center"
             >
-              <Skull className="w-12 h-12 text-green-400 mx-auto mb-2" />
-              <p className="font-display text-xl text-green-400 font-bold">BOSS DEFEATED!</p>
+              <Skull className="w-10 h-10 text-green-400 mx-auto mb-2" />
+              <p className="font-display text-lg text-green-400 font-bold mb-3">TARGET ELIMINATED</p>
+              {!isGuest && (
+                <Button
+                  onClick={() => setShowVictoryScreen(true)}
+                  variant="outline"
+                  size="sm"
+                  className="border-green-500/50 text-green-400 hover:bg-green-500/10"
+                >
+                  <Trophy className="w-4 h-4 mr-2" />
+                  VIEW SCOREBOARD
+                </Button>
+              )}
             </motion.div>
           </motion.div>
         )}
       </AnimatePresence>
+
+      {/* Victory Screen Modal */}
+      {showVictoryScreen && displayBoss && !isGuest && (
+        <BossVictoryScreen
+          boss={displayBoss}
+          onClose={() => setShowVictoryScreen(false)}
+          userId={user?.id}
+        />
+      )}
     </motion.div>
   );
 }
