@@ -29,7 +29,7 @@ const Dashboard = () => {
   const { user, isAnonymous, signOut } = useAuth();
   const { data: profile } = useProfile();
   const { data: missions } = useMissions({ showOnlyPublic: true });
-  
+
   const { data: isHandler } = useIsHandler();
   const [showSignOutDialog, setShowSignOutDialog] = useState(false);
 
@@ -115,7 +115,7 @@ const Dashboard = () => {
             IRON PROTOCOL
           </h1>
           <p className="font-body text-muted-foreground text-sm tracking-widest uppercase">
-            Execute. Conquer. Repeat.
+            Crush workouts. Deal damage. Dominate the weekly raid.
           </p>
         </motion.header>
 
@@ -176,12 +176,8 @@ const Dashboard = () => {
                     <Crosshair className="w-6 h-6 text-section-command" />
                   </div>
                   <div className="text-left">
-                    <h2 className="font-display text-base sm:text-lg text-section-command">
-                      COMMAND CENTER
-                    </h2>
-                    <p className="text-xs text-muted-foreground">
-                      Select or create exercises, missions, campaigns
-                    </p>
+                    <h2 className="font-display text-base sm:text-lg text-section-command">COMMAND CENTER</h2>
+                    <p className="text-xs text-muted-foreground">Select or create exercises, missions, campaigns</p>
                   </div>
                 </div>
                 <ChevronRight className="w-5 h-5 text-section-command group-hover:translate-x-1 transition-transform flex-shrink-0" />
@@ -190,11 +186,7 @@ const Dashboard = () => {
           </div>
 
           {/* Weekly Boss Widget */}
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.25 }}
-          >
+          <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.25 }}>
             <WeeklyBossWidget />
           </motion.div>
 
@@ -206,11 +198,7 @@ const Dashboard = () => {
 
           {/* Rival Mode Widget - Only for logged-in users */}
           {!isAnonymous && (
-            <motion.div
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: 0.3 }}
-            >
+            <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.3 }}>
               <RivalWidget />
             </motion.div>
           )}
@@ -231,9 +219,7 @@ const Dashboard = () => {
               <LogOut className="w-5 h-5" />
               SIGN OUT
             </AlertDialogTitle>
-            <AlertDialogDescription>
-              Are you sure you want to sign out of Iron Protocol?
-            </AlertDialogDescription>
+            <AlertDialogDescription>Are you sure you want to sign out of Iron Protocol?</AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
             <AlertDialogCancel className="border-border">Cancel</AlertDialogCancel>
