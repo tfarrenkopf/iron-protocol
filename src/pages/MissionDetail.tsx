@@ -284,25 +284,28 @@ const MissionDetail = () => {
             </div>
             
             {isAnonymous ? (
-              // Mock data for guests
-              <div className="space-y-1 relative">
-                <div className="blur-[2px] opacity-60">
-                  <div className="flex items-center gap-1 text-xs">
-                    <Calendar className="w-3 h-3 text-muted-foreground" />
-                    <span className="text-foreground">2h ago</span>
-                  </div>
-                  <div className="flex items-center gap-1 text-xs">
-                    <Trophy className="w-3 h-3 text-muted-foreground" />
-                    <span className="text-foreground">4,250</span>
-                    <span className="text-muted-foreground">pts</span>
-                  </div>
-                  <div className="flex items-center gap-1 text-xs">
-                    <Zap className="w-3 h-3 text-muted-foreground" />
-                    <span className="text-foreground">3</span>
-                    <span className="text-muted-foreground">completions</span>
-                  </div>
+              // Sample data for guests
+              <div className="space-y-1">
+                <div className="flex items-center gap-1 text-xs">
+                  <Calendar className="w-3 h-3 text-muted-foreground" />
+                  <span className="text-foreground">2h ago</span>
                 </div>
-                <p className="text-xs text-section-missions absolute inset-0 flex items-center justify-center">Sign in to track</p>
+                <div className="flex items-center gap-1 text-xs">
+                  <Trophy className="w-3 h-3 text-muted-foreground" />
+                  <span className="text-foreground">4,250</span>
+                  <span className="text-muted-foreground">best</span>
+                </div>
+                <div className="flex items-center gap-1 text-xs">
+                  <Zap className="w-3 h-3 text-muted-foreground" />
+                  <span className="text-foreground">3</span>
+                  <span className="text-muted-foreground">completions</span>
+                </div>
+                <div className="flex items-center gap-1 text-xs">
+                  <Crown className="w-3 h-3 text-muted-foreground" />
+                  <span className="text-foreground">#12</span>
+                  <span className="text-muted-foreground">/ 47</span>
+                </div>
+                <p className="text-[10px] text-muted-foreground/60 italic mt-1">Sample data</p>
               </div>
             ) : userMissionStats?.completionCount ? (
               <div className="space-y-1">
@@ -358,19 +361,19 @@ const MissionDetail = () => {
             </div>
             
             {isAnonymous ? (
-              // Mock leaderboard for guests
-              <div className="space-y-1 relative">
-                <div className="blur-[2px] opacity-60">
-                  <div className="flex items-center gap-2 text-xs">
-                    <span className="font-display text-yellow-500">#1</span>
-                    <span className="text-foreground truncate flex-1">GHOST_WOLF</span>
-                  </div>
-                  <div className="flex items-center gap-2 text-xs">
-                    <span className="font-display text-muted-foreground">#2</span>
-                    <span className="text-foreground truncate flex-1">IRON_VIPER</span>
-                  </div>
+              // Sample leaderboard for guests
+              <div className="space-y-1">
+                <div className="flex items-center gap-2 text-xs">
+                  <span className="font-display text-yellow-500">#1</span>
+                  <span className="text-foreground truncate flex-1">GHOST_WOLF</span>
+                  <span className="text-muted-foreground">8.2k</span>
                 </div>
-                <p className="text-xs text-section-missions mt-1">Sign in to compete</p>
+                <div className="flex items-center gap-2 text-xs">
+                  <span className="font-display text-muted-foreground">#2</span>
+                  <span className="text-foreground truncate flex-1">IRON_VIPER</span>
+                  <span className="text-muted-foreground">7.1k</span>
+                </div>
+                <p className="text-[10px] text-muted-foreground/60 italic mt-1">Sample data</p>
               </div>
             ) : leaderboard && leaderboard.length > 0 ? (
               <div className="space-y-1">
