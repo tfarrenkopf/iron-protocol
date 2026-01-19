@@ -89,7 +89,7 @@ export function WeeklyBossWidget() {
                 {displayBoss.name.toUpperCase()}
               </h3>
             </div>
-            <p className="text-sm text-muted-foreground italic line-clamp-2">
+            <p className="text-sm text-muted-foreground italic">
               {displayBoss.lore}
             </p>
           </div>
