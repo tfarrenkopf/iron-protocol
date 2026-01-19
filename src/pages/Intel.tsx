@@ -24,7 +24,8 @@ import { GlobalNav } from '@/components/GlobalNav';
 import { RivalWidget } from '@/components/RivalWidget';
 import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
-import { format, startOfWeek, endOfWeek, subHours, subDays, subMinutes } from 'date-fns';
+import { format, subHours, subDays, subMinutes } from 'date-fns';
+import { getWeekBoundaries, getWeekRangeText, WEEK_CONFIG } from '@/lib/weekUtils';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
@@ -306,8 +307,7 @@ function useCommunityStats() {
   return useQuery({
     queryKey: ['community-stats'],
     queryFn: async (): Promise<CommunityStats> => {
-      const weekStart = startOfWeek(new Date(), { weekStartsOn: 1 });
-      const weekEnd = endOfWeek(new Date(), { weekStartsOn: 1 });
+      const { weekStart, weekEnd } = getWeekBoundaries();
 
       const { data: sessions, error } = await supabase
         .from('workout_sessions')
@@ -320,8 +320,8 @@ function useCommunityStats() {
           )
         `)
         .eq('status', 'COMPLETED')
-        .gte('completed_at', weekStart.toISOString())
-        .lte('completed_at', weekEnd.toISOString());
+        .gte('completed_at', weekStart)
+        .lte('completed_at', weekEnd);
 
       if (error) throw error;
 
@@ -484,8 +484,7 @@ const LiveFeedTab = ({ isGuest }: { isGuest: boolean }) => {
   const rankIcons = [Crown, Medal, Flame];
   const rankColors = ['text-foreground', 'text-muted-foreground', 'text-muted-foreground'];
 
-  const weekStart = startOfWeek(new Date(), { weekStartsOn: 1 });
-  const weekEnd = endOfWeek(new Date(), { weekStartsOn: 1 });
+  const weekRangeText = getWeekRangeText();
 
   const formatRelativeTime = (dateStr: string) => {
     const date = new Date(dateStr);
@@ -518,7 +517,7 @@ const LiveFeedTab = ({ isGuest }: { isGuest: boolean }) => {
               THIS WEEK'S STATS
             </h2>
             <span className="text-xs text-muted-foreground">
-              {format(weekStart, 'MMM d')} - {format(weekEnd, 'MMM d')}
+              {weekRangeText}
             </span>
           </div>
 
@@ -939,9 +938,7 @@ const GuestRivalsTab = () => {
     [missions]
   );
   
-  const weekStart = startOfWeek(new Date(), { weekStartsOn: 0 });
-  const weekEnd = endOfWeek(new Date(), { weekStartsOn: 0 });
-  const weekRangeText = `${format(weekStart, 'MMM d')} - ${format(weekEnd, 'MMM d')}`;
+  const weekRangeText = getWeekRangeText();
   
   const formatRelativeTime = (dateStr: string) => {
     const date = new Date(dateStr);

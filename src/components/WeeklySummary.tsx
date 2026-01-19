@@ -5,7 +5,7 @@ import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/hooks/useAuth';
 import { useProfile } from '@/hooks/useProfile';
-import { startOfWeek, endOfWeek, format } from 'date-fns';
+import { getWeekBoundaries, getWeekRangeText } from '@/lib/weekUtils';
 import { SampleDataBanner } from './SampleDataBanner';
 interface WeeklyStats {
   sessionsCompleted: number;
@@ -35,8 +35,7 @@ export function useWeeklySummary() {
         totalDamage: 0,
       };
 
-      const weekStart = startOfWeek(new Date(), { weekStartsOn: 1 });
-      const weekEnd = endOfWeek(new Date(), { weekStartsOn: 1 });
+      const { weekStart, weekEnd } = getWeekBoundaries();
 
       // Get completed sessions this week
       const { data: sessions, error: sessionsError } = await supabase
@@ -44,8 +43,8 @@ export function useWeeklySummary() {
         .select('*')
         .eq('user_id', user.id)
         .eq('status', 'COMPLETED')
-        .gte('completed_at', weekStart.toISOString())
-        .lte('completed_at', weekEnd.toISOString());
+        .gte('completed_at', weekStart)
+        .lte('completed_at', weekEnd);
 
       if (sessionsError) throw sessionsError;
 
@@ -54,8 +53,8 @@ export function useWeeklySummary() {
         .from('personal_records')
         .select('*', { count: 'exact', head: true })
         .eq('user_id', user.id)
-        .gte('achieved_at', weekStart.toISOString())
-        .lte('achieved_at', weekEnd.toISOString());
+        .gte('achieved_at', weekStart)
+        .lte('achieved_at', weekEnd);
 
       if (prsError) throw prsError;
 
@@ -162,8 +161,7 @@ export function WeeklySummary({ collapsible = false, defaultCollapsed = false }:
   const xpUntilNext = nextLevelXp - xp;
   const progressPercent = Math.min(100, (xpProgress / xpNeeded) * 100);
 
-  const weekStart = startOfWeek(new Date(), { weekStartsOn: 1 });
-  const weekEnd = endOfWeek(new Date(), { weekStartsOn: 1 });
+  const weekRangeText = getWeekRangeText();
 
   // Show even if no activity (for level/XP info)
   const hasWeeklyActivity = displayStats && displayStats.sessionsCompleted > 0;
@@ -189,7 +187,7 @@ export function WeeklySummary({ collapsible = false, defaultCollapsed = false }:
             WEEKLY DEBRIEF
           </span>
           <span className="text-xs text-muted-foreground ml-auto mr-2">
-            {format(weekStart, 'MMM d')} - {format(weekEnd, 'MMM d')}
+            {weekRangeText}
           </span>
           {collapsible && (
             isCollapsed ? (

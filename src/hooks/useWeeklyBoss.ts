@@ -1,6 +1,7 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from './useAuth';
+import { getWeekStart, getWeekEnd } from '@/lib/weekUtils';
 
 export interface WeeklyBoss {
   id: string;
@@ -144,14 +145,8 @@ export function useApplyBossDamage() {
 
 // Synthetic boss data for guests
 export function getSyntheticBossData(): WeeklyBoss {
-  const now = new Date();
-  const weekStart = new Date(now);
-  weekStart.setDate(now.getDate() - now.getDay() + 1); // Monday
-  weekStart.setHours(0, 0, 0, 0);
-  
-  const weekEnd = new Date(weekStart);
-  weekEnd.setDate(weekStart.getDate() + 6);
-  weekEnd.setHours(23, 59, 59, 999);
+  const weekStartDate = getWeekStart();
+  const weekEndDate = getWeekEnd();
   
   // Simulate community progress (random between 20-80%)
   const progress = 0.2 + Math.random() * 0.6;
@@ -168,8 +163,8 @@ export function getSyntheticBossData(): WeeklyBoss {
     current_hp: currentHp,
     weaknesses: ['LEGS', 'BACK'],
     weakness_multiplier: 1.25,
-    week_start: weekStart.toISOString(),
-    week_end: weekEnd.toISOString(),
+    week_start: weekStartDate.toISOString(),
+    week_end: weekEndDate.toISOString(),
     is_defeated: false,
     defeated_at: null,
     total_damage_dealt: maxHp - currentHp,
