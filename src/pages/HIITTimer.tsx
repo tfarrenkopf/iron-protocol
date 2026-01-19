@@ -118,6 +118,14 @@ const HIITTimer = () => {
     resetHIIT,
   } = useGameStore();
 
+  // Reset stale HIIT state on mount (prevents ghost victory screens)
+  useEffect(() => {
+    // If we mount with a completed/active phase but no local config, reset
+    if (timerPhase !== 'IDLE' && !selectedConfig) {
+      resetHIIT();
+    }
+  }, []); // Only on mount
+
   // Wake Lock API for keeping screen on
   useEffect(() => {
     let wakeLock: WakeLockSentinel | null = null;
