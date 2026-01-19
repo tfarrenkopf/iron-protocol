@@ -329,21 +329,23 @@ const Command = () => {
     };
 
     if (activeTab === "missions") {
-      return { 
-        label: "New Mission", 
-        onClick: () => user ? navigate("/exercises?newMission=true&returnTo=command") : showGuestPrompt("create custom missions")
+      return {
+        label: "New Mission",
+        onClick: () =>
+          user ? navigate("/exercises?newMission=true&returnTo=command") : showGuestPrompt("create custom missions"),
       };
     }
     if (activeTab === "campaigns") {
-      return { 
-        label: "New Campaign", 
-        onClick: () => user ? setCampaignDialogOpen(true) : showGuestPrompt("create custom campaigns")
+      return {
+        label: "New Campaign",
+        onClick: () => (user ? setCampaignDialogOpen(true) : showGuestPrompt("create custom campaigns")),
       };
     }
     if (activeTab === "exercises") {
-      return { 
-        label: "New Exercise", 
-        onClick: () => user ? navigate("/exercises?newExercise=true&returnTo=command") : showGuestPrompt("create custom exercises")
+      return {
+        label: "New Exercise",
+        onClick: () =>
+          user ? navigate("/exercises?newExercise=true&returnTo=command") : showGuestPrompt("create custom exercises"),
       };
     }
     return null;
@@ -358,7 +360,7 @@ const Command = () => {
       <div className="relative z-10 container mx-auto px-4 py-6 max-w-3xl">
         {/* Header */}
         <GlobalNav
-          title="COMMAND CENTRAL"
+          title="COMMAND CENTER"
           subtitle="Launch your campaigns, master your missions, and dominate every workout."
           showBack={true}
           section="command"
