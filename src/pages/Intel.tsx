@@ -34,7 +34,7 @@ import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { format, subHours, subDays } from 'date-fns';
 import { getWeekBoundaries, getWeekRangeText, WEEK_CONFIG } from '@/lib/weekUtils';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { SecondaryNav, SecondaryNavTab, TabsContent } from '@/components/SecondaryNav';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Skeleton } from '@/components/ui/skeleton';
@@ -1009,6 +1009,15 @@ const Intel = () => {
   const [activeTab, setActiveTab] = useState('overview');
   const isGuest = !user || isAnonymous;
 
+  const tabs: SecondaryNavTab[] = [
+    { id: 'overview', label: 'OVERVIEW', shortLabel: 'OVERVIEW', icon: Eye },
+    { id: 'feed', label: 'FEED', shortLabel: 'FEED', icon: Swords },
+    { id: 'boss', label: 'BOSS', shortLabel: 'BOSS', icon: Skull, activeColor: 'destructive' },
+    { id: 'campaigns', label: 'CAMPAIGNS', shortLabel: 'OPS', icon: Flame },
+    { id: 'rivals', label: 'RIVALS', shortLabel: 'RIVALS', icon: Users, activeColor: 'section-rivals', activeTextColor: 'text-black' },
+    { id: 'rankings', label: 'RANKINGS', shortLabel: 'RANKS', icon: Trophy },
+  ];
+
   return (
     <div className="min-h-screen bg-background relative overflow-hidden">
       <div className="fixed inset-0 pointer-events-none scanlines opacity-30" />
@@ -1026,41 +1035,19 @@ const Intel = () => {
           section="intel"
         />
 
-        <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-          <TabsList className="grid w-full grid-cols-6 mb-6 bg-card border border-section-intel/30">
-            <TabsTrigger value="overview" className="font-display text-xs data-[state=active]:bg-section-intel data-[state=active]:text-white">
-              <Eye className="w-3.5 h-3.5 mr-1 hidden sm:inline" />
-              OVERVIEW
-            </TabsTrigger>
-            <TabsTrigger value="feed" className="font-display text-xs data-[state=active]:bg-section-intel data-[state=active]:text-white">
-              <Swords className="w-3.5 h-3.5 mr-1 hidden sm:inline" />
-              FEED
-            </TabsTrigger>
-            <TabsTrigger value="boss" className="font-display text-xs data-[state=active]:bg-destructive data-[state=active]:text-white">
-              <Skull className="w-3.5 h-3.5 mr-1 hidden sm:inline" />
-              BOSS
-            </TabsTrigger>
-            <TabsTrigger value="campaigns" className="font-display text-xs data-[state=active]:bg-section-intel data-[state=active]:text-white">
-              <Flame className="w-3.5 h-3.5 mr-1 hidden sm:inline" />
-              CAMPAIGNS
-            </TabsTrigger>
-            <TabsTrigger value="rivals" className="font-display text-xs data-[state=active]:bg-section-rivals data-[state=active]:text-black">
-              <Users className="w-3.5 h-3.5 mr-1 hidden sm:inline" />
-              RIVALS
-            </TabsTrigger>
-            <TabsTrigger value="rankings" className="font-display text-xs data-[state=active]:bg-section-intel data-[state=active]:text-white">
-              <Trophy className="w-3.5 h-3.5 mr-1 hidden sm:inline" />
-              RANKS
-            </TabsTrigger>
-          </TabsList>
-
+        <SecondaryNav
+          tabs={tabs}
+          activeTab={activeTab}
+          onTabChange={setActiveTab}
+          section="intel"
+        >
           <TabsContent value="overview"><OverviewTab isGuest={isGuest} /></TabsContent>
           <TabsContent value="feed"><FeedTab isGuest={isGuest} /></TabsContent>
           <TabsContent value="boss"><BossTab isGuest={isGuest} /></TabsContent>
           <TabsContent value="campaigns"><CampaignsTab isGuest={isGuest} /></TabsContent>
           <TabsContent value="rivals"><RivalsTab isGuest={isGuest} /></TabsContent>
           <TabsContent value="rankings"><RankingsTab isGuest={isGuest} /></TabsContent>
-        </Tabs>
+        </SecondaryNav>
 
         <AppFooter />
       </div>

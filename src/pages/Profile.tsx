@@ -11,6 +11,7 @@ import {
 } from "lucide-react";
 import { GlobalNav } from "@/components/GlobalNav";
 import { AppFooter } from "@/components/AppFooter";
+import { SecondaryNav, SecondaryNavTab, TabsContent } from "@/components/SecondaryNav";
 import { useAuth } from "@/hooks/useAuth";
 import { useProfile } from "@/hooks/useProfile";
 import { useMyAssignments } from "@/hooks/useAssignments";
@@ -23,26 +24,24 @@ import { ProfileHistoryTab } from "@/components/profile/ProfileHistoryTab";
 import { ProfileNotificationsTab } from "@/components/profile/ProfileNotificationsTab";
 import { ProfileSettingsTab } from "@/components/profile/ProfileSettingsTab";
 
-type TabType = 'overview' | 'handler-ops' | 'progress' | 'history' | 'notifications' | 'settings';
-
-const tabs: { id: TabType; label: string; icon: React.ElementType }[] = [
-  { id: 'overview', label: 'Overview', icon: LayoutGrid },
-  { id: 'handler-ops', label: 'Handler Ops', icon: ClipboardList },
-  { id: 'progress', label: 'Progress', icon: TrendingUp },
-  { id: 'history', label: 'History', icon: History },
-  { id: 'notifications', label: 'Notifications', icon: Bell },
-  { id: 'settings', label: 'Settings', icon: Settings },
-];
-
 const ProfilePage = () => {
   const navigate = useNavigate();
   const { isAnonymous } = useAuth();
   const { isLoading } = useProfile();
   const { data: assignments } = useMyAssignments();
-  const [activeTab, setActiveTab] = useState<TabType>('overview');
+  const [activeTab, setActiveTab] = useState('overview');
 
   // Calculate notification badge (for future use)
   const activeOrderCount = assignments?.filter((a: any) => a.status !== 'COMPLETED').length || 0;
+
+  const tabs: SecondaryNavTab[] = [
+    { id: 'overview', label: 'OVERVIEW', shortLabel: 'OVERVIEW', icon: LayoutGrid },
+    { id: 'handler-ops', label: 'HANDLER OPS', shortLabel: 'ORDERS', icon: ClipboardList, badge: activeOrderCount > 0 ? activeOrderCount : undefined },
+    { id: 'progress', label: 'PROGRESS', shortLabel: 'PROGRESS', icon: TrendingUp },
+    { id: 'history', label: 'HISTORY', shortLabel: 'HISTORY', icon: History },
+    { id: 'notifications', label: 'ALERTS', shortLabel: 'ALERTS', icon: Bell },
+    { id: 'settings', label: 'SETTINGS', shortLabel: 'SETTINGS', icon: Settings },
+  ];
 
   // Redirect anonymous users to auth
   if (isAnonymous) {
@@ -86,55 +85,20 @@ const ProfilePage = () => {
             {/* Profile Header (Identity) */}
             <ProfileHeader />
 
-            {/* Tab Navigation */}
-            <div className="relative">
-              <div className="flex overflow-x-auto snap-x snap-mandatory scrollbar-hide -mx-4 px-4">
-                <div className="flex gap-1 min-w-max">
-                  {tabs.map((tab) => {
-                    const Icon = tab.icon;
-                    const isActive = activeTab === tab.id;
-                    const showBadge = tab.id === 'handler-ops' && activeOrderCount > 0;
-                    
-                    return (
-                      <button
-                        key={tab.id}
-                        onClick={() => setActiveTab(tab.id)}
-                        className={`relative flex items-center gap-1.5 px-3 py-2 text-xs font-display rounded-lg transition-all snap-start touch-manipulation ${
-                          isActive
-                            ? 'bg-primary text-primary-foreground'
-                            : 'bg-card text-muted-foreground hover:text-foreground border border-border'
-                        }`}
-                      >
-                        <Icon className="w-4 h-4" />
-                        <span className="hidden sm:inline">{tab.label}</span>
-                        <span className="sm:hidden">
-                          {tab.label === 'Handler Ops' ? 'Orders' : 
-                           tab.label === 'Notifications' ? 'Alerts' :
-                           tab.label}
-                        </span>
-                        
-                        {/* Badge for active orders */}
-                        {showBadge && (
-                          <span className="absolute -top-1 -right-1 w-4 h-4 bg-section-orders text-white text-[10px] font-display rounded-full flex items-center justify-center">
-                            {activeOrderCount > 9 ? '9+' : activeOrderCount}
-                          </span>
-                        )}
-                      </button>
-                    );
-                  })}
-                </div>
-              </div>
-            </div>
-
-            {/* Tab Content */}
-            <div className="min-h-[400px]">
-              {activeTab === 'overview' && <ProfileOverviewTab />}
-              {activeTab === 'handler-ops' && <ProfileHandlerOpsTab />}
-              {activeTab === 'progress' && <ProfileProgressTab />}
-              {activeTab === 'history' && <ProfileHistoryTab />}
-              {activeTab === 'notifications' && <ProfileNotificationsTab />}
-              {activeTab === 'settings' && <ProfileSettingsTab />}
-            </div>
+            {/* Tab Navigation - Using SecondaryNav for consistency */}
+            <SecondaryNav
+              tabs={tabs}
+              activeTab={activeTab}
+              onTabChange={setActiveTab}
+              section="profile"
+            >
+              <TabsContent value="overview"><ProfileOverviewTab /></TabsContent>
+              <TabsContent value="handler-ops"><ProfileHandlerOpsTab /></TabsContent>
+              <TabsContent value="progress"><ProfileProgressTab /></TabsContent>
+              <TabsContent value="history"><ProfileHistoryTab /></TabsContent>
+              <TabsContent value="notifications"><ProfileNotificationsTab /></TabsContent>
+              <TabsContent value="settings"><ProfileSettingsTab /></TabsContent>
+            </SecondaryNav>
           </div>
         )}
 
