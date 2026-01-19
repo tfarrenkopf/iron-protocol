@@ -7,6 +7,7 @@ import { formatDistanceToNow } from 'date-fns';
 import { SampleDataBanner } from './SampleDataBanner';
 import { BossVictoryScreen } from './BossVictoryScreen';
 import { Button } from './ui/button';
+import { WEEK_CONFIG } from '@/lib/weekUtils';
 
 export function WeeklyBossWidget() {
   const { user } = useAuth();
@@ -176,10 +177,10 @@ export function WeeklyBossWidget() {
         <div className="flex items-center justify-between pt-3 border-t border-border/50">
           <div className="flex items-center gap-2 text-xs text-muted-foreground">
             <Clock className="w-3 h-3" />
-            <span>Boss resets {timeRemaining}</span>
+            <span>{WEEK_CONFIG.resetDescription}</span>
           </div>
           <span className="text-xs font-mono text-muted-foreground">
-            {deadline.toLocaleDateString('en-US', { weekday: 'short' })} {deadline.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' })}
+            Ends {timeRemaining}
           </span>
         </div>
       </div>
