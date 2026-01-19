@@ -293,13 +293,13 @@ const AuthPage = () => {
                     displayNameError ? 'border-destructive focus:border-destructive' : 'border-border focus:border-primary'
                   }`}
                   placeholder="GHOST_REAPER"
-                  maxLength={15}
+                  maxLength={25}
                 />
               </div>
               {displayNameError ? (
                 <p className="text-sm text-destructive">{displayNameError}</p>
               ) : (
-                <p className="text-sm text-muted-foreground">3-15 characters. Letters, numbers, underscores, dashes only.</p>
+                <p className="text-sm text-muted-foreground">3-25 characters. Letters, numbers, underscores, dashes only.</p>
               )}
             </div>
           )}
