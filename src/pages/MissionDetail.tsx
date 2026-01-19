@@ -52,27 +52,49 @@ const MissionDetail = () => {
     }
   }, [expandedExercise]);
 
-  // Fetch user's last completion of this mission
-  const { data: lastCompletion } = useQuery({
-    queryKey: ['mission-last-completion', missionId, user?.id],
+  // Fetch user's stats for this mission (completions + forfeits)
+  const { data: userMissionStats } = useQuery({
+    queryKey: ['user-mission-stats', missionId, user?.id],
     queryFn: async () => {
       if (!user || !missionId) return null;
       
-      const { data, error } = await supabase
+      // Get completion count and last completion
+      const { data: completions, error: completionError } = await supabase
         .from('workout_sessions')
-        .select('completed_at, score_earned, total_weight, max_combo')
+        .select('completed_at, score_earned, total_weight, max_combo, damage_dealt')
         .eq('user_id', user.id)
         .eq('mission_id', missionId)
         .eq('status', 'COMPLETED')
-        .order('completed_at', { ascending: false })
-        .limit(1)
-        .single();
+        .order('completed_at', { ascending: false });
       
-      if (error) return null;
-      return data;
+      if (completionError) return null;
+      
+      // Get forfeit count (ABORTED or FAILED)
+      const { count: forfeitCount } = await supabase
+        .from('workout_sessions')
+        .select('*', { count: 'exact', head: true })
+        .eq('user_id', user.id)
+        .eq('mission_id', missionId)
+        .in('status', ['ABORTED', 'FAILED']);
+      
+      const lastCompletion = completions?.[0] || null;
+      const bestScore = completions?.length 
+        ? Math.max(...completions.map(c => c.score_earned))
+        : null;
+      const totalDamage = completions?.reduce((sum, c) => sum + (c.damage_dealt || 0), 0) || 0;
+      
+      return {
+        lastCompletion,
+        completionCount: completions?.length || 0,
+        forfeitCount: forfeitCount || 0,
+        bestScore,
+        totalDamage,
+      };
     },
     enabled: !!user && !!missionId,
   });
+
+  const lastCompletion = userMissionStats?.lastCompletion;
 
   // Format time ago
   const formatTimeAgo = (dateStr: string) => {
@@ -168,6 +190,12 @@ const MissionDetail = () => {
                 <h1 className="font-display text-2xl sm:text-3xl text-section-missions">{mission.code_name}</h1>
                 <PopularityBadge score={mission.popularity_score || 0} />
               </div>
+              {/* Description below title */}
+              {mission.description && (
+                <p className="text-sm text-muted-foreground mt-1.5 line-clamp-2">
+                  {mission.description}
+                </p>
+              )}
               {isAnonymous && (
                 <p className="text-xs text-muted-foreground mt-1">
                   <GuestIndicator variant="minimal" />
@@ -194,60 +222,57 @@ const MissionDetail = () => {
           </div>
         </motion.div>
 
-        {/* Compact Stats Row */}
+        {/* Compact Stats Row - includes focus areas */}
         <motion.div
           initial={{ opacity: 0, y: 10 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.05 }}
-          className="flex items-center gap-3 sm:gap-4 text-sm mb-4 p-3 bg-card border border-border rounded-lg"
+          className="p-3 bg-card border border-border rounded-lg mb-4"
         >
-          <div className="flex items-center gap-1.5">
-            <Clock className="w-4 h-4 text-muted-foreground" />
-            <span className="font-display text-foreground">{mission.estimated_minutes}</span>
-            <span className="text-muted-foreground text-xs">min</span>
+          <div className="flex items-center gap-3 sm:gap-4 text-sm flex-wrap">
+            <div className="flex items-center gap-1.5">
+              <Clock className="w-4 h-4 text-muted-foreground" />
+              <span className="font-display text-foreground">{mission.estimated_minutes}</span>
+              <span className="text-muted-foreground text-xs">min</span>
+            </div>
+            <div className="w-px h-4 bg-border" />
+            <div className="flex items-center gap-1.5">
+              <Dumbbell className="w-4 h-4 text-muted-foreground" />
+              <span className="font-display text-foreground">{sortedExercises.length}</span>
+              <span className="text-muted-foreground text-xs">exercises</span>
+            </div>
+            <div className="w-px h-4 bg-border" />
+            <div className="flex items-center gap-1.5">
+              <Target className="w-4 h-4 text-muted-foreground" />
+              <span className="font-display text-foreground">{totalSets}</span>
+              <span className="text-muted-foreground text-xs">sets</span>
+            </div>
+            {totalPlayers > 0 && (
+              <>
+                <div className="w-px h-4 bg-border hidden sm:block" />
+                <div className="hidden sm:flex items-center gap-1.5">
+                  <Crosshair className="w-4 h-4 text-muted-foreground" />
+                  <span className="font-display text-foreground">{totalPlayers}</span>
+                  <span className="text-muted-foreground text-xs">warriors</span>
+                </div>
+              </>
+            )}
           </div>
-          <div className="w-px h-4 bg-border" />
-          <div className="flex items-center gap-1.5">
-            <Dumbbell className="w-4 h-4 text-muted-foreground" />
-            <span className="font-display text-foreground">{sortedExercises.length}</span>
-            <span className="text-muted-foreground text-xs">exercises</span>
-          </div>
-          <div className="w-px h-4 bg-border" />
-          <div className="flex items-center gap-1.5">
-            <Target className="w-4 h-4 text-muted-foreground" />
-            <span className="font-display text-foreground">{totalSets}</span>
-            <span className="text-muted-foreground text-xs">sets</span>
-          </div>
-          {totalPlayers > 0 && (
-            <>
-              <div className="w-px h-4 bg-border hidden sm:block" />
-              <div className="hidden sm:flex items-center gap-1.5">
-                <Crosshair className="w-4 h-4 text-muted-foreground" />
-                <span className="font-display text-foreground">{totalPlayers}</span>
-                <span className="text-muted-foreground text-xs">warriors</span>
-              </div>
-            </>
+          
+          {/* Focus Areas - inside the stats box */}
+          {mission.focus_areas && mission.focus_areas.length > 0 && (
+            <div className="flex flex-wrap gap-1.5 mt-2 pt-2 border-t border-border">
+              {mission.focus_areas.map((area) => (
+                <span 
+                  key={area}
+                  className="text-xs px-2 py-0.5 bg-section-missions/10 border border-section-missions/30 rounded text-section-missions uppercase"
+                >
+                  {area}
+                </span>
+              ))}
+            </div>
           )}
         </motion.div>
-
-        {/* Focus Areas - inline */}
-        {mission.focus_areas && mission.focus_areas.length > 0 && (
-          <motion.div 
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            transition={{ delay: 0.1 }}
-            className="flex flex-wrap gap-1.5 mb-4"
-          >
-            {mission.focus_areas.map((area) => (
-              <span 
-                key={area}
-                className="text-xs px-2 py-1 bg-section-missions/10 border border-section-missions/30 rounded text-section-missions uppercase"
-              >
-                {area}
-              </span>
-            ))}
-          </motion.div>
-        )}
 
         {/* Combat Record + Leaderboard - Compact 2-column grid */}
         <motion.div
@@ -256,16 +281,35 @@ const MissionDetail = () => {
           transition={{ delay: 0.15 }}
           className="grid grid-cols-2 gap-3 mb-4"
         >
-          {/* Your Record */}
+          {/* Your Stats */}
           <div className="bg-card border border-border rounded-lg p-3">
             <div className="flex items-center gap-1.5 mb-2">
               <Flame className="w-3.5 h-3.5 text-section-missions" />
-              <span className="text-xs font-display text-muted-foreground">YOUR RECORD</span>
+              <span className="text-xs font-display text-muted-foreground">YOUR STATS</span>
             </div>
             
-            {!user ? (
-              <p className="text-xs text-muted-foreground">Sign in to track progress</p>
-            ) : lastCompletion ? (
+            {isAnonymous ? (
+              // Mock data for guests
+              <div className="space-y-1 relative">
+                <div className="blur-[2px] opacity-60">
+                  <div className="flex items-center gap-1 text-xs">
+                    <Calendar className="w-3 h-3 text-muted-foreground" />
+                    <span className="text-foreground">2h ago</span>
+                  </div>
+                  <div className="flex items-center gap-1 text-xs">
+                    <Trophy className="w-3 h-3 text-muted-foreground" />
+                    <span className="text-foreground">4,250</span>
+                    <span className="text-muted-foreground">pts</span>
+                  </div>
+                  <div className="flex items-center gap-1 text-xs">
+                    <Zap className="w-3 h-3 text-muted-foreground" />
+                    <span className="text-foreground">3</span>
+                    <span className="text-muted-foreground">completions</span>
+                  </div>
+                </div>
+                <p className="text-xs text-section-missions absolute inset-0 flex items-center justify-center">Sign in to track</p>
+              </div>
+            ) : userMissionStats?.completionCount ? (
               <div className="space-y-1">
                 <div className="flex items-center gap-1 text-xs">
                   <Calendar className="w-3 h-3 text-muted-foreground" />
@@ -273,9 +317,21 @@ const MissionDetail = () => {
                 </div>
                 <div className="flex items-center gap-1 text-xs">
                   <Trophy className="w-3 h-3 text-muted-foreground" />
-                  <span className="text-foreground">{lastCompletion.score_earned.toLocaleString()}</span>
-                  <span className="text-muted-foreground">pts</span>
+                  <span className="text-foreground">{(userMissionStats.bestScore || 0).toLocaleString()}</span>
+                  <span className="text-muted-foreground">best</span>
                 </div>
+                <div className="flex items-center gap-1 text-xs">
+                  <Zap className="w-3 h-3 text-muted-foreground" />
+                  <span className="text-foreground">{userMissionStats.completionCount}</span>
+                  <span className="text-muted-foreground">completions</span>
+                </div>
+                {userMissionStats.forfeitCount > 0 && (
+                  <div className="flex items-center gap-1 text-xs">
+                    <AlertCircle className="w-3 h-3 text-destructive/70" />
+                    <span className="text-destructive/70">{userMissionStats.forfeitCount}</span>
+                    <span className="text-muted-foreground">forfeits</span>
+                  </div>
+                )}
                 {userRank?.userRank && (
                   <div className="flex items-center gap-1 text-xs">
                     <Crown className="w-3 h-3 text-muted-foreground" />
@@ -291,22 +347,37 @@ const MissionDetail = () => {
 
           {/* Leaderboard Preview */}
           <div 
-            className="bg-card border border-border rounded-lg p-3 cursor-pointer hover:bg-muted/30 transition-colors"
-            onClick={() => setShowLeaderboard(!showLeaderboard)}
+            className={`bg-card border border-border rounded-lg p-3 ${!isAnonymous ? 'cursor-pointer hover:bg-muted/30' : ''} transition-colors`}
+            onClick={() => !isAnonymous && setShowLeaderboard(!showLeaderboard)}
           >
             <div className="flex items-center justify-between mb-2">
               <div className="flex items-center gap-1.5">
                 <Trophy className="w-3.5 h-3.5 text-section-missions" />
-                <span className="text-xs font-display text-muted-foreground">RANKINGS</span>
+                <span className="text-xs font-display text-muted-foreground">TOP DAMAGE</span>
               </div>
-              {showLeaderboard ? (
+              {!isAnonymous && (showLeaderboard ? (
                 <ChevronUp className="w-3.5 h-3.5 text-muted-foreground" />
               ) : (
                 <ChevronDown className="w-3.5 h-3.5 text-muted-foreground" />
-              )}
+              ))}
             </div>
             
-            {leaderboard && leaderboard.length > 0 ? (
+            {isAnonymous ? (
+              // Mock leaderboard for guests
+              <div className="space-y-1 relative">
+                <div className="blur-[2px] opacity-60">
+                  <div className="flex items-center gap-2 text-xs">
+                    <span className="font-display text-yellow-500">#1</span>
+                    <span className="text-foreground truncate flex-1">GHOST_WOLF</span>
+                  </div>
+                  <div className="flex items-center gap-2 text-xs">
+                    <span className="font-display text-muted-foreground">#2</span>
+                    <span className="text-foreground truncate flex-1">IRON_VIPER</span>
+                  </div>
+                </div>
+                <p className="text-xs text-section-missions mt-1">Sign in to compete</p>
+              </div>
+            ) : leaderboard && leaderboard.length > 0 ? (
               <div className="space-y-1">
                 {leaderboard.slice(0, 2).map((entry, idx) => (
                   <div key={entry.rank} className="flex items-center gap-2 text-xs">
@@ -329,7 +400,7 @@ const MissionDetail = () => {
 
         {/* Expanded Leaderboard */}
         <AnimatePresence>
-          {showLeaderboard && leaderboard && leaderboard.length > 0 && (
+          {showLeaderboard && !isAnonymous && leaderboard && leaderboard.length > 0 && (
             <motion.div
               initial={{ height: 0, opacity: 0 }}
               animate={{ height: 'auto', opacity: 1 }}
@@ -342,18 +413,6 @@ const MissionDetail = () => {
             </motion.div>
           )}
         </AnimatePresence>
-
-        {/* Description - collapsible if long */}
-        {mission.description && (
-          <motion.p 
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            transition={{ delay: 0.2 }}
-            className="text-sm text-muted-foreground mb-4 line-clamp-2"
-          >
-            {mission.description}
-          </motion.p>
-        )}
 
         {/* Exercise Roster - Main Content */}
         <motion.div
