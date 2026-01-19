@@ -1,19 +1,31 @@
-import { useState, useRef, useCallback } from 'react';
-import { motion, AnimatePresence } from 'framer-motion';
-import { useNavigate, useParams, useLocation } from 'react-router-dom';
-import { useQuery } from '@tanstack/react-query';
-import { 
-  Play, Clock, Dumbbell, ChevronDown, ChevronUp, RefreshCw, AlertCircle, 
-  Trophy, Crown, Zap, Target, Calendar, Flame, Crosshair
-} from 'lucide-react';
-import { useMission } from '@/hooks/useMissions';
-import { useMissionStats, useMissionLeaderboard, useUserMissionRank } from '@/hooks/useMissionStats';
-import { PopularityBadge, MissionLeaderboardMini } from '@/components/SocialProof';
-import { useAuth } from '@/hooks/useAuth';
-import { GuestIndicator, ConversionNudge } from '@/components/AnonymousConversion';
-import { GlobalNav } from '@/components/GlobalNav';
-import { supabase } from '@/integrations/supabase/client';
-import { formatEquipment } from '@/data/muscleGroups';
+import { useState, useRef, useCallback } from "react";
+import { motion, AnimatePresence } from "framer-motion";
+import { useNavigate, useParams, useLocation } from "react-router-dom";
+import { useQuery } from "@tanstack/react-query";
+import {
+  Play,
+  Clock,
+  Dumbbell,
+  ChevronDown,
+  ChevronUp,
+  RefreshCw,
+  AlertCircle,
+  Trophy,
+  Crown,
+  Zap,
+  Target,
+  Calendar,
+  Flame,
+  Crosshair,
+} from "lucide-react";
+import { useMission } from "@/hooks/useMissions";
+import { useMissionStats, useMissionLeaderboard, useUserMissionRank } from "@/hooks/useMissionStats";
+import { PopularityBadge, MissionLeaderboardMini } from "@/components/SocialProof";
+import { useAuth } from "@/hooks/useAuth";
+import { GuestIndicator, ConversionNudge } from "@/components/AnonymousConversion";
+import { GlobalNav } from "@/components/GlobalNav";
+import { supabase } from "@/integrations/supabase/client";
+import { formatEquipment } from "@/data/muscleGroups";
 
 const MissionDetail = () => {
   const location = useLocation();
@@ -29,60 +41,61 @@ const MissionDetail = () => {
   const exerciseRefs = useRef<Map<string, HTMLDivElement>>(new Map());
   const bottomBarRef = useRef<HTMLDivElement | null>(null);
 
-  const handleExpandExercise = useCallback((exerciseId: string) => {
-    const isCurrentlyExpanded = expandedExercise === exerciseId;
-    setExpandedExercise(isCurrentlyExpanded ? null : exerciseId);
+  const handleExpandExercise = useCallback(
+    (exerciseId: string) => {
+      const isCurrentlyExpanded = expandedExercise === exerciseId;
+      setExpandedExercise(isCurrentlyExpanded ? null : exerciseId);
 
-    // The CTA bar is fixed to the bottom; ensure expanded content isn't hidden behind it.
-    if (!isCurrentlyExpanded) {
-      window.setTimeout(() => {
-        const element = exerciseRefs.current.get(exerciseId);
-        if (!element) return;
+      // The CTA bar is fixed to the bottom; ensure expanded content isn't hidden behind it.
+      if (!isCurrentlyExpanded) {
+        window.setTimeout(() => {
+          const element = exerciseRefs.current.get(exerciseId);
+          if (!element) return;
 
-        const bottomBarHeight = bottomBarRef.current?.getBoundingClientRect().height ?? 0;
-        const safeBottom = Math.min(window.innerHeight * 0.45, bottomBarHeight + 24);
-        const viewportBottom = window.innerHeight - safeBottom;
+          const bottomBarHeight = bottomBarRef.current?.getBoundingClientRect().height ?? 0;
+          const safeBottom = Math.min(window.innerHeight * 0.45, bottomBarHeight + 24);
+          const viewportBottom = window.innerHeight - safeBottom;
 
-        const rect = element.getBoundingClientRect();
-        if (rect.bottom > viewportBottom) {
-          const delta = rect.bottom - viewportBottom + 8;
-          window.scrollBy({ top: delta, behavior: 'smooth' });
-        }
-      }, 240);
-    }
-  }, [expandedExercise]);
+          const rect = element.getBoundingClientRect();
+          if (rect.bottom > viewportBottom) {
+            const delta = rect.bottom - viewportBottom + 8;
+            window.scrollBy({ top: delta, behavior: "smooth" });
+          }
+        }, 240);
+      }
+    },
+    [expandedExercise],
+  );
 
   // Fetch user's stats for this mission (completions + forfeits)
   const { data: userMissionStats } = useQuery({
-    queryKey: ['user-mission-stats', missionId, user?.id],
+    queryKey: ["user-mission-stats", missionId, user?.id],
     queryFn: async () => {
       if (!user || !missionId) return null;
-      
+
       // Get completion count and last completion
       const { data: completions, error: completionError } = await supabase
-        .from('workout_sessions')
-        .select('completed_at, score_earned, total_weight, max_combo, damage_dealt')
-        .eq('user_id', user.id)
-        .eq('mission_id', missionId)
-        .eq('status', 'COMPLETED')
-        .order('completed_at', { ascending: false });
-      
+        .from("workout_sessions")
+        .select("completed_at, score_earned, total_weight, max_combo, damage_dealt")
+        .eq("user_id", user.id)
+        .eq("mission_id", missionId)
+        .eq("status", "COMPLETED")
+        .order("completed_at", { ascending: false });
+
       if (completionError) return null;
-      
+
       // Get forfeit count (ABORTED or FAILED)
       const { count: forfeitCount } = await supabase
-        .from('workout_sessions')
-        .select('*', { count: 'exact', head: true })
-        .eq('user_id', user.id)
-        .eq('mission_id', missionId)
-        .in('status', ['ABORTED', 'FAILED']);
-      
+        .from("workout_sessions")
+        .select("*", { count: "exact", head: true })
+        .eq("user_id", user.id)
+        .eq("mission_id", missionId)
+        .in("status", ["ABORTED", "FAILED"]);
+
       const lastCompletion = completions?.[0] || null;
-      const bestScore = completions?.length 
-        ? Math.max(...completions.map(c => c.score_earned))
-        : null;
+      const bestScore = completions?.length ? Math.max(...completions.map((c) => c.score_earned)) : null;
       const totalDamage = completions?.reduce((sum, c) => sum + (c.damage_dealt || 0), 0) || 0;
-      
+
       return {
         lastCompletion,
         completionCount: completions?.length || 0,
@@ -104,7 +117,7 @@ const MissionDetail = () => {
     const diffMins = Math.floor(diffMs / 60000);
     const diffHours = Math.floor(diffMs / 3600000);
     const diffDays = Math.floor(diffMs / 86400000);
-    
+
     if (diffMins < 60) return `${diffMins}m ago`;
     if (diffHours < 24) return `${diffHours}h ago`;
     if (diffDays < 7) return `${diffDays}d ago`;
@@ -124,7 +137,9 @@ const MissionDetail = () => {
       <div className="min-h-screen bg-background flex flex-col items-center justify-center gap-4 px-4">
         <AlertCircle className="w-12 h-12 text-destructive" />
         <div className="font-display text-2xl text-destructive">TRANSMISSION FAILED</div>
-        <p className="text-muted-foreground text-sm text-center">Unable to load mission intel. Check your connection.</p>
+        <p className="text-muted-foreground text-sm text-center">
+          Unable to load mission intel. Check your connection.
+        </p>
         <button
           onClick={() => refetch()}
           className="px-6 py-3 bg-section-missions text-section-missions-foreground font-display rounded hover:opacity-90 transition-all flex items-center gap-2"
@@ -141,7 +156,7 @@ const MissionDetail = () => {
       <div className="min-h-screen bg-background flex flex-col items-center justify-center gap-4">
         <div className="font-display text-2xl text-destructive">MISSION NOT FOUND</div>
         <button
-          onClick={() => navigate('/command')}
+          onClick={() => navigate("/command")}
           className="text-sm text-muted-foreground hover:text-section-missions"
         >
           Return to Command
@@ -152,40 +167,34 @@ const MissionDetail = () => {
 
   const sortedExercises = mission.mission_exercises?.sort((a, b) => a.order_index - b.order_index) || [];
   const totalSets = sortedExercises.reduce((acc, me) => acc + me.target_sets, 0);
-  const totalReps = sortedExercises.reduce((acc, me) => acc + (me.target_sets * me.target_reps), 0);
+  const totalReps = sortedExercises.reduce((acc, me) => acc + me.target_sets * me.target_reps, 0);
   const hasCompletedBefore = !!lastCompletion;
   const totalPlayers = missionStats?.uniquePlayers || userRank?.totalPlayers || 0;
 
   // Get CTA text based on user state
   const getCtaText = () => {
-    if (isAnonymous) return 'DEPLOY (GUEST)';
-    if (hasCompletedBefore) return 'DEPLOY AGAIN';
-    return 'BEGIN MISSION';
+    if (isAnonymous) return "DEPLOY (GUEST)";
+    if (hasCompletedBefore) return "DEPLOY AGAIN";
+    return "BEGIN MISSION";
   };
 
   return (
     <div className="min-h-screen bg-background relative">
       {/* Scanlines */}
       <div className="fixed inset-0 pointer-events-none scanlines opacity-20" />
-      
+
       <div className="relative z-10 container mx-auto px-4 py-6 max-w-3xl">
         {/* Header */}
-        <GlobalNav 
+        <GlobalNav
           backTo={(() => {
             const searchParams = new URLSearchParams(location.search);
-            const returnTo = searchParams.get('returnTo');
-            if (returnTo) return decodeURIComponent(returnTo);
-            const campaignId = searchParams.get('campaignId');
-            return campaignId ? `/campaign/${campaignId}` : '/command?tab=missions';
+            const campaignId = searchParams.get("campaignId");
+            return campaignId ? `/campaign/${campaignId}` : "/command?tab=missions";
           })()}
         />
 
         {/* Compact Hero Section */}
-        <motion.div 
-          initial={{ opacity: 0, y: -10 }}
-          animate={{ opacity: 1, y: 0 }}
-          className="mb-4"
-        >
+        <motion.div initial={{ opacity: 0, y: -10 }} animate={{ opacity: 1, y: 0 }} className="mb-4">
           <div className="flex items-start justify-between gap-3">
             <div className="flex-1 min-w-0">
               <div className="flex items-center gap-2 flex-wrap">
@@ -194,27 +203,23 @@ const MissionDetail = () => {
               </div>
               {/* Description below title */}
               {mission.description && (
-                <p className="text-sm text-muted-foreground mt-1.5 line-clamp-2">
-                  {mission.description}
-                </p>
+                <p className="text-sm text-muted-foreground mt-1.5 line-clamp-2">{mission.description}</p>
               )}
             </div>
-            
+
             {/* Difficulty indicator - compact */}
             <div className="flex flex-col items-end flex-shrink-0">
               <div className="flex gap-0.5">
                 {[...Array(5)].map((_, j) => (
-                  <div 
+                  <div
                     key={j}
                     className={`w-2 h-4 rounded-sm transition-all ${
-                      j < mission.difficulty 
-                        ? 'bg-gradient-to-t from-section-missions to-accent' 
-                        : 'bg-muted'
+                      j < mission.difficulty ? "bg-gradient-to-t from-section-missions to-accent" : "bg-muted"
                     }`}
                   />
                 ))}
               </div>
-              <span className="text-xs text-muted-foreground mt-1">DIFF {mission.difficulty}/5</span>
+              <span className="text-xs text-muted-foreground mt-1">DIFFICULTY {mission.difficulty}/5</span>
             </div>
           </div>
         </motion.div>
@@ -255,12 +260,12 @@ const MissionDetail = () => {
               </>
             )}
           </div>
-          
+
           {/* Focus Areas - inside the stats box */}
           {mission.focus_areas && mission.focus_areas.length > 0 && (
             <div className="flex flex-wrap gap-1.5 mt-2 pt-2 border-t border-border">
               {mission.focus_areas.map((area) => (
-                <span 
+                <span
                   key={area}
                   className="text-xs px-2 py-0.5 bg-section-missions/10 border border-section-missions/30 rounded text-section-missions uppercase"
                 >
@@ -284,7 +289,7 @@ const MissionDetail = () => {
               <Flame className="w-3.5 h-3.5 text-section-missions" />
               <span className="text-xs font-display text-muted-foreground">YOUR STATS</span>
             </div>
-            
+
             {isAnonymous ? (
               // Sample data for guests
               <div className="space-y-1">
@@ -346,8 +351,8 @@ const MissionDetail = () => {
           </div>
 
           {/* Leaderboard Preview */}
-          <div 
-            className={`bg-card border border-border rounded-lg p-3 ${!isAnonymous ? 'cursor-pointer hover:bg-muted/30' : ''} transition-colors`}
+          <div
+            className={`bg-card border border-border rounded-lg p-3 ${!isAnonymous ? "cursor-pointer hover:bg-muted/30" : ""} transition-colors`}
             onClick={() => !isAnonymous && setShowLeaderboard(!showLeaderboard)}
           >
             <div className="flex items-center justify-between mb-2">
@@ -355,13 +360,14 @@ const MissionDetail = () => {
                 <Trophy className="w-3.5 h-3.5 text-section-missions" />
                 <span className="text-xs font-display text-muted-foreground">TOP DAMAGE</span>
               </div>
-              {!isAnonymous && (showLeaderboard ? (
-                <ChevronUp className="w-3.5 h-3.5 text-muted-foreground" />
-              ) : (
-                <ChevronDown className="w-3.5 h-3.5 text-muted-foreground" />
-              ))}
+              {!isAnonymous &&
+                (showLeaderboard ? (
+                  <ChevronUp className="w-3.5 h-3.5 text-muted-foreground" />
+                ) : (
+                  <ChevronDown className="w-3.5 h-3.5 text-muted-foreground" />
+                ))}
             </div>
-            
+
             {isAnonymous ? (
               // Sample leaderboard for guests
               <div className="space-y-1">
@@ -381,10 +387,10 @@ const MissionDetail = () => {
               <div className="space-y-1">
                 {leaderboard.slice(0, 2).map((entry, idx) => (
                   <div key={entry.rank} className="flex items-center gap-2 text-xs">
-                    <span className={`font-display ${idx === 0 ? 'text-yellow-500' : 'text-muted-foreground'}`}>
+                    <span className={`font-display ${idx === 0 ? "text-yellow-500" : "text-muted-foreground"}`}>
                       #{entry.rank}
                     </span>
-                    <span className="text-foreground truncate flex-1">{entry.displayName || 'Anonymous'}</span>
+                    <span className="text-foreground truncate flex-1">{entry.displayName || "Anonymous"}</span>
                   </div>
                 ))}
                 <p className="text-xs text-muted-foreground">Tap to see more</p>
@@ -403,7 +409,7 @@ const MissionDetail = () => {
           {showLeaderboard && !isAnonymous && leaderboard && leaderboard.length > 0 && (
             <motion.div
               initial={{ height: 0, opacity: 0 }}
-              animate={{ height: 'auto', opacity: 1 }}
+              animate={{ height: "auto", opacity: 1 }}
               exit={{ height: 0, opacity: 0 }}
               className="overflow-hidden mb-4"
             >
@@ -425,12 +431,12 @@ const MissionDetail = () => {
             <Dumbbell className="w-4 h-4 text-section-exercises" />
             EXERCISE ROSTER
           </h2>
-          
+
           <div className="space-y-2">
             {sortedExercises.map((missionExercise, index) => {
               const exercise = missionExercise.exercises;
               const isExpanded = expandedExercise === missionExercise.id;
-              
+
               if (!exercise) return null;
 
               return (
@@ -478,7 +484,7 @@ const MissionDetail = () => {
                     {isExpanded && (
                       <motion.div
                         initial={{ height: 0, opacity: 0 }}
-                        animate={{ height: 'auto', opacity: 1 }}
+                        animate={{ height: "auto", opacity: 1 }}
                         exit={{ height: 0, opacity: 0 }}
                         className="overflow-hidden"
                       >
@@ -509,7 +515,10 @@ const MissionDetail = () => {
                               <span className="text-xs text-muted-foreground tracking-wider">SECONDARY</span>
                               <div className="flex flex-wrap gap-1.5 mt-1">
                                 {exercise.secondary_muscle_groups.map((muscle) => (
-                                  <span key={muscle} className="text-xs px-2 py-0.5 bg-muted rounded text-muted-foreground">
+                                  <span
+                                    key={muscle}
+                                    className="text-xs px-2 py-0.5 bg-muted rounded text-muted-foreground"
+                                  >
                                     {muscle}
                                   </span>
                                 ))}
@@ -520,21 +529,27 @@ const MissionDetail = () => {
                           {/* Rest time */}
                           <div className="flex items-center gap-2">
                             <span className="text-xs text-muted-foreground">REST:</span>
-                            <span className="text-xs text-foreground">{missionExercise.rest_between_sets_sec}s between sets</span>
+                            <span className="text-xs text-foreground">
+                              {missionExercise.rest_between_sets_sec}s between sets
+                            </span>
                           </div>
 
                           {/* Instructions */}
                           {exercise.instructions_execution && (
                             <div>
                               <span className="text-xs text-muted-foreground tracking-wider">EXECUTION</span>
-                              <p className="text-xs text-foreground mt-1 leading-relaxed">{exercise.instructions_execution}</p>
+                              <p className="text-xs text-foreground mt-1 leading-relaxed">
+                                {exercise.instructions_execution}
+                              </p>
                             </div>
                           )}
 
                           {exercise.instructions_tips && (
                             <div>
                               <span className="text-xs text-muted-foreground tracking-wider">TIPS</span>
-                              <p className="text-xs text-foreground mt-1 leading-relaxed">{exercise.instructions_tips}</p>
+                              <p className="text-xs text-foreground mt-1 leading-relaxed">
+                                {exercise.instructions_tips}
+                              </p>
                             </div>
                           )}
                         </div>
@@ -556,16 +571,12 @@ const MissionDetail = () => {
           className="fixed bottom-0 left-0 right-0 p-4 bg-gradient-to-t from-background via-background to-transparent"
         >
           <div className="container mx-auto max-w-3xl space-y-2">
-            {isAnonymous && (
-              <ConversionNudge 
-                message="Progress won't be saved in guest mode" 
-              />
-            )}
+            {isAnonymous && <ConversionNudge message="Progress won't be saved in guest mode" />}
             <button
               onClick={() => {
                 const searchParams = new URLSearchParams(location.search);
-                const campaignId = searchParams.get('campaignId');
-                navigate(`/workout/${missionId}${campaignId ? `?campaignId=${campaignId}` : ''}`);
+                const campaignId = searchParams.get("campaignId");
+                navigate(`/workout/${missionId}${campaignId ? `?campaignId=${campaignId}` : ""}`);
               }}
               className="w-full py-4 bg-gradient-to-r from-section-missions to-accent text-primary-foreground font-display text-lg rounded-lg hover:opacity-90 active:scale-[0.99] transition-all flex items-center justify-center gap-2 min-h-[56px]"
             >
