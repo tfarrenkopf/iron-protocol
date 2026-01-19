@@ -1,5 +1,6 @@
-import { motion } from 'framer-motion';
-import { TrendingUp, Flame, Calendar, Trophy, Dumbbell, Target, Zap } from 'lucide-react';
+import { useState } from 'react';
+import { motion, AnimatePresence } from 'framer-motion';
+import { TrendingUp, Flame, Calendar, Trophy, Dumbbell, Target, Zap, ChevronDown, ChevronUp } from 'lucide-react';
 import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/hooks/useAuth';
@@ -134,10 +135,16 @@ const GUEST_SAMPLE_PROFILE = {
   total_xp: 2450,
 };
 
-export function WeeklySummary() {
+interface WeeklySummaryProps {
+  collapsible?: boolean;
+  defaultCollapsed?: boolean;
+}
+
+export function WeeklySummary({ collapsible = false, defaultCollapsed = false }: WeeklySummaryProps) {
   const { user, isAnonymous } = useAuth();
   const { data: stats, isLoading } = useWeeklySummary();
   const { data: profile } = useProfile();
+  const [isCollapsed, setIsCollapsed] = useState(defaultCollapsed);
   
   // Use sample data for guests
   const displayStats = isAnonymous ? GUEST_SAMPLE_STATS : stats;
@@ -177,17 +184,41 @@ export function WeeklySummary() {
         </div>
       )}
 
-      {/* Weekly Stats Section */}
-      <div className="p-4 border-b border-border/50">
-        <div className="flex items-center gap-2 mb-3">
+      {/* Weekly Stats Section Header */}
+      <button
+        onClick={() => collapsible && setIsCollapsed(!isCollapsed)}
+        className={`w-full p-4 ${collapsible ? 'cursor-pointer hover:bg-muted/10' : 'cursor-default'} ${!isCollapsed ? 'border-b border-border/50' : ''}`}
+        disabled={!collapsible}
+      >
+        <div className="flex items-center gap-2">
           <Calendar className="w-4 h-4 text-secondary" />
           <span className="font-display text-sm text-secondary">
             WEEKLY DEBRIEF
           </span>
-          <span className="text-xs text-muted-foreground ml-auto">
+          <span className="text-xs text-muted-foreground ml-auto mr-2">
             {format(weekStart, 'MMM d')} - {format(weekEnd, 'MMM d')}
           </span>
+          {collapsible && (
+            isCollapsed ? (
+              <ChevronDown className="w-4 h-4 text-muted-foreground" />
+            ) : (
+              <ChevronUp className="w-4 h-4 text-muted-foreground" />
+            )
+          )}
         </div>
+      </button>
+
+      {/* Collapsible Content */}
+      <AnimatePresence initial={false}>
+        {!isCollapsed && (
+          <motion.div
+            initial={{ height: 0, opacity: 0 }}
+            animate={{ height: 'auto', opacity: 1 }}
+            exit={{ height: 0, opacity: 0 }}
+            transition={{ duration: 0.2 }}
+            className="overflow-hidden"
+          >
+            <div className="p-4 pt-0">
 
         {hasWeeklyActivity ? (
           <>
@@ -242,76 +273,79 @@ export function WeeklySummary() {
             <p className="text-xs text-muted-foreground/70 mt-1">Start a mission to see your stats!</p>
           </div>
         )}
-      </div>
-
-      {/* Level & Progress Section */}
-      <div className="p-4 bg-background/30">
-        <div className="flex items-center justify-between mb-3">
-          <div className="flex items-center gap-2">
-            <Target className="w-4 h-4 text-secondary" />
-            <span className="font-display text-sm text-secondary">AGENT STATUS</span>
-          </div>
-        </div>
-
-        <div className="flex items-center gap-4">
-          {/* Level Badge */}
-          <div className={`flex-shrink-0 w-16 h-16 rounded-lg border flex flex-col items-center justify-center ${
-            isAnonymous 
-              ? 'bg-muted/20 border-muted-foreground/30' 
-              : 'bg-secondary/10 border-secondary/30'
-          }`}>
-            <div className="text-xs uppercase tracking-wide text-muted-foreground">LVL</div>
-            <div className={`font-display text-2xl ${isAnonymous ? 'text-muted-foreground' : 'text-secondary'}`}>
-              {level}
-            </div>
-          </div>
-
-          {/* XP Progress */}
-          <div className="flex-1">
-            <div className="flex items-center justify-between mb-1">
-              <span className="text-xs text-muted-foreground">
-                <span className={`font-display ${isAnonymous ? 'text-muted-foreground' : 'text-foreground'}`}>
-                  {xp.toLocaleString()}
-                </span> XP
-              </span>
-              <span className="text-xs text-muted-foreground">
-                <span className={`font-display ${isAnonymous ? 'text-muted-foreground' : 'text-foreground'}`}>
-                  {xpUntilNext.toLocaleString()}
-                </span> to Level {level + 1}
-              </span>
-            </div>
-            <div className="h-2 bg-muted rounded-full overflow-hidden">
-              <motion.div
-                initial={{ width: 0 }}
-                animate={{ width: `${progressPercent}%` }}
-                transition={{ duration: 0.5, ease: "easeOut" }}
-                className={`h-full ${isAnonymous ? 'bg-muted-foreground/50' : 'bg-secondary'}`}
-              />
             </div>
 
-            {/* Recent Muscle Groups */}
-            {displayStats?.recentMuscleGroups && displayStats.recentMuscleGroups.length > 0 && (
-              <div className="flex items-center gap-2 mt-2">
-                <span className="text-xs text-muted-foreground">RECENT:</span>
-                <div className="flex gap-1">
-                  {displayStats.recentMuscleGroups.map((muscle) => (
-                    <span 
-                      key={muscle} 
-                      className={`text-xs px-1.5 py-0.5 rounded ${
-                        isAnonymous 
-                          ? 'bg-muted text-muted-foreground' 
-                          : 'bg-secondary/20 text-secondary'
-                      }`}
-                    >
-                      {muscle}
-                    </span>
-                  ))}
+            {/* Level & Progress Section */}
+            <div className="p-4 bg-background/30">
+              <div className="flex items-center justify-between mb-3">
+                <div className="flex items-center gap-2">
+                  <Target className="w-4 h-4 text-secondary" />
+                  <span className="font-display text-sm text-secondary">AGENT STATUS</span>
                 </div>
               </div>
-            )}
-          </div>
-        </div>
-      </div>
+
+              <div className="flex items-center gap-4">
+                {/* Level Badge */}
+                <div className={`flex-shrink-0 w-16 h-16 rounded-lg border flex flex-col items-center justify-center ${
+                  isAnonymous 
+                    ? 'bg-muted/20 border-muted-foreground/30' 
+                    : 'bg-secondary/10 border-secondary/30'
+                }`}>
+                  <div className="text-xs uppercase tracking-wide text-muted-foreground">LVL</div>
+                  <div className={`font-display text-2xl ${isAnonymous ? 'text-muted-foreground' : 'text-secondary'}`}>
+                    {level}
+                  </div>
+                </div>
+
+                {/* XP Progress */}
+                <div className="flex-1">
+                  <div className="flex items-center justify-between mb-1">
+                    <span className="text-xs text-muted-foreground">
+                      <span className={`font-display ${isAnonymous ? 'text-muted-foreground' : 'text-foreground'}`}>
+                        {xp.toLocaleString()}
+                      </span> XP
+                    </span>
+                    <span className="text-xs text-muted-foreground">
+                      <span className={`font-display ${isAnonymous ? 'text-muted-foreground' : 'text-foreground'}`}>
+                        {xpUntilNext.toLocaleString()}
+                      </span> to Level {level + 1}
+                    </span>
+                  </div>
+                  <div className="h-2 bg-muted rounded-full overflow-hidden">
+                    <motion.div
+                      initial={{ width: 0 }}
+                      animate={{ width: `${progressPercent}%` }}
+                      transition={{ duration: 0.5, ease: "easeOut" }}
+                      className={`h-full ${isAnonymous ? 'bg-muted-foreground/50' : 'bg-secondary'}`}
+                    />
+                  </div>
+
+                  {/* Recent Muscle Groups */}
+                  {displayStats?.recentMuscleGroups && displayStats.recentMuscleGroups.length > 0 && (
+                    <div className="flex items-center gap-2 mt-2">
+                      <span className="text-xs text-muted-foreground">RECENT:</span>
+                      <div className="flex gap-1">
+                        {displayStats.recentMuscleGroups.map((muscle) => (
+                          <span 
+                            key={muscle} 
+                            className={`text-xs px-1.5 py-0.5 rounded ${
+                              isAnonymous 
+                                ? 'bg-muted text-muted-foreground' 
+                                : 'bg-secondary/20 text-secondary'
+                            }`}
+                          >
+                            {muscle}
+                          </span>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+                </div>
+              </div>
+            </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
     </motion.div>
   );
 }

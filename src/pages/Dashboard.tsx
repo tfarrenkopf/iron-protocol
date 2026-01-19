@@ -115,7 +115,7 @@ const Dashboard = () => {
             IRON PROTOCOL
           </h1>
           <p className="font-body text-muted-foreground text-sm tracking-widest uppercase">
-            Complete Missions • Defeat Enemies • Get Stronger
+            Execute. Conquer. Repeat.
           </p>
         </motion.header>
 
@@ -181,13 +181,13 @@ const Dashboard = () => {
             <WeeklyBossWidget />
           </motion.div>
 
-          {/* Weekly Summary */}
-          <WeeklySummary />
+          {/* Weekly Summary - Collapsible for logged-in users */}
+          {!isAnonymous && <WeeklySummary collapsible defaultCollapsed />}
 
-          {/* Incoming Orders */}
+          {/* Incoming Orders - Only for logged-in users */}
           {!isAnonymous && <IncomingOrders />}
 
-          {/* Rival Mode Widget */}
+          {/* Rival Mode Widget - Only for logged-in users */}
           {!isAnonymous && (
             <motion.div
               initial={{ opacity: 0, y: 20 }}
@@ -197,30 +197,6 @@ const Dashboard = () => {
               <RivalWidget />
             </motion.div>
           )}
-
-          {/* Access Command Button */}
-          <motion.section initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.4 }}>
-            <motion.button
-              initial={{ opacity: 0, y: 10 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: 0.5 }}
-              onClick={() => navigate("/command")}
-              className="w-full group bg-card border-2 border-section-command/50 rounded-lg p-4 flex items-center justify-between hover:border-section-command hover:box-glow-command transition-all"
-            >
-              <div className="flex items-center gap-3">
-                <Crosshair className="w-6 h-6 text-section-command" />
-                <div className="text-left">
-                  <div className="font-display text-lg text-section-command group-hover:text-glow-command transition-all">
-                    ACCESS COMMAND
-                  </div>
-                  <div className="text-xs text-muted-foreground">
-                    {missions?.length || 0}+ missions • All campaigns • Your arsenal
-                  </div>
-                </div>
-              </div>
-              <ChevronRight className="w-5 h-5 text-section-command group-hover:translate-x-1 transition-transform" />
-            </motion.button>
-          </motion.section>
         </div>
 
         {/* Footer */}
