@@ -72,16 +72,22 @@ export function WeeklyBossWidget() {
         {/* Header */}
         <div className="flex items-start justify-between gap-4">
           <div className="flex-1 min-w-0">
+            {/* Weekly Raid Label */}
+            <div className="flex items-center gap-2 mb-2">
+              <span className="px-2 py-0.5 bg-destructive/20 text-destructive text-xs font-mono rounded border border-destructive/30 tracking-wider">
+                🔥 WEEKLY RAID
+              </span>
+              {displayBoss.is_defeated && (
+                <span className="px-2 py-0.5 bg-green-500/20 text-green-400 text-xs font-mono rounded">
+                  DEFEATED
+                </span>
+              )}
+            </div>
             <div className="flex items-center gap-2 mb-1">
               <Skull className="w-5 h-5 text-destructive shrink-0" />
               <h3 className="font-display text-lg sm:text-xl font-bold text-destructive truncate">
                 {displayBoss.name.toUpperCase()}
               </h3>
-              {displayBoss.is_defeated && (
-                <span className="shrink-0 px-2 py-0.5 bg-green-500/20 text-green-400 text-xs font-mono rounded">
-                  DEFEATED
-                </span>
-              )}
             </div>
             <p className="text-sm text-muted-foreground line-clamp-2">
               "{displayBoss.lore}"
