@@ -162,7 +162,7 @@ export function getSyntheticBossData(): WeeklyBoss {
     id: 'synthetic-boss',
     name: 'Iron Goliath',
     code_name: 'iron_goliath',
-    lore: 'A rogue war machine threatens the protocol. Complete your missions to disable its cores.',
+    lore: 'Born from the wreckage of a forgotten facility, the Iron Goliath now stalks the protocol. Its cores pulse with stolen power—only the collective might of all operatives can bring it down.',
     image_url: null,
     max_hp: maxHp,
     current_hp: currentHp,
