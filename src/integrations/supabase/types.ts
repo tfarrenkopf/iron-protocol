@@ -622,6 +622,59 @@ export type Database = {
           },
         ]
       }
+      notifications: {
+        Row: {
+          body: string
+          context: Json | null
+          created_at: string
+          deep_link: string
+          dismissed_at: string | null
+          id: string
+          priority: string
+          read_at: string | null
+          recipient_user_id: string
+          status: string
+          title: string
+          type: string
+        }
+        Insert: {
+          body: string
+          context?: Json | null
+          created_at?: string
+          deep_link: string
+          dismissed_at?: string | null
+          id?: string
+          priority?: string
+          read_at?: string | null
+          recipient_user_id: string
+          status?: string
+          title: string
+          type: string
+        }
+        Update: {
+          body?: string
+          context?: Json | null
+          created_at?: string
+          deep_link?: string
+          dismissed_at?: string | null
+          id?: string
+          priority?: string
+          read_at?: string | null
+          recipient_user_id?: string
+          status?: string
+          title?: string
+          type?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "notifications_recipient_user_id_fkey"
+            columns: ["recipient_user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       personal_records: {
         Row: {
           achieved_at: string
@@ -1050,6 +1103,47 @@ export type Database = {
             foreignKeyName: "user_milestones_user_id_fkey"
             columns: ["user_id"]
             isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      user_notification_preferences: {
+        Row: {
+          created_at: string
+          id: string
+          in_app_enabled: boolean
+          push_enabled: boolean
+          sms_enabled: boolean
+          type_preferences: Json
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          in_app_enabled?: boolean
+          push_enabled?: boolean
+          sms_enabled?: boolean
+          type_preferences?: Json
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          in_app_enabled?: boolean
+          push_enabled?: boolean
+          sms_enabled?: boolean
+          type_preferences?: Json
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "user_notification_preferences_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: true
             referencedRelation: "profiles"
             referencedColumns: ["id"]
           },
@@ -1611,6 +1705,18 @@ export type Database = {
           p_total_sets: number
         }
         Returns: number
+      }
+      emit_notification: {
+        Args: {
+          p_body: string
+          p_context?: Json
+          p_deep_link: string
+          p_priority?: string
+          p_recipient_user_id: string
+          p_title: string
+          p_type: string
+        }
+        Returns: string
       }
       generate_war_report_snapshot: { Args: never; Returns: undefined }
       get_active_weekly_boss: {
