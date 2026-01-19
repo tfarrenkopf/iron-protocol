@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useNavigate } from 'react-router-dom';
-import { Target, BookOpen, X, ChevronRight, Flame, Crosshair, Dumbbell, Skull, Swords } from 'lucide-react';
+import { Target, BookOpen, X, ChevronRight, Crosshair, Skull } from 'lucide-react';
 
 const STORAGE_KEY = 'iron-protocol-visited';
 
@@ -78,60 +78,48 @@ export const FirstVisitPopup = () => {
                 WELCOME, AGENT
               </h2>
               <p className="text-muted-foreground text-sm">
-                Gamify your workouts. Earn XP. Compete.
+                Fitness through action, not tracking.
               </p>
             </div>
 
-            {/* Content Structure */}
-            <div className="bg-background rounded-lg p-3 mb-3 border border-border">
-              <div className="space-y-2">
-                <div className="flex items-center gap-2">
-                  <div className="p-1 rounded bg-section-campaigns/20">
-                    <Flame className="w-3.5 h-3.5 text-section-campaigns" />
-                  </div>
-                  <span className="text-section-campaigns font-medium text-sm">Campaigns</span>
-                  <span className="text-muted-foreground text-sm">— multi-mission programs</span>
+            {/* What Makes This Different */}
+            <div className="bg-background rounded-lg p-3 mb-4 border border-border space-y-3">
+              {/* Missions */}
+              <div className="flex items-start gap-3">
+                <div className="p-1.5 rounded bg-section-missions/20 mt-0.5">
+                  <Crosshair className="w-4 h-4 text-section-missions" />
                 </div>
-                <div className="flex items-center gap-2">
-                  <div className="p-1 rounded bg-section-missions/20">
-                    <Crosshair className="w-3.5 h-3.5 text-section-missions" />
-                  </div>
-                  <span className="text-section-missions font-medium text-sm">Missions</span>
-                  <span className="text-muted-foreground text-sm">— individual workouts</span>
-                </div>
-                <div className="flex items-center gap-2">
-                  <div className="p-1 rounded bg-section-exercises/20">
-                    <Dumbbell className="w-3.5 h-3.5 text-section-exercises" />
-                  </div>
-                  <span className="text-section-exercises font-medium text-sm">Exercises</span>
-                  <span className="text-muted-foreground text-sm">— squats, curls, etc.</span>
+                <div>
+                  <span className="text-section-missions font-display text-sm">MISSIONS</span>
+                  <p className="text-muted-foreground text-xs">
+                    Pick a workout. Execute it. Done.
+                  </p>
                 </div>
               </div>
-            </div>
 
-            {/* Community Features */}
-            <div className="bg-background rounded-lg p-3 mb-4 border border-border">
-              <div className="space-y-2">
-                <div className="flex items-center gap-2">
-                  <div className="p-1 rounded bg-destructive/20">
-                    <Skull className="w-3.5 h-3.5 text-destructive" />
-                  </div>
-                  <span className="text-destructive font-medium text-sm">Weekly Raid</span>
-                  <span className="text-muted-foreground text-sm">— defeat the boss together</span>
+              {/* Weekly Raid */}
+              <div className="flex items-start gap-3">
+                <div className="p-1.5 rounded bg-destructive/20 mt-0.5">
+                  <Skull className="w-4 h-4 text-destructive" />
                 </div>
-                <div className="flex items-center gap-2">
-                  <div className="p-1 rounded bg-section-intel/20">
-                    <Swords className="w-3.5 h-3.5 text-section-intel" />
-                  </div>
-                  <span className="text-section-intel font-medium text-sm">Rivals</span>
-                  <span className="text-muted-foreground text-sm">— compete with friends</span>
+                <div>
+                  <span className="text-destructive font-display text-sm">WEEKLY RAID</span>
+                  <p className="text-muted-foreground text-xs">
+                    Every workout deals damage to a shared boss. Take it down together.
+                  </p>
                 </div>
-                <div className="flex items-center gap-2">
-                  <div className="p-1 rounded bg-section-orders/20">
-                    <Flame className="w-3.5 h-3.5 text-section-orders" />
-                  </div>
-                  <span className="text-section-orders font-medium text-sm">Squads</span>
-                  <span className="text-muted-foreground text-sm">— trainer-assigned workouts</span>
+              </div>
+
+              {/* No Nonsense */}
+              <div className="flex items-start gap-3">
+                <div className="p-1.5 rounded bg-secondary/20 mt-0.5">
+                  <Target className="w-4 h-4 text-secondary" />
+                </div>
+                <div>
+                  <span className="text-secondary font-display text-sm">NO NONSENSE</span>
+                  <p className="text-muted-foreground text-xs">
+                    No ads. No subscriptions. Just train.
+                  </p>
                 </div>
               </div>
             </div>
