@@ -35,6 +35,7 @@ import { ActiveCampaignHero } from "@/components/ActiveCampaignHero";
 import { TodayMissionsWidget } from "@/components/TodayMissionsWidget";
 import { CampaignCard } from "@/components/CampaignCard";
 import { SourceToggle } from "@/components/SourceToggle";
+import { CampaignSourceToggle } from "@/components/CampaignSourceToggle";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -493,40 +494,11 @@ const Command = () => {
                 Commit to one. Complete all missions. Earn glory.
               </p>
             </div>
-            <div className="flex rounded-lg border border-border overflow-hidden">
-              <button
-                onClick={() => setCampaignSource("standard")}
-                className={`flex-1 py-2.5 font-display text-sm transition-colors ${
-                  campaignSource === "standard"
-                    ? "bg-section-campaigns text-white"
-                    : "bg-card text-muted-foreground hover:text-foreground"
-                }`}
-              >
-                STANDARD
-              </button>
-              {user && (
-                <button
-                  onClick={() => setCampaignSource("personal")}
-                  className={`flex-1 py-2.5 font-display text-sm transition-colors border-x border-border ${
-                    campaignSource === "personal"
-                      ? "bg-section-campaigns text-white"
-                      : "bg-card text-muted-foreground hover:text-foreground"
-                  }`}
-                >
-                  MY OPS
-                </button>
-              )}
-              <button
-                onClick={() => setCampaignSource("community")}
-                className={`flex-1 py-2.5 font-display text-sm transition-colors ${
-                  campaignSource === "community"
-                    ? "bg-section-campaigns text-white"
-                    : "bg-card text-muted-foreground hover:text-foreground"
-                }`}
-              >
-                COMMUNITY
-              </button>
-            </div>
+            <CampaignSourceToggle
+              value={campaignSource}
+              onChange={setCampaignSource}
+              showPersonal={!!user}
+            />
           </motion.div>
         )}
 
