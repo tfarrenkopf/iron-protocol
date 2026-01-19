@@ -1,7 +1,8 @@
 import { useState } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
 import { motion } from "framer-motion";
-import { Home, Crosshair, Timer, Radio, ArrowLeft, Users, User, LogOut } from "lucide-react";
+import { Home, Crosshair, Timer, Radio, ArrowLeft, Users, User, LogOut, Bell } from "lucide-react";
+import { useUnreadNotificationCount } from "@/hooks/useNotifications";
 import { cn } from "@/lib/utils";
 import { useIsHandler } from "@/hooks/useHandlerMode";
 import { useAuth } from "@/hooks/useAuth";
@@ -99,6 +100,19 @@ interface GlobalNavProps {
   actions?: React.ReactNode;
   /** Hide the IRON PROTOCOL branding text (useful when page has its own hero branding) */
   hideBranding?: boolean;
+}
+
+// Badge component for unread notifications
+function NotificationBadge() {
+  const { data: count } = useUnreadNotificationCount();
+  
+  if (!count || count === 0) return null;
+  
+  return (
+    <span className="absolute -top-0.5 -right-0.5 w-4 h-4 bg-destructive text-destructive-foreground text-[10px] font-display rounded-full flex items-center justify-center animate-pulse">
+      {count > 9 ? '9+' : count}
+    </span>
+  );
 }
 
 export function GlobalNav({ 
@@ -235,7 +249,7 @@ export function GlobalNav({
               <button
                 onClick={() => navigate("/profile")}
                 className={cn(
-                  "p-2.5 sm:p-2 rounded transition-colors min-w-[44px] min-h-[44px] flex items-center justify-center active:scale-95",
+                  "relative p-2.5 sm:p-2 rounded transition-colors min-w-[44px] min-h-[44px] flex items-center justify-center active:scale-95",
                   location.pathname === "/profile"
                     ? "text-primary bg-primary/10"
                     : "text-muted-foreground hover:text-foreground hover:bg-muted/50"
@@ -244,6 +258,7 @@ export function GlobalNav({
                 title="Profile"
               >
                 <User className="w-5 h-5 sm:w-4 sm:h-4" />
+                <NotificationBadge />
               </button>
               <button
                 onClick={() => setShowSignOutDialog(true)}

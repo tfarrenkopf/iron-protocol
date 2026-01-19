@@ -15,6 +15,7 @@ import { SecondaryNav, SecondaryNavTab } from "@/components/SecondaryNav";
 import { useAuth } from "@/hooks/useAuth";
 import { useProfile } from "@/hooks/useProfile";
 import { useMyAssignments } from "@/hooks/useAssignments";
+import { useUnreadNotificationCount } from "@/hooks/useNotifications";
 
 import { ProfileHeader } from "@/components/profile/ProfileHeader";
 import { ProfileOverviewTab } from "@/components/profile/ProfileOverviewTab";
@@ -29,6 +30,7 @@ const ProfilePage = () => {
   const { isAnonymous } = useAuth();
   const { isLoading } = useProfile();
   const { data: assignments } = useMyAssignments();
+  const { data: unreadCount } = useUnreadNotificationCount();
   const [activeTab, setActiveTab] = useState('overview');
 
   // Calculate notification badge (for future use)
@@ -39,7 +41,7 @@ const ProfilePage = () => {
     { id: 'handler-ops', label: 'HANDLER OPS', shortLabel: 'ORDERS', icon: ClipboardList, badge: activeOrderCount > 0 ? activeOrderCount : undefined },
     { id: 'progress', label: 'PROGRESS', shortLabel: 'PROGRESS', icon: TrendingUp },
     { id: 'history', label: 'HISTORY', shortLabel: 'HISTORY', icon: History },
-    { id: 'notifications', label: 'ALERTS', shortLabel: 'ALERTS', icon: Bell },
+    { id: 'notifications', label: 'ALERTS', shortLabel: 'ALERTS', icon: Bell, badge: unreadCount && unreadCount > 0 ? unreadCount : undefined },
     { id: 'settings', label: 'SETTINGS', shortLabel: 'SETTINGS', icon: Settings },
   ];
 
