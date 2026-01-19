@@ -1,6 +1,6 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { motion } from "framer-motion";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useSearchParams } from "react-router-dom";
 import { 
   LayoutGrid, 
   ClipboardList, 
@@ -14,7 +14,6 @@ import { AppFooter } from "@/components/AppFooter";
 import { SecondaryNav, SecondaryNavTab } from "@/components/SecondaryNav";
 import { useAuth } from "@/hooks/useAuth";
 import { useProfile } from "@/hooks/useProfile";
-import { useMyAssignments } from "@/hooks/useAssignments";
 import { useUnreadNotificationCount } from "@/hooks/useNotifications";
 
 import { ProfileHeader } from "@/components/profile/ProfileHeader";
@@ -27,18 +26,26 @@ import { ProfileSettingsTab } from "@/components/profile/ProfileSettingsTab";
 
 const ProfilePage = () => {
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
   const { isAnonymous } = useAuth();
   const { isLoading } = useProfile();
-  const { data: assignments } = useMyAssignments();
   const { data: unreadCount } = useUnreadNotificationCount();
-  const [activeTab, setActiveTab] = useState('overview');
-
-  // Calculate notification badge (for future use)
-  const activeOrderCount = assignments?.filter((a: any) => a.status !== 'COMPLETED').length || 0;
+  
+  // Read tab from URL query parameter, default to 'overview'
+  const tabFromUrl = searchParams.get('tab') || 'overview';
+  const [activeTab, setActiveTab] = useState(tabFromUrl);
+  
+  // Sync tab state with URL changes
+  useEffect(() => {
+    const tabParam = searchParams.get('tab');
+    if (tabParam && tabParam !== activeTab) {
+      setActiveTab(tabParam);
+    }
+  }, [searchParams]);
 
   const tabs: SecondaryNavTab[] = [
     { id: 'overview', label: 'OVERVIEW', shortLabel: 'OVERVIEW', icon: LayoutGrid },
-    { id: 'handler-ops', label: 'HANDLER OPS', shortLabel: 'ORDERS', icon: ClipboardList, badge: activeOrderCount > 0 ? activeOrderCount : undefined },
+    { id: 'handler-ops', label: 'HANDLER OPS', shortLabel: 'ORDERS', icon: ClipboardList },
     { id: 'progress', label: 'PROGRESS', shortLabel: 'PROGRESS', icon: TrendingUp },
     { id: 'history', label: 'HISTORY', shortLabel: 'HISTORY', icon: History },
     { id: 'notifications', label: 'ALERTS', shortLabel: 'ALERTS', icon: Bell, badge: unreadCount && unreadCount > 0 ? unreadCount : undefined },
