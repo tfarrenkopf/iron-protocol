@@ -130,7 +130,13 @@ const Dashboard = () => {
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: 0.2 }}
-              className={`grid gap-3 sm:gap-4 grid-cols-2 ${isHandler ? "sm:grid-cols-4" : "sm:grid-cols-3"}`}
+              className={`grid gap-3 sm:gap-4 ${
+                isAnonymous 
+                  ? "grid-cols-2" 
+                  : isHandler 
+                    ? "grid-cols-2 sm:grid-cols-4" 
+                    : "grid-cols-2 sm:grid-cols-3"
+              }`}
             >
               <button
                 onClick={() => navigate("/hiit")}
@@ -150,14 +156,17 @@ const Dashboard = () => {
                 <p className="text-xs text-muted-foreground mt-0.5 sm:mt-1 hidden sm:block">Global Activity</p>
               </button>
 
-              <button
-                onClick={() => navigate("/command")}
-                className="group relative bg-card border border-section-command/50 rounded-lg p-3 sm:p-4 text-center transition-all hover:border-section-command hover:bg-section-command/5 active:scale-[0.98] min-h-[72px]"
-              >
-                <Crosshair className="w-5 h-5 sm:w-6 sm:h-6 text-section-command mx-auto mb-1.5 sm:mb-2" />
-                <h2 className="font-display text-xs sm:text-sm text-section-command">COMMAND</h2>
-                <p className="text-xs text-muted-foreground mt-0.5 sm:mt-1 hidden sm:block">Mission Arsenal</p>
-              </button>
+              {/* COMMAND - Only for logged-in users (guests have primary CTA) */}
+              {!isAnonymous && (
+                <button
+                  onClick={() => navigate("/command")}
+                  className="group relative bg-card border border-section-command/50 rounded-lg p-3 sm:p-4 text-center transition-all hover:border-section-command hover:bg-section-command/5 active:scale-[0.98] min-h-[72px]"
+                >
+                  <Crosshair className="w-5 h-5 sm:w-6 sm:h-6 text-section-command mx-auto mb-1.5 sm:mb-2" />
+                  <h2 className="font-display text-xs sm:text-sm text-section-command">COMMAND</h2>
+                  <p className="text-xs text-muted-foreground mt-0.5 sm:mt-1 hidden sm:block">Mission Arsenal</p>
+                </button>
+              )}
 
               {isHandler && (
                 <button
@@ -181,8 +190,8 @@ const Dashboard = () => {
             <WeeklyBossWidget />
           </motion.div>
 
-          {/* Weekly Summary - Collapsible for logged-in users */}
-          {!isAnonymous && <WeeklySummary collapsible defaultCollapsed />}
+          {/* Weekly Summary - Collapsible for logged-in users, expanded for guests */}
+          <WeeklySummary collapsible={!isAnonymous} defaultCollapsed={!isAnonymous} />
 
           {/* Incoming Orders - Only for logged-in users */}
           {!isAnonymous && <IncomingOrders />}
