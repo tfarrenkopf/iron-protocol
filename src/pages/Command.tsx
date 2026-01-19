@@ -26,6 +26,8 @@ import { AddToCollectionButton } from "@/components/AddToCollectionButton";
 import { CollectionFormDialog } from "@/components/CollectionFormDialog";
 import { ExerciseCard } from "@/components/ExerciseCard";
 import { GuestConversionDialog } from "@/components/GuestConversionDialog";
+import { ExerciseFormDialog } from "@/components/ExerciseFormDialog";
+import { MissionFormDialog } from "@/components/MissionFormDialog";
 import { FOCUS_AREAS, getMusclesForFocusArea, formatEquipment, EQUIPMENT_OPTIONS } from "@/data/muscleGroups";
 import { CollectionFilter } from "@/components/CollectionFilter";
 import { useActiveCampaign } from "@/hooks/useActiveCampaign";
@@ -95,6 +97,12 @@ const Command = () => {
   const [editCampaignId, setEditCampaignId] = useState<string | null>(null);
   const [guestConversionOpen, setGuestConversionOpen] = useState(false);
   const [guestConversionAction, setGuestConversionAction] = useState("");
+  
+  // Exercise & Mission form dialog states
+  const [exerciseDialogOpen, setExerciseDialogOpen] = useState(false);
+  const [editExerciseId, setEditExerciseId] = useState<string | null>(null);
+  const [missionDialogOpen, setMissionDialogOpen] = useState(false);
+  const [editMissionId, setEditMissionId] = useState<string | null>(null);
 
   // Data hooks
   const {
@@ -308,11 +316,13 @@ const Command = () => {
 
   const handleEditMission = (e: React.MouseEvent, missionId: string) => {
     e.stopPropagation();
-    navigate(`/exercises?editMission=${missionId}&returnTo=command`);
+    setEditMissionId(missionId);
+    setMissionDialogOpen(true);
   };
 
   const handleEditExercise = (exerciseId: string) => {
-    navigate(`/exercises?editExercise=${exerciseId}&returnTo=command`);
+    setEditExerciseId(exerciseId);
+    setExerciseDialogOpen(true);
   };
 
   const tabs: { id: TabType; label: string; icon: typeof Flame }[] = [
@@ -332,7 +342,7 @@ const Command = () => {
       return {
         label: "New Mission",
         onClick: () =>
-          user ? navigate("/exercises?newMission=true&returnTo=command") : showGuestPrompt("create custom missions"),
+          user ? setMissionDialogOpen(true) : showGuestPrompt("create custom missions"),
       };
     }
     if (activeTab === "campaigns") {
@@ -345,7 +355,7 @@ const Command = () => {
       return {
         label: "New Exercise",
         onClick: () =>
-          user ? navigate("/exercises?newExercise=true&returnTo=command") : showGuestPrompt("create custom exercises"),
+          user ? setExerciseDialogOpen(true) : showGuestPrompt("create custom exercises"),
       };
     }
     return null;
@@ -854,7 +864,7 @@ const Command = () => {
                     </p>
                     {source === "personal" && user && (
                       <button
-                        onClick={() => navigate("/exercises?newMission=true")}
+                        onClick={() => setMissionDialogOpen(true)}
                         className="text-sm text-section-missions hover:text-glow-missions font-display"
                       >
                         + CREATE YOUR FIRST MISSION
@@ -943,7 +953,7 @@ const Command = () => {
                     </p>
                     {source === "personal" && user && (
                       <button
-                        onClick={() => navigate("/exercises?newExercise=true")}
+                        onClick={() => setExerciseDialogOpen(true)}
                         className="text-sm text-section-command hover:text-glow-command font-display"
                       >
                         + CREATE YOUR FIRST EXERCISE
@@ -1071,6 +1081,30 @@ const Command = () => {
         isOpen={guestConversionOpen}
         onClose={() => setGuestConversionOpen(false)}
         action={guestConversionAction}
+      />
+
+      {/* Exercise Form Dialog */}
+      <ExerciseFormDialog
+        open={exerciseDialogOpen || !!editExerciseId}
+        onOpenChange={(open) => {
+          if (!open) {
+            setExerciseDialogOpen(false);
+            setEditExerciseId(null);
+          }
+        }}
+        exerciseId={editExerciseId || undefined}
+      />
+
+      {/* Mission Form Dialog */}
+      <MissionFormDialog
+        open={missionDialogOpen || !!editMissionId}
+        onOpenChange={(open) => {
+          if (!open) {
+            setMissionDialogOpen(false);
+            setEditMissionId(null);
+          }
+        }}
+        missionId={editMissionId || undefined}
       />
     </div>
   );
