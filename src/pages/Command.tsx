@@ -25,6 +25,7 @@ import { MissionCard } from "@/components/MissionCard";
 import { AddToCollectionButton } from "@/components/AddToCollectionButton";
 import { CollectionFormDialog } from "@/components/CollectionFormDialog";
 import { ExerciseCard } from "@/components/ExerciseCard";
+import { GuestConversionDialog } from "@/components/GuestConversionDialog";
 import { FOCUS_AREAS, getMusclesForFocusArea, formatEquipment, EQUIPMENT_OPTIONS } from "@/data/muscleGroups";
 import { CollectionFilter } from "@/components/CollectionFilter";
 import { useActiveCampaign } from "@/hooks/useActiveCampaign";
@@ -92,6 +93,8 @@ const Command = () => {
   } | null>(null);
   const [campaignDialogOpen, setCampaignDialogOpen] = useState(false);
   const [editCampaignId, setEditCampaignId] = useState<string | null>(null);
+  const [guestConversionOpen, setGuestConversionOpen] = useState(false);
+  const [guestConversionAction, setGuestConversionAction] = useState("");
 
   // Data hooks
   const {
@@ -318,16 +321,30 @@ const Command = () => {
     { id: "exercises", label: "EXERCISES", icon: Dumbbell },
   ];
 
-  // Create button config - always available based on active tab (for logged in users)
+  // Create button config - available for all users, but guests get conversion prompt
   const getCreateButtonConfig = () => {
+    const showGuestPrompt = (action: string) => {
+      setGuestConversionAction(action);
+      setGuestConversionOpen(true);
+    };
+
     if (activeTab === "missions") {
-      return { label: "New Mission", onClick: () => navigate("/exercises?newMission=true&returnTo=command") };
+      return { 
+        label: "New Mission", 
+        onClick: () => user ? navigate("/exercises?newMission=true&returnTo=command") : showGuestPrompt("create custom missions")
+      };
     }
     if (activeTab === "campaigns") {
-      return { label: "New Campaign", onClick: () => setCampaignDialogOpen(true) };
+      return { 
+        label: "New Campaign", 
+        onClick: () => user ? setCampaignDialogOpen(true) : showGuestPrompt("create custom campaigns")
+      };
     }
     if (activeTab === "exercises") {
-      return { label: "New Exercise", onClick: () => navigate("/exercises?newExercise=true&returnTo=command") };
+      return { 
+        label: "New Exercise", 
+        onClick: () => user ? navigate("/exercises?newExercise=true&returnTo=command") : showGuestPrompt("create custom exercises")
+      };
     }
     return null;
   };
@@ -354,8 +371,7 @@ const Command = () => {
             {tabs.map((tab) => {
               const Icon = tab.icon;
               const isActive = activeTab === tab.id;
-              // Hide exercises tab for guests
-              if (tab.id === "exercises" && !user) return null;
+              // All tabs visible for all users
 
               // Section-specific colors for each tab
               const tabColors = {
@@ -413,8 +429,8 @@ const Command = () => {
             >
               <Filter className="w-5 h-5 sm:w-4 sm:h-4" />
             </button>
-            {/* Create button - always visible for logged in users */}
-            {user && createConfig && (
+            {/* Create button - visible for all users */}
+            {createConfig && (
               <button
                 onClick={createConfig.onClick}
                 className={`p-2.5 sm:p-2 border rounded-lg transition-colors min-w-[44px] min-h-[44px] flex items-center justify-center active:scale-95 ${
@@ -1047,6 +1063,13 @@ const Command = () => {
           collectionId={editCampaignId || undefined}
         />
       )}
+
+      {/* Guest Conversion Dialog */}
+      <GuestConversionDialog
+        isOpen={guestConversionOpen}
+        onClose={() => setGuestConversionOpen(false)}
+        action={guestConversionAction}
+      />
     </div>
   );
 };
