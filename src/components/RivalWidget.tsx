@@ -146,7 +146,7 @@ export function RivalWidget({ variant = 'compact' }: RivalWidgetProps) {
       exit={{ opacity: 0, height: 0 }}
       className="mt-2 pt-2 border-t border-border/50"
     >
-      <div className="grid grid-cols-3 gap-2 text-center">
+      <div className="grid grid-cols-4 gap-2 text-center">
         <div>
           <div className="font-display text-sm text-muted-foreground">{stat.weekly_weight.toLocaleString()}</div>
           <div className="text-xs text-muted-foreground/70 uppercase">LBS</div>
@@ -158,6 +158,12 @@ export function RivalWidget({ variant = 'compact' }: RivalWidgetProps) {
         <div>
           <div className="font-display text-sm text-muted-foreground">{stat.weekly_max_combo}x</div>
           <div className="text-xs text-muted-foreground/70 uppercase">COMBO</div>
+        </div>
+        <div>
+          <div className="font-display text-sm text-destructive">{stat.weekly_damage.toLocaleString()}</div>
+          <div className="text-xs text-muted-foreground/70 uppercase flex items-center justify-center gap-0.5">
+            <Skull className="w-3 h-3" /> DMG
+          </div>
         </div>
       </div>
     </motion.div>
