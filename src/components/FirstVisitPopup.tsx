@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useNavigate } from 'react-router-dom';
-import { Target, BookOpen, X, ChevronRight, Crosshair, Skull, Users, Send } from 'lucide-react';
+import { Target, BookOpen, X, ChevronRight, Crosshair, Skull, Users, Send, UserPlus, Shield } from 'lucide-react';
 
 const STORAGE_KEY = 'iron-protocol-visited';
 
@@ -30,7 +30,13 @@ export const FirstVisitPopup = () => {
     navigate('/guide');
   };
 
-  const handleStartNow = () => {
+  const handleCreateAccount = () => {
+    localStorage.setItem(STORAGE_KEY, 'true');
+    setShow(false);
+    navigate('/auth?mode=signup');
+  };
+
+  const handleContinueAsGuest = () => {
     localStorage.setItem(STORAGE_KEY, 'true');
     setShow(false);
     navigate('/command?tab=missions');
@@ -137,20 +143,33 @@ export const FirstVisitPopup = () => {
               </div>
             </div>
 
+            {/* Privacy Statement */}
+            <div className="flex items-center justify-center gap-2 mb-4 text-muted-foreground">
+              <Shield className="w-4 h-4" />
+              <span className="text-xs">No tracking. No ads. Your data stays yours.</span>
+            </div>
+
             {/* Actions */}
             <div className="space-y-2">
               <button
-                onClick={handleStartNow}
+                onClick={handleCreateAccount}
                 className="w-full py-3 bg-primary text-primary-foreground font-display rounded flex items-center justify-center gap-2 hover:box-glow-primary transition-all"
               >
-                START TRAINING
-                <ChevronRight className="w-5 h-5" />
+                <UserPlus className="w-5 h-5" />
+                CREATE ACCOUNT
+              </button>
+              <button
+                onClick={handleContinueAsGuest}
+                className="w-full py-2 text-muted-foreground font-display text-sm hover:text-foreground transition-colors flex items-center justify-center gap-2 border border-border rounded hover:border-primary/50"
+              >
+                <ChevronRight className="w-4 h-4" />
+                Continue as Guest
               </button>
               <button
                 onClick={handleViewGuide}
-                className="w-full py-2 text-muted-foreground font-display text-sm hover:text-foreground transition-colors flex items-center justify-center gap-2 border border-border rounded hover:border-primary/50"
+                className="w-full py-2 text-muted-foreground/70 font-display text-xs hover:text-muted-foreground transition-colors flex items-center justify-center gap-2"
               >
-                <BookOpen className="w-4 h-4" />
+                <BookOpen className="w-3 h-3" />
                 Read the Field Manual
               </button>
             </div>
