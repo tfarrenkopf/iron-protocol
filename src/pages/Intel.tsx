@@ -19,12 +19,20 @@ import {
   AlertTriangle,
   Share2,
   Play,
+  Skull,
+  Clock,
+  ChevronRight,
+  Eye,
+  Calendar,
+  CheckCircle,
+  XCircle,
 } from 'lucide-react';
 import { GlobalNav } from '@/components/GlobalNav';
 import { RivalWidget } from '@/components/RivalWidget';
+import { WeeklyBossWidget } from '@/components/WeeklyBossWidget';
 import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
-import { format, subHours, subDays, subMinutes } from 'date-fns';
+import { format, subHours, subDays } from 'date-fns';
 import { getWeekBoundaries, getWeekRangeText, WEEK_CONFIG } from '@/lib/weekUtils';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -37,42 +45,21 @@ import {
   getFocusAreaLabel 
 } from '@/hooks/useWarReport';
 import { useProfile, useLeaderboard } from '@/hooks/useProfile';
-import { useMuscleGroupStats } from '@/hooks/useMuscleGroupStats';
 import { useAuth } from '@/hooks/useAuth';
-import BodyDiagram from '@/components/BodyDiagram';
-import { useUserMilestones } from '@/hooks/useMilestones';
-import { MilestoneList } from '@/components/MilestoneProgress';
-import { useAchievements, useUserAchievements } from '@/hooks/useAchievements';
-import { AchievementList } from '@/components/AchievementList';
 import { useMissions } from '@/hooks/useMissions';
+import { useWeeklyBoss, useUserBossDamage, getSyntheticBossData, getSyntheticUserDamage, WeeklyBoss } from '@/hooks/useWeeklyBoss';
+import { useBossHistory, getSyntheticBossHistory, HistoricalBoss } from '@/hooks/useBossHistory';
+import { BossVictoryScreen } from '@/components/BossVictoryScreen';
 import { AppFooter } from '@/components/AppFooter';
-
 // ==================== HACKER PSEUDONYMS ====================
 const HACKER_NAMES = [
-  'ZERO_COOL',
-  'ACID_BURN', 
-  'CRASH_OVERRIDE',
-  'THE_PLAGUE',
-  'LORD_NIKON',
-  'PHANTOM_PHREAK',
-  'CEREAL_KILLER',
-  'RAZOR',
-  'BLADE',
-  'GHOST_PROTOCOL',
-  'NEO',
-  'MORPHEUS',
-  'TRINITY',
-  'CYPHER',
-  'TANK',
-  'D4RK_M4TTER',
-  'SH4D0W_RUN',
-  'NETW0RK_GHOST',
-  'CIPHER_PUNK',
-  'SILICON_SAINT',
+  'ZERO_COOL', 'ACID_BURN', 'CRASH_OVERRIDE', 'THE_PLAGUE', 'LORD_NIKON',
+  'PHANTOM_PHREAK', 'CEREAL_KILLER', 'RAZOR', 'BLADE', 'GHOST_PROTOCOL',
+  'NEO', 'MORPHEUS', 'TRINITY', 'CYPHER', 'TANK', 'D4RK_M4TTER',
+  'SH4D0W_RUN', 'NETW0RK_GHOST', 'CIPHER_PUNK', 'SILICON_SAINT',
 ];
 
 // ==================== TYPES ====================
-
 interface CompletedSession {
   id: string;
   completed_at: string;
@@ -104,33 +91,40 @@ interface CommunityStats {
   topMissionCompleter: { name: string; missions: number } | null;
 }
 
-// ==================== SYNTHETIC DATA GENERATOR ====================
+interface SyntheticRivalStats {
+  user_id: string;
+  display_name: string;
+  weekly_sessions: number;
+  weekly_weight: number;
+  weekly_sets: number;
+  weekly_max_combo: number;
+}
 
+interface SyntheticRivalActivity {
+  id: string;
+  display_name: string;
+  completed_at: string;
+  mission_id: string;
+  mission_snapshot: { name: string; code_name: string };
+  score_earned: number;
+  total_weight: number;
+  max_combo: number;
+}
+
+// ==================== SYNTHETIC DATA GENERATORS ====================
 function generateSyntheticFeed(missions: any[]): CompletedSession[] {
   if (!missions || missions.length === 0) return [];
-  
   const now = new Date();
   const syntheticSessions: CompletedSession[] = [];
-  
-  // Generate 15-20 synthetic sessions spread over the past week
   const sessionCount = 15 + Math.floor(Math.random() * 6);
   
   for (let i = 0; i < sessionCount; i++) {
     const mission = missions[Math.floor(Math.random() * missions.length)];
     const hackerName = HACKER_NAMES[Math.floor(Math.random() * HACKER_NAMES.length)];
-    
-    // Spread timestamps: some hours ago, some days ago
     let completedAt: Date;
-    if (i < 3) {
-      // Recent: 1-6 hours ago
-      completedAt = subHours(now, 1 + Math.floor(Math.random() * 5));
-    } else if (i < 8) {
-      // Today/yesterday: 6-48 hours ago
-      completedAt = subHours(now, 6 + Math.floor(Math.random() * 42));
-    } else {
-      // This week: 2-6 days ago
-      completedAt = subDays(now, 2 + Math.floor(Math.random() * 5));
-    }
+    if (i < 3) completedAt = subHours(now, 1 + Math.floor(Math.random() * 5));
+    else if (i < 8) completedAt = subHours(now, 6 + Math.floor(Math.random() * 42));
+    else completedAt = subDays(now, 2 + Math.floor(Math.random() * 5));
     
     syntheticSessions.push({
       id: `synth-${i}-${mission.id}`,
@@ -147,11 +141,7 @@ function generateSyntheticFeed(missions: any[]): CompletedSession[] {
       profiles: { display_name: hackerName },
     });
   }
-  
-  // Sort by completed_at descending
-  return syntheticSessions.sort((a, b) => 
-    new Date(b.completed_at).getTime() - new Date(a.completed_at).getTime()
-  );
+  return syntheticSessions.sort((a, b) => new Date(b.completed_at).getTime() - new Date(a.completed_at).getTime());
 }
 
 function generateSyntheticCommunityStats(): CommunityStats {
@@ -209,34 +199,10 @@ function generateSyntheticWarReport() {
   };
 }
 
-interface SyntheticRivalStats {
-  user_id: string;
-  display_name: string;
-  weekly_sessions: number;
-  weekly_weight: number;
-  weekly_sets: number;
-  weekly_max_combo: number;
-}
-
-interface SyntheticRivalActivity {
-  id: string;
-  display_name: string;
-  completed_at: string;
-  mission_id: string;
-  mission_snapshot: { name: string; code_name: string };
-  score_earned: number;
-  total_weight: number;
-  max_combo: number;
-}
-
-function generateSyntheticRivalData(missions: any[]): {
-  stats: SyntheticRivalStats[];
-  activity: SyntheticRivalActivity[];
-} {
+function generateSyntheticRivalData(missions: any[]): { stats: SyntheticRivalStats[]; activity: SyntheticRivalActivity[] } {
   const rivalNames = HACKER_NAMES.slice(0, 4);
   const now = new Date();
   
-  // Generate leaderboard stats
   const stats: SyntheticRivalStats[] = rivalNames.map((name, i) => ({
     user_id: `synth-rival-${i}`,
     display_name: name,
@@ -246,13 +212,11 @@ function generateSyntheticRivalData(missions: any[]): {
     weekly_max_combo: 12 - (i * 2) + Math.floor(Math.random() * 3),
   }));
   
-  // Generate activity feed
   const activity: SyntheticRivalActivity[] = [];
   if (missions && missions.length > 0) {
     for (let i = 0; i < 5; i++) {
       const mission = missions[Math.floor(Math.random() * missions.length)];
       const rivalName = rivalNames[Math.floor(Math.random() * rivalNames.length)];
-      
       activity.push({
         id: `synth-activity-${i}`,
         display_name: rivalName,
@@ -265,38 +229,20 @@ function generateSyntheticRivalData(missions: any[]): {
       });
     }
   }
-  
   return { stats, activity };
 }
 
 // ==================== HOOKS ====================
-
 function usePublicFeed() {
   return useQuery({
     queryKey: ['public-feed'],
     queryFn: async () => {
       const { data, error } = await supabase
         .from('workout_sessions')
-        .select(`
-          id,
-          completed_at,
-          score_earned,
-          xp_earned,
-          sets_completed,
-          total_reps,
-          total_weight,
-          damage_dealt,
-          mission_snapshot,
-          mission_id,
-          user_id,
-          profiles (
-            display_name
-          )
-        `)
+        .select(`id, completed_at, score_earned, xp_earned, sets_completed, total_reps, total_weight, damage_dealt, mission_snapshot, mission_id, user_id, profiles (display_name)`)
         .eq('status', 'COMPLETED')
         .order('completed_at', { ascending: false })
         .limit(50);
-      
       if (error) throw error;
       return data as CompletedSession[];
     },
@@ -308,39 +254,19 @@ function useCommunityStats() {
     queryKey: ['community-stats'],
     queryFn: async (): Promise<CommunityStats> => {
       const { weekStart, weekEnd } = getWeekBoundaries();
-
       const { data: sessions, error } = await supabase
         .from('workout_sessions')
-        .select(`
-          user_id,
-          total_weight,
-          damage_dealt,
-          profiles (
-            display_name
-          )
-        `)
+        .select(`user_id, total_weight, damage_dealt, profiles (display_name)`)
         .eq('status', 'COMPLETED')
         .gte('completed_at', weekStart)
         .lte('completed_at', weekEnd);
-
       if (error) throw error;
 
-      const userStats: Record<string, { 
-        name: string; 
-        weight: number; 
-        damage: number; 
-        missions: number;
-      }> = {};
-
+      const userStats: Record<string, { name: string; weight: number; damage: number; missions: number }> = {};
       sessions?.forEach((session: any) => {
         const userId = session.user_id;
         if (!userStats[userId]) {
-          userStats[userId] = {
-            name: session.profiles?.display_name || 'Unknown Agent',
-            weight: 0,
-            damage: 0,
-            missions: 0,
-          };
+          userStats[userId] = { name: session.profiles?.display_name || 'Unknown Agent', weight: 0, damage: 0, missions: 0 };
         }
         userStats[userId].weight += Number(session.total_weight || 0);
         userStats[userId].damage += Number(session.damage_dealt || 0);
@@ -348,20 +274,15 @@ function useCommunityStats() {
       });
 
       const users = Object.values(userStats);
-      const activeWarriors = users.length;
-      const totalWeight = users.reduce((sum, u) => sum + u.weight, 0);
-      const totalDamage = users.reduce((sum, u) => sum + u.damage, 0);
-      const totalMissions = users.reduce((sum, u) => sum + u.missions, 0);
-
       const byDamage = [...users].sort((a, b) => b.damage - a.damage);
       const byWeight = [...users].sort((a, b) => b.weight - a.weight);
       const byMissions = [...users].sort((a, b) => b.missions - a.missions);
 
       return {
-        activeWarriors,
-        totalWeight,
-        totalDamage,
-        totalMissions,
+        activeWarriors: users.length,
+        totalWeight: users.reduce((sum, u) => sum + u.weight, 0),
+        totalDamage: users.reduce((sum, u) => sum + u.damage, 0),
+        totalMissions: users.reduce((sum, u) => sum + u.missions, 0),
         topDamageDealer: byDamage[0] ? { name: byDamage[0].name, damage: byDamage[0].damage } : null,
         topWeightLifter: byWeight[0] ? { name: byWeight[0].name, weight: byWeight[0].weight } : null,
         topMissionCompleter: byMissions[0] ? { name: byMissions[0].name, missions: byMissions[0].missions } : null,
@@ -376,30 +297,18 @@ function useStreakLeaders() {
     queryFn: async () => {
       const { data, error } = await supabase
         .from('workout_sessions')
-        .select(`
-          user_id,
-          completed_at,
-          profiles (
-            display_name
-          )
-        `)
+        .select(`user_id, completed_at, profiles (display_name)`)
         .eq('status', 'COMPLETED')
         .order('completed_at', { ascending: false });
-      
       if (error) throw error;
       
       const userWorkouts: Record<string, { dates: Set<string>; display_name: string }> = {};
-      
       data?.forEach((session: any) => {
         if (!session.completed_at) return;
         const userId = session.user_id;
         const date = format(new Date(session.completed_at), 'yyyy-MM-dd');
-        
         if (!userWorkouts[userId]) {
-          userWorkouts[userId] = {
-            dates: new Set(),
-            display_name: session.profiles?.display_name || 'Unknown Agent',
-          };
+          userWorkouts[userId] = { dates: new Set(), display_name: session.profiles?.display_name || 'Unknown Agent' };
         }
         userWorkouts[userId].dates.add(date);
       });
@@ -416,35 +325,20 @@ function useStreakLeaders() {
             const prevDate = new Date(sortedDates[i - 1]);
             const currDate = new Date(sortedDates[i]);
             const diffDays = (prevDate.getTime() - currDate.getTime()) / 86400000;
-            
-            if (diffDays === 1) {
-              streak++;
-            } else {
-              break;
-            }
+            if (diffDays === 1) streak++;
+            else break;
           }
         }
-        
-        return {
-          user_id: userId,
-          display_name: data.display_name,
-          streak,
-        };
+        return { user_id: userId, display_name: data.display_name, streak };
       });
-      
       return leaders.sort((a, b) => b.streak - a.streak).slice(0, 3);
     },
   });
 }
 
 // ==================== SAMPLE DATA BANNER ====================
-
 const SampleDataBanner = () => (
-  <motion.div
-    initial={{ opacity: 0, y: -10 }}
-    animate={{ opacity: 1, y: 0 }}
-    className="mb-4 p-3 bg-warning/10 border border-warning/30 rounded-lg flex items-center gap-3"
-  >
+  <motion.div initial={{ opacity: 0, y: -10 }} animate={{ opacity: 1, y: 0 }} className="mb-4 p-3 bg-warning/10 border border-warning/30 rounded-lg flex items-center gap-3">
     <AlertTriangle className="w-5 h-5 text-warning flex-shrink-0" />
     <div>
       <p className="text-xs text-warning font-display">SAMPLE DATA PREVIEW</p>
@@ -453,38 +347,131 @@ const SampleDataBanner = () => (
   </motion.div>
 );
 
-// ==================== COMPONENTS ====================
+// ==================== OVERVIEW TAB (NEW PRIMARY) ====================
+const OverviewTab = ({ isGuest }: { isGuest: boolean }) => {
+  const navigate = useNavigate();
+  const { data: realCommunityStats } = useCommunityStats();
+  const { data: realReport } = useWarReport();
+  
+  const syntheticStats = useMemo(() => isGuest ? generateSyntheticCommunityStats() : null, [isGuest]);
+  const syntheticReport = useMemo(() => isGuest ? generateSyntheticWarReport() : null, [isGuest]);
+  
+  const communityStats = isGuest ? syntheticStats : realCommunityStats;
+  const report = isGuest ? syntheticReport : realReport;
+  const weekRangeText = getWeekRangeText();
 
-const LiveFeedTab = ({ isGuest }: { isGuest: boolean }) => {
+  return (
+    <div className="space-y-6">
+      {isGuest && <SampleDataBanner />}
+      
+      {/* Cycle Label */}
+      <div className="flex items-center gap-2 text-xs text-muted-foreground">
+        <Calendar className="w-3 h-3" />
+        <span className="uppercase tracking-wider">THIS CYCLE</span>
+        <span className="text-muted-foreground/50">•</span>
+        <span>{weekRangeText}</span>
+      </div>
+      
+      {/* Weekly Boss - Primary Focus */}
+      <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }}>
+        <WeeklyBossWidget />
+      </motion.div>
+      
+      {/* Quick Stats Grid */}
+      <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.1 }}>
+        <div className="grid grid-cols-4 gap-2">
+          <div className="bg-card border border-border rounded-lg p-3 text-center">
+            <div className="font-display text-lg text-foreground">{communityStats?.activeWarriors || 0}</div>
+            <div className="text-xs text-muted-foreground">ACTIVE</div>
+          </div>
+          <div className="bg-card border border-border rounded-lg p-3 text-center">
+            <div className="font-display text-lg text-foreground">{communityStats?.totalMissions || 0}</div>
+            <div className="text-xs text-muted-foreground">MISSIONS</div>
+          </div>
+          <div className="bg-card border border-border rounded-lg p-3 text-center">
+            <div className="font-display text-lg text-foreground">
+              {formatLargeNumber(communityStats?.totalWeight || 0)}
+            </div>
+            <div className="text-xs text-muted-foreground">LBS</div>
+          </div>
+          <div className="bg-card border border-border rounded-lg p-3 text-center">
+            <div className="font-display text-lg text-foreground">
+              {formatLargeNumber(communityStats?.totalDamage || 0)}
+            </div>
+            <div className="text-xs text-muted-foreground">DMG</div>
+          </div>
+        </div>
+      </motion.div>
+      
+      {/* Campaign Highlights */}
+      {report && (
+        <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.2 }}>
+          <h3 className="font-display text-sm text-muted-foreground mb-3 flex items-center gap-2">
+            <Target className="w-4 h-4" />
+            CAMPAIGN HIGHLIGHTS
+          </h3>
+          <div className="space-y-2">
+            {report.mostCompletedCampaigns?.slice(0, 3).map((campaign: any, i: number) => (
+              <button
+                key={campaign.id}
+                onClick={() => !isGuest && navigate(`/campaign/${campaign.campaign_id}`)}
+                className={`w-full flex items-center justify-between p-3 bg-card border border-border rounded-lg transition-colors ${isGuest ? 'cursor-default' : 'hover:border-muted-foreground'}`}
+              >
+                <div className="flex items-center gap-3">
+                  <span className="font-display text-lg text-muted-foreground w-6">
+                    {(i + 1).toString().padStart(2, '0')}
+                  </span>
+                  <span className="font-medium text-sm text-foreground">{campaign.campaign_name}</span>
+                </div>
+                <div className="flex items-center gap-2">
+                  <span className="text-sm text-muted-foreground">{campaign.total_completions} runs</span>
+                  <ChevronRight className="w-4 h-4 text-muted-foreground" />
+                </div>
+              </button>
+            ))}
+          </div>
+        </motion.div>
+      )}
+      
+      {/* Quick Actions */}
+      <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.3 }} className="grid grid-cols-2 gap-3">
+        <button
+          onClick={() => navigate('/command')}
+          className="p-4 bg-card border border-primary/30 rounded-lg hover:border-primary/50 transition-colors text-left"
+        >
+          <Target className="w-5 h-5 text-primary mb-2" />
+          <div className="font-display text-sm text-foreground">START MISSION</div>
+          <div className="text-xs text-muted-foreground">Browse available ops</div>
+        </button>
+        <button
+          onClick={() => navigate(isGuest ? '/auth' : '/profile')}
+          className="p-4 bg-card border border-border rounded-lg hover:border-muted-foreground transition-colors text-left"
+        >
+          <BarChart3 className="w-5 h-5 text-muted-foreground mb-2" />
+          <div className="font-display text-sm text-foreground">YOUR STATS</div>
+          <div className="text-xs text-muted-foreground">{isGuest ? 'Sign in to track' : 'View progress'}</div>
+        </button>
+      </motion.div>
+    </div>
+  );
+};
+
+// ==================== FEED TAB ====================
+const FeedTab = ({ isGuest }: { isGuest: boolean }) => {
   const navigate = useNavigate();
   const { data: realFeed, isLoading: feedLoading } = usePublicFeed();
   const { data: realStreakLeaders } = useStreakLeaders();
-  const { data: realCommunityStats } = useCommunityStats();
   const { data: missions } = useMissions({ showOnlyPublic: true });
 
-  // Generate stable synthetic data for guests
-  const syntheticFeed = useMemo(() => 
-    isGuest && missions ? generateSyntheticFeed(missions) : [],
-    [isGuest, missions]
-  );
-  const syntheticStats = useMemo(() => 
-    isGuest ? generateSyntheticCommunityStats() : null,
-    [isGuest]
-  );
-  const syntheticStreaks = useMemo(() => 
-    isGuest ? generateSyntheticStreakLeaders() : null,
-    [isGuest]
-  );
+  const syntheticFeed = useMemo(() => isGuest && missions ? generateSyntheticFeed(missions) : [], [isGuest, missions]);
+  const syntheticStreaks = useMemo(() => isGuest ? generateSyntheticStreakLeaders() : null, [isGuest]);
 
   const feed = isGuest ? syntheticFeed : realFeed;
   const streakLeaders = isGuest ? syntheticStreaks : realStreakLeaders;
-  const communityStats = isGuest ? syntheticStats : realCommunityStats;
   const isLoading = isGuest ? false : feedLoading;
 
   const rankIcons = [Crown, Medal, Flame];
   const rankColors = ['text-foreground', 'text-muted-foreground', 'text-muted-foreground'];
-
-  const weekRangeText = getWeekRangeText();
 
   const formatRelativeTime = (dateStr: string) => {
     const date = new Date(dateStr);
@@ -504,99 +491,9 @@ const LiveFeedTab = ({ isGuest }: { isGuest: boolean }) => {
     <div className="space-y-6">
       {isGuest && <SampleDataBanner />}
       
-      {/* Community Stats */}
-      {communityStats && (
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          className="p-4 bg-card border border-section-intel/50 rounded-lg"
-        >
-          <div className="flex items-center justify-between mb-4">
-            <h2 className="font-display text-lg text-section-intel flex items-center gap-2">
-              <Users className="w-5 h-5" />
-              THIS WEEK'S STATS
-            </h2>
-            <span className="text-xs text-muted-foreground">
-              {weekRangeText}
-            </span>
-          </div>
-
-          {/* Aggregate Stats */}
-          <div className="grid grid-cols-4 gap-3 mb-4">
-            <div className="text-center p-2 bg-background/50 rounded">
-              <div className="font-display text-xl text-foreground">{communityStats.activeWarriors}</div>
-              <div className="text-xs uppercase tracking-wide text-muted-foreground">ACTIVE</div>
-            </div>
-            <div className="text-center p-2 bg-background/50 rounded">
-              <div className="font-display text-xl text-foreground">{communityStats.totalMissions}</div>
-              <div className="text-xs uppercase tracking-wide text-muted-foreground">MISSIONS</div>
-            </div>
-            <div className="text-center p-2 bg-background/50 rounded">
-              <div className="font-display text-xl text-foreground">
-                {communityStats.totalWeight >= 1000000 
-                  ? `${(communityStats.totalWeight / 1000000).toFixed(1)}M`
-                  : communityStats.totalWeight >= 1000 
-                    ? `${(communityStats.totalWeight / 1000).toFixed(0)}k` 
-                    : communityStats.totalWeight}
-              </div>
-              <div className="text-xs uppercase tracking-wide text-muted-foreground">LBS</div>
-            </div>
-            <div className="text-center p-2 bg-background/50 rounded">
-              <div className="font-display text-xl text-foreground">
-                {communityStats.totalDamage >= 1000000 
-                  ? `${(communityStats.totalDamage / 1000000).toFixed(1)}M`
-                  : communityStats.totalDamage >= 1000
-                    ? `${(communityStats.totalDamage / 1000).toFixed(0)}k` 
-                    : communityStats.totalDamage}
-              </div>
-              <div className="text-xs uppercase tracking-wide text-muted-foreground">DMG</div>
-            </div>
-          </div>
-
-          {/* Top Performers */}
-          <div className="grid grid-cols-3 gap-2">
-            {communityStats.topDamageDealer && (
-              <div className="p-2 bg-muted/30 border border-border rounded text-center">
-                <Zap className="w-4 h-4 text-muted-foreground mx-auto mb-1" />
-                <div className="text-xs text-muted-foreground font-display uppercase">TOP DMG</div>
-                <div className="text-sm text-foreground truncate">{communityStats.topDamageDealer.name}</div>
-                <div className="text-xs text-muted-foreground">
-                  {communityStats.topDamageDealer.damage.toLocaleString()}
-                </div>
-              </div>
-            )}
-            {communityStats.topWeightLifter && (
-              <div className="p-2 bg-muted/30 border border-border rounded text-center">
-                <Dumbbell className="w-4 h-4 text-muted-foreground mx-auto mb-1" />
-                <div className="text-xs text-muted-foreground font-display uppercase">TOP LBS</div>
-                <div className="text-sm text-foreground truncate">{communityStats.topWeightLifter.name}</div>
-                <div className="text-xs text-muted-foreground">
-                  {communityStats.topWeightLifter.weight.toLocaleString()}
-                </div>
-              </div>
-            )}
-            {communityStats.topMissionCompleter && (
-              <div className="p-2 bg-muted/30 border border-border rounded text-center">
-                <Trophy className="w-4 h-4 text-muted-foreground mx-auto mb-1" />
-                <div className="text-xs text-muted-foreground font-display uppercase">TOP OPS</div>
-                <div className="text-sm text-foreground truncate">{communityStats.topMissionCompleter.name}</div>
-                <div className="text-xs text-muted-foreground">
-                  {communityStats.topMissionCompleter.missions}
-                </div>
-              </div>
-            )}
-          </div>
-        </motion.div>
-      )}
-
       {/* Streak Leaders */}
       {streakLeaders && streakLeaders.some(l => l.streak > 0) && (
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.1 }}
-          className="p-4 bg-card border border-border rounded-lg"
-        >
+        <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} className="p-4 bg-card border border-border rounded-lg">
           <h2 className="font-display text-lg text-muted-foreground mb-4 flex items-center gap-2">
             <Flame className="w-5 h-5" />
             ACTIVE STREAK CHAMPIONS
@@ -637,7 +534,7 @@ const LiveFeedTab = ({ isGuest }: { isGuest: boolean }) => {
           </div>
         ) : (
           <>
-            {feed.slice(0, 5).map((session, i) => {
+            {feed.slice(0, 10).map((session, i) => {
               const missionName = session.mission_snapshot?.code_name || 'CLASSIFIED MISSION';
               const displayName = session.profiles?.display_name || 'Unknown Agent';
               
@@ -682,7 +579,7 @@ const LiveFeedTab = ({ isGuest }: { isGuest: boolean }) => {
               );
             })}
             <div className="text-center py-3 text-xs text-muted-foreground border-t border-border mt-4">
-              Showing last 5 combat entries
+              Showing last 10 combat entries
             </div>
           </>
         )}
@@ -691,15 +588,124 @@ const LiveFeedTab = ({ isGuest }: { isGuest: boolean }) => {
   );
 };
 
-const CampaignIntelTab = ({ isGuest }: { isGuest: boolean }) => {
+// ==================== BOSS TAB (NEW) ====================
+const BossTab = ({ isGuest }: { isGuest: boolean }) => {
+  const { user } = useAuth();
+  const [selectedBoss, setSelectedBoss] = useState<HistoricalBoss | null>(null);
+  const { data: bossHistory, isLoading: historyLoading } = useBossHistory();
+  
+  const displayHistory = isGuest ? getSyntheticBossHistory() : bossHistory;
+
+  const formatNumber = (num: number) => {
+    if (num >= 1000000) return `${(num / 1000000).toFixed(1)}M`;
+    if (num >= 1000) return `${(num / 1000).toFixed(1)}K`;
+    return num.toLocaleString();
+  };
+
+  return (
+    <div className="space-y-6">
+      {isGuest && <SampleDataBanner />}
+      
+      {/* Current Cycle Label */}
+      <div className="flex items-center gap-2 text-xs text-destructive/80">
+        <Skull className="w-3 h-3" />
+        <span className="uppercase tracking-wider">THIS CYCLE • ACTIVE THREAT</span>
+      </div>
+      
+      {/* Current Boss Widget */}
+      <WeeklyBossWidget />
+      
+      {/* Past Bosses Archive */}
+      <div className="space-y-4">
+        <div className="flex items-center gap-2 text-xs text-muted-foreground">
+          <Clock className="w-3 h-3" />
+          <span className="uppercase tracking-wider">PREVIOUS CYCLES</span>
+        </div>
+        
+        {historyLoading && !isGuest ? (
+          <div className="space-y-3">
+            {[1, 2, 3].map(i => <Skeleton key={i} className="h-24 w-full" />)}
+          </div>
+        ) : !displayHistory || displayHistory.length === 0 ? (
+          <div className="text-center py-8 text-muted-foreground">
+            <Shield className="w-8 h-8 mx-auto mb-2 opacity-50" />
+            <p className="text-sm">No past boss records</p>
+          </div>
+        ) : (
+          <div className="space-y-3">
+            {displayHistory.map((boss, i) => (
+              <motion.div
+                key={boss.id}
+                initial={{ opacity: 0, y: 10 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: i * 0.05 }}
+                className="bg-card border border-border rounded-lg p-4 hover:border-muted-foreground transition-colors cursor-pointer"
+                onClick={() => setSelectedBoss(boss)}
+              >
+                <div className="flex items-start justify-between gap-4">
+                  <div className="flex-1">
+                    <div className="flex items-center gap-2 mb-1">
+                      <Skull className="w-4 h-4 text-muted-foreground" />
+                      <span className="font-display text-foreground">{boss.name.toUpperCase()}</span>
+                      {boss.is_defeated ? (
+                        <Badge variant="outline" className="text-xs border-green-500/50 text-green-400">
+                          <CheckCircle className="w-3 h-3 mr-1" />
+                          DEFEATED
+                        </Badge>
+                      ) : (
+                        <Badge variant="outline" className="text-xs border-destructive/50 text-destructive">
+                          <XCircle className="w-3 h-3 mr-1" />
+                          SURVIVED
+                        </Badge>
+                      )}
+                    </div>
+                    <p className="text-xs text-muted-foreground line-clamp-1 mb-2">{boss.lore}</p>
+                    <div className="flex items-center gap-4 text-xs text-muted-foreground">
+                      <span className="flex items-center gap-1">
+                        <Users className="w-3 h-3" />
+                        {boss.unique_contributors} contributors
+                      </span>
+                      <span className="flex items-center gap-1">
+                        <Swords className="w-3 h-3" />
+                        {formatNumber(boss.total_damage_dealt || 0)} damage
+                      </span>
+                    </div>
+                  </div>
+                  <div className="text-right flex-shrink-0">
+                    <div className="text-xs text-muted-foreground">
+                      {format(new Date(boss.week_start), 'MMM d')}
+                    </div>
+                    <ChevronRight className="w-4 h-4 text-muted-foreground mt-1" />
+                  </div>
+                </div>
+              </motion.div>
+            ))}
+          </div>
+        )}
+      </div>
+      
+      {/* Victory Screen for selected historical boss */}
+      {selectedBoss && !isGuest && (
+        <BossVictoryScreen
+          boss={{
+            ...selectedBoss,
+            image_url: null,
+            total_damage_dealt: selectedBoss.total_damage_dealt || 0,
+            unique_contributors: selectedBoss.unique_contributors || 0,
+          } as WeeklyBoss}
+          onClose={() => setSelectedBoss(null)}
+          userId={user?.id}
+        />
+      )}
+    </div>
+  );
+};
+
+// ==================== CAMPAIGNS TAB ====================
+const CampaignsTab = ({ isGuest }: { isGuest: boolean }) => {
   const navigate = useNavigate();
   const { data: realReport, isLoading: realLoading, error } = useWarReport();
-  
-  const syntheticReport = useMemo(() => 
-    isGuest ? generateSyntheticWarReport() : null,
-    [isGuest]
-  );
-  
+  const syntheticReport = useMemo(() => isGuest ? generateSyntheticWarReport() : null, [isGuest]);
   const report = isGuest ? syntheticReport : realReport;
   const isLoading = isGuest ? false : realLoading;
 
@@ -713,231 +719,130 @@ const CampaignIntelTab = ({ isGuest }: { isGuest: boolean }) => {
     );
   }
 
-  return (
-    <div className="space-y-6">
-      {isGuest && <SampleDataBanner />}
-      
-      {/* Trust Message */}
-      <motion.div 
-        initial={{ opacity: 0, y: 10 }}
-        animate={{ opacity: 1, y: 0 }}
-        className="bg-muted/30 border border-border rounded-lg p-4"
-      >
-        <div className="flex items-start gap-3">
-          <Shield className="w-5 h-5 text-section-intel mt-0.5 flex-shrink-0" />
-          <div>
-            <p className="text-sm text-muted-foreground">
-              All data shown is <span className="text-foreground font-medium">aggregated and anonymized</span>.
-              Player identities are protected by design.
-            </p>
-          </div>
-        </div>
-      </motion.div>
+  const CampaignSection = ({ title, icon, campaigns, metric }: { title: string; icon: React.ReactNode; campaigns: any[]; metric: string }) => {
+    const getMetricValue = (campaign: any) => {
+      switch (metric) {
+        case 'completions': return `${campaign.total_completions} runs`;
+        case 'speed': return formatCompletionTime(campaign.fastest_completion_seconds);
+        case 'replay': return `${campaign.replay_rate?.toFixed(0) || 0}% replay`;
+        default: return '';
+      }
+    };
 
-      {/* Overview Stats */}
-      <motion.div 
-        initial={{ opacity: 0, y: 10 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ delay: 0.1 }}
-      >
-        <h2 className="font-display text-sm text-muted-foreground mb-3 flex items-center gap-2">
-          <Activity className="w-4 h-4" />
-          WEEKLY OVERVIEW
-        </h2>
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
-          <StatCard
-            icon={<Target className="w-5 h-5" />}
-            label="Campaigns"
-            value={isLoading ? null : report?.totalCampaignsActive || 0}
-          />
-          <StatCard
-            icon={<Trophy className="w-5 h-5" />}
-            label="Completions"
-            value={isLoading ? null : report?.totalCompletionsThisWeek || 0}
-          />
-          <StatCard
-            icon={<Users className="w-5 h-5" />}
-            label="Players"
-            value={isLoading ? null : report?.totalPlayersThisWeek || 0}
-          />
-          <StatCard
-            icon={<Dumbbell className="w-5 h-5" />}
-            label="Weight"
-            value={isLoading ? null : formatLargeNumber(report?.totalWeightThisWeek || 0)}
-            suffix="lbs"
-          />
-        </div>
-      </motion.div>
-
-      {/* Campaign Sections */}
-      <CampaignSection
-        title="MOST COMPLETED"
-        icon={<TrendingUp className="w-4 h-4" />}
-        campaigns={report?.mostCompletedCampaigns || []}
-        isLoading={isLoading}
-        metric="completions"
-        navigate={navigate}
-        isGuest={isGuest}
-      />
-
-      <CampaignSection
-        title="SPEED RECORDS"
-        icon={<Zap className="w-4 h-4" />}
-        campaigns={report?.fastestCampaigns || []}
-        isLoading={isLoading}
-        metric="speed"
-        navigate={navigate}
-        isGuest={isGuest}
-      />
-
-      <CampaignSection
-        title="GRINDER FAVORITES"
-        icon={<RefreshCw className="w-4 h-4" />}
-        campaigns={report?.mostReplayedCampaigns || []}
-        isLoading={isLoading}
-        metric="replay"
-        navigate={navigate}
-        isGuest={isGuest}
-      />
-    </div>
-  );
-};
-
-// Stat Card Component
-interface StatCardProps {
-  icon: React.ReactNode;
-  label: string;
-  value: number | string | null;
-  suffix?: string;
-}
-
-const StatCard = ({ icon, label, value, suffix }: StatCardProps) => (
-  <Card className="bg-card/50 border-border hover:border-muted-foreground transition-colors">
-    <CardContent className="p-3">
-      <div className="flex items-center gap-2 text-muted-foreground mb-1">
-        {icon}
-        <span className="text-xs font-mono uppercase">{label}</span>
-      </div>
-      {value === null ? (
-        <Skeleton className="h-6 w-16" />
-      ) : (
-        <div className="font-display text-xl text-foreground">
-          {value}
-          {suffix && <span className="text-xs text-muted-foreground ml-1">{suffix}</span>}
-        </div>
-      )}
-    </CardContent>
-  </Card>
-);
-
-// Campaign Section Component
-interface CampaignSectionProps {
-  title: string;
-  icon: React.ReactNode;
-  campaigns: any[];
-  isLoading: boolean;
-  metric: 'completions' | 'speed' | 'replay' | 'score';
-  navigate: (path: string) => void;
-  isGuest?: boolean;
-}
-
-const CampaignSection = ({ title, icon, campaigns, isLoading, metric, navigate, isGuest }: CampaignSectionProps) => {
-  const getMetricValue = (campaign: any) => {
-    switch (metric) {
-      case 'completions':
-        return `${campaign.total_completions} runs`;
-      case 'speed':
-        return formatCompletionTime(campaign.fastest_completion_seconds);
-      case 'replay':
-        return `${campaign.replay_rate?.toFixed(0) || 0}% replay`;
-      case 'score':
-        return `${formatLargeNumber(campaign.total_score)} pts`;
-      default:
-        return '';
-    }
-  };
-
-  const getMetricColor = () => {
-    return 'text-foreground';
-  };
-
-  const getBorderColor = () => {
-    return 'border-border hover:border-muted-foreground';
-  };
-
-  const getMetricNumberColor = () => {
-    return 'text-muted-foreground';
-  };
-
-  return (
-    <motion.div
-      initial={{ opacity: 0, y: 10 }}
-      animate={{ opacity: 1, y: 0 }}
-    >
-      <Card className={`bg-card/30 ${getBorderColor()} transition-colors`}>
+    return (
+      <Card className="bg-card/30 border-border">
         <CardHeader className="pb-2">
-          <CardTitle className={`font-display text-sm flex items-center gap-2 ${getMetricColor()}`}>
+          <CardTitle className="font-display text-sm flex items-center gap-2 text-foreground">
             {icon}
             {title}
           </CardTitle>
         </CardHeader>
         <CardContent className="space-y-2">
           {isLoading ? (
-            Array(3).fill(0).map((_, i) => (
-              <Skeleton key={i} className="h-12 w-full" />
-            ))
+            Array(3).fill(0).map((_, i) => <Skeleton key={i} className="h-12 w-full" />)
           ) : campaigns.length === 0 ? (
-            <p className="text-sm text-muted-foreground text-center py-4">
-              No data available this week
-            </p>
+            <p className="text-sm text-muted-foreground text-center py-4">No data available</p>
           ) : (
             campaigns.slice(0, 3).map((campaign, index) => (
               <button
                 key={campaign.id}
                 onClick={() => !isGuest && navigate(`/campaign/${campaign.campaign_id}`)}
-                className={`w-full flex items-center justify-between p-3 bg-muted/30 rounded-lg transition-colors text-left ${
-                  isGuest ? 'cursor-default' : 'hover:bg-muted/50'
-                }`}
+                className={`w-full flex items-center justify-between p-3 bg-muted/30 rounded-lg transition-colors text-left ${isGuest ? 'cursor-default' : 'hover:bg-muted/50'}`}
               >
                 <div className="flex items-center gap-3">
-                  <span className={`font-display text-lg w-6 ${getMetricNumberColor()}`}>
+                  <span className="font-display text-lg w-6 text-muted-foreground">
                     {(index + 1).toString().padStart(2, '0')}
                   </span>
                   <div>
-                    <p className="font-medium text-sm text-foreground">
-                      {campaign.campaign_name}
-                    </p>
-                    <div className="flex items-center gap-2 mt-0.5">
-                      <Badge variant="outline" className="text-xs font-mono border-muted text-muted-foreground">
-                        {getFocusAreaLabel(campaign)}
-                      </Badge>
-                    </div>
+                    <p className="font-medium text-sm text-foreground">{campaign.campaign_name}</p>
+                    <Badge variant="outline" className="text-xs font-mono border-muted text-muted-foreground mt-0.5">
+                      {getFocusAreaLabel(campaign)}
+                    </Badge>
                   </div>
                 </div>
-                <div className="text-right">
-                  <p className={`font-display text-sm ${getMetricNumberColor()}`}>
-                    {getMetricValue(campaign)}
-                  </p>
-                </div>
+                <p className="font-display text-sm text-muted-foreground">{getMetricValue(campaign)}</p>
               </button>
             ))
           )}
         </CardContent>
       </Card>
-    </motion.div>
+    );
+  };
+
+  return (
+    <div className="space-y-6">
+      {isGuest && <SampleDataBanner />}
+      
+      {/* Trust Message */}
+      <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} className="bg-muted/30 border border-border rounded-lg p-4">
+        <div className="flex items-start gap-3">
+          <Shield className="w-5 h-5 text-section-intel mt-0.5 flex-shrink-0" />
+          <p className="text-sm text-muted-foreground">
+            All data shown is <span className="text-foreground font-medium">aggregated and anonymized</span>.
+            Player identities are protected by design.
+          </p>
+        </div>
+      </motion.div>
+
+      {/* Overview Stats */}
+      <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.1 }}>
+        <h2 className="font-display text-sm text-muted-foreground mb-3 flex items-center gap-2">
+          <Activity className="w-4 h-4" />
+          THIS WEEK
+        </h2>
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+          <Card className="bg-card/50 border-border">
+            <CardContent className="p-3">
+              <div className="flex items-center gap-2 text-muted-foreground mb-1">
+                <Target className="w-4 h-4" />
+                <span className="text-xs font-mono uppercase">Campaigns</span>
+              </div>
+              <div className="font-display text-xl text-foreground">{report?.totalCampaignsActive || 0}</div>
+            </CardContent>
+          </Card>
+          <Card className="bg-card/50 border-border">
+            <CardContent className="p-3">
+              <div className="flex items-center gap-2 text-muted-foreground mb-1">
+                <Trophy className="w-4 h-4" />
+                <span className="text-xs font-mono uppercase">Completions</span>
+              </div>
+              <div className="font-display text-xl text-foreground">{report?.totalCompletionsThisWeek || 0}</div>
+            </CardContent>
+          </Card>
+          <Card className="bg-card/50 border-border">
+            <CardContent className="p-3">
+              <div className="flex items-center gap-2 text-muted-foreground mb-1">
+                <Users className="w-4 h-4" />
+                <span className="text-xs font-mono uppercase">Players</span>
+              </div>
+              <div className="font-display text-xl text-foreground">{report?.totalPlayersThisWeek || 0}</div>
+            </CardContent>
+          </Card>
+          <Card className="bg-card/50 border-border">
+            <CardContent className="p-3">
+              <div className="flex items-center gap-2 text-muted-foreground mb-1">
+                <Dumbbell className="w-4 h-4" />
+                <span className="text-xs font-mono uppercase">Weight</span>
+              </div>
+              <div className="font-display text-xl text-foreground">{formatLargeNumber(report?.totalWeightThisWeek || 0)}</div>
+            </CardContent>
+          </Card>
+        </div>
+      </motion.div>
+
+      {/* Campaign Sections */}
+      <CampaignSection title="MOST COMPLETED" icon={<TrendingUp className="w-4 h-4" />} campaigns={report?.mostCompletedCampaigns || []} metric="completions" />
+      <CampaignSection title="SPEED RECORDS" icon={<Zap className="w-4 h-4" />} campaigns={report?.fastestCampaigns || []} metric="speed" />
+      <CampaignSection title="GRINDER FAVORITES" icon={<RefreshCw className="w-4 h-4" />} campaigns={report?.mostReplayedCampaigns || []} metric="replay" />
+    </div>
   );
 };
 
-// Guest Rivals Tab - Shows synthetic data
-const GuestRivalsTab = () => {
+// ==================== RIVALS TAB ====================
+const RivalsTab = ({ isGuest }: { isGuest: boolean }) => {
   const navigate = useNavigate();
   const { data: missions } = useMissions({ showOnlyPublic: true });
-  
-  const syntheticData = useMemo(() => 
-    generateSyntheticRivalData(missions || []),
-    [missions]
-  );
-  
+  const syntheticData = useMemo(() => generateSyntheticRivalData(missions || []), [missions]);
   const weekRangeText = getWeekRangeText();
   
   const formatRelativeTime = (dateStr: string) => {
@@ -946,7 +851,6 @@ const GuestRivalsTab = () => {
     const diffMs = now.getTime() - date.getTime();
     const diffMins = Math.floor(diffMs / 60000);
     const diffHours = Math.floor(diffMs / 3600000);
-    
     if (diffMins < 60) return `${diffMins}m ago`;
     if (diffHours < 24) return `${diffHours}h ago`;
     return format(date, 'MMM d');
@@ -956,22 +860,17 @@ const GuestRivalsTab = () => {
     if (index === 0) return <Crown className="w-3 h-3" />;
     return <span>{index + 1}</span>;
   };
-  
-  const getRankColor = (index: number) => {
-    if (index === 0) return 'bg-foreground/20 text-foreground';
-    return 'bg-muted/20 text-muted-foreground';
-  };
+  const getRankColor = (index: number) => index === 0 ? 'bg-foreground/20 text-foreground' : 'bg-muted/20 text-muted-foreground';
+
+  if (!isGuest) {
+    return <RivalWidget variant="full" />;
+  }
   
   return (
     <div className="space-y-6">
       <SampleDataBanner />
       
-      <motion.div
-        initial={{ opacity: 0, y: 20 }}
-        animate={{ opacity: 1, y: 0 }}
-        className="bg-card border border-section-intel/50 rounded-lg p-4"
-      >
-        {/* Header */}
+      <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} className="bg-card border border-section-intel/50 rounded-lg p-4">
         <div className="flex items-center justify-between mb-4">
           <div className="flex items-center gap-2">
             <Swords className="w-5 h-5 text-section-intel" />
@@ -980,47 +879,30 @@ const GuestRivalsTab = () => {
           <Share2 className="w-4 h-4 text-section-intel/50" />
         </div>
         
-        {/* Weekly Leaderboard */}
         <div className="mb-4">
           <div className="flex items-center justify-between mb-2">
             <div className="text-xs text-muted-foreground flex items-center gap-1">
               <TrendingUp className="w-3 h-3" />
               <span>WEEKLY LEADERBOARD</span>
             </div>
-            <div className="text-xs text-muted-foreground">
-              {weekRangeText}
-            </div>
+            <div className="text-xs text-muted-foreground">{weekRangeText}</div>
           </div>
-          
           <p className="text-xs text-muted-foreground/70 mb-2">
-            Resets every Sunday. Compete for missions completed this week.
+            {WEEK_CONFIG.resetDescription}. Compete for missions completed this week.
           </p>
-          
           <div className="space-y-2">
             {syntheticData.stats.map((stat, index) => (
-              <motion.div
-                key={stat.user_id}
-                initial={{ opacity: 0, x: -10 }}
-                animate={{ opacity: 1, x: 0 }}
-                transition={{ delay: index * 0.1 }}
-                className="p-2 rounded bg-background border border-border"
-              >
+              <motion.div key={stat.user_id} initial={{ opacity: 0, x: -10 }} animate={{ opacity: 1, x: 0 }} transition={{ delay: index * 0.1 }} className="p-2 rounded bg-background border border-border">
                 <div className="flex items-center gap-3">
                   <div className={`w-6 h-6 rounded-full flex items-center justify-center text-xs font-bold ${getRankColor(index)}`}>
                     {getRankIcon(index)}
                   </div>
                   <div className="flex-1 min-w-0">
-                    <p className="text-sm font-medium truncate text-foreground">
-                      {stat.display_name}
-                    </p>
+                    <p className="text-sm font-medium truncate text-foreground">{stat.display_name}</p>
                   </div>
                   <div className="text-right flex-shrink-0">
-                    <p className="text-sm font-display text-foreground">
-                      {stat.weekly_sessions}
-                    </p>
-                    <p className="text-xs text-muted-foreground">
-                      MISSIONS
-                    </p>
+                    <p className="text-sm font-display text-foreground">{stat.weekly_sessions}</p>
+                    <p className="text-xs text-muted-foreground">MISSIONS</p>
                   </div>
                 </div>
               </motion.div>
@@ -1028,22 +910,14 @@ const GuestRivalsTab = () => {
           </div>
         </div>
         
-        {/* Activity Feed */}
         <div>
           <div className="text-xs text-muted-foreground mb-2 flex items-center gap-1">
             <Flame className="w-3 h-3" />
             <span>RIVAL ACTIVITY FEED</span>
           </div>
-          
           <div className="space-y-2">
             {syntheticData.activity.map((activity, index) => (
-              <motion.div
-                key={activity.id}
-                initial={{ opacity: 0, y: 10 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ delay: index * 0.05 }}
-                className="p-3 bg-background border border-border rounded-lg"
-              >
+              <motion.div key={activity.id} initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: index * 0.05 }} className="p-3 bg-background border border-border rounded-lg">
                 <div className="flex items-start justify-between gap-2 mb-2">
                   <div>
                     <span className="font-display text-sm text-foreground">{activity.display_name}</span>
@@ -1051,30 +925,13 @@ const GuestRivalsTab = () => {
                   </div>
                   <span className="text-xs text-muted-foreground">{formatRelativeTime(activity.completed_at)}</span>
                 </div>
-                
-                <div className="font-display text-sm text-muted-foreground mb-2">
-                  {activity.mission_snapshot?.code_name || 'CLASSIFIED MISSION'}
-                </div>
-                
+                <div className="font-display text-sm text-muted-foreground mb-2">{activity.mission_snapshot?.code_name || 'CLASSIFIED MISSION'}</div>
                 <div className="flex items-center gap-3 text-xs text-muted-foreground/80 mb-3">
-                  <span className="flex items-center gap-1">
-                    <Target className="w-3 h-3 text-muted-foreground/60" />
-                    {activity.score_earned.toLocaleString()}
-                  </span>
-                  <span className="flex items-center gap-1">
-                    <Dumbbell className="w-3 h-3 text-muted-foreground/60" />
-                    {activity.total_weight.toLocaleString()} lbs
-                  </span>
-                  <span className="flex items-center gap-1">
-                    <Zap className="w-3 h-3 text-muted-foreground/60" />
-                    {activity.max_combo}x
-                  </span>
+                  <span className="flex items-center gap-1"><Target className="w-3 h-3 text-muted-foreground/60" />{activity.score_earned.toLocaleString()}</span>
+                  <span className="flex items-center gap-1"><Dumbbell className="w-3 h-3 text-muted-foreground/60" />{activity.total_weight.toLocaleString()} lbs</span>
+                  <span className="flex items-center gap-1"><Zap className="w-3 h-3 text-muted-foreground/60" />{activity.max_combo}x</span>
                 </div>
-
-                <button
-                  onClick={() => navigate(`/mission/${activity.mission_id}`)}
-                  className="w-full py-2.5 border-2 border-section-intel rounded text-sm font-display text-section-intel hover:bg-section-intel/10 transition-colors flex items-center justify-center gap-2"
-                >
+                <button onClick={() => navigate(`/mission/${activity.mission_id}`)} className="w-full py-2.5 border-2 border-section-intel rounded text-sm font-display text-section-intel hover:bg-section-intel/10 transition-colors flex items-center justify-center gap-2">
                   <Play className="w-4 h-4" />
                   ACCEPT CHALLENGE
                 </button>
@@ -1083,33 +940,20 @@ const GuestRivalsTab = () => {
           </div>
         </div>
         
-        {/* Sign up CTA */}
         <div className="mt-4 pt-4 border-t border-border text-center">
-          <p className="text-xs text-muted-foreground mb-2">
-            Sign in to track real rivals and compete head-to-head
-          </p>
-          <button
-            onClick={() => navigate('/auth')}
-            className="px-4 py-2 bg-section-intel text-white font-display text-sm rounded hover:opacity-90 transition-all"
-          >
-            SIGN IN TO COMPETE
-          </button>
+          <p className="text-xs text-muted-foreground mb-2">Sign in to track real rivals and compete head-to-head</p>
+          <button onClick={() => navigate('/auth')} className="px-4 py-2 bg-section-intel text-white font-display text-sm rounded hover:opacity-90 transition-all">SIGN IN TO COMPETE</button>
         </div>
       </motion.div>
     </div>
   );
 };
 
-// Rankings Tab
+// ==================== RANKINGS TAB ====================
 const RankingsTab = ({ isGuest }: { isGuest: boolean }) => {
   const { data: profile } = useProfile();
   const { data: realLeaderboard, isLoading: realLoading } = useLeaderboard();
-  
-  const syntheticLeaderboard = useMemo(() => 
-    isGuest ? generateSyntheticLeaderboard() : null,
-    [isGuest]
-  );
-  
+  const syntheticLeaderboard = useMemo(() => isGuest ? generateSyntheticLeaderboard() : null, [isGuest]);
   const leaderboard = isGuest ? syntheticLeaderboard : realLeaderboard;
   const isLoading = isGuest ? false : realLoading;
 
@@ -1138,7 +982,6 @@ const RankingsTab = ({ isGuest }: { isGuest: boolean }) => {
   return (
     <div className="space-y-4">
       {isGuest && <SampleDataBanner />}
-      
       <div className="bg-card border border-border rounded-lg overflow-hidden">
         <div className="grid grid-cols-4 gap-2 p-3 border-b border-border text-xs text-muted-foreground font-display">
           <span>RANK</span><span>OPERATOR</span><span className="text-right">SCORE</span><span className="text-right">LVL</span>
@@ -1160,222 +1003,65 @@ const RankingsTab = ({ isGuest }: { isGuest: boolean }) => {
   );
 };
 
-// My Stats Tab
-const MyStatsTab = ({ isGuest }: { isGuest: boolean }) => {
-  const navigate = useNavigate();
-  const { data: profile } = useProfile();
-  const { data: muscleStats } = useMuscleGroupStats();
-  const { data: userMilestones } = useUserMilestones();
-  const { data: achievements } = useAchievements();
-  const { data: userAchievements } = useUserAchievements();
-
-  // Synthetic stats for guests
-  const syntheticProfile = useMemo(() => isGuest ? {
-    total_score: 12500,
-    total_xp: 2800,
-    total_sets: 156,
-    max_combo: 8,
-    total_weight: 45000,
-    total_reps: 1240,
-  } : null, [isGuest]);
-
-  const syntheticMuscleStats = useMemo(() => isGuest ? [
-    { muscle_group: 'Chest', sets_count: 45, total_weight: 12000, total_sets: 45, total_reps: 450, total_volume: 12000 },
-    { muscle_group: 'Back', sets_count: 38, total_weight: 15000, total_sets: 38, total_reps: 380, total_volume: 15000 },
-    { muscle_group: 'Legs', sets_count: 32, total_weight: 18000, total_sets: 32, total_reps: 320, total_volume: 18000 },
-    { muscle_group: 'Shoulders', sets_count: 24, total_weight: 6000, total_sets: 24, total_reps: 240, total_volume: 6000 },
-    { muscle_group: 'Arms', sets_count: 20, total_weight: 4000, total_sets: 20, total_reps: 200, total_volume: 4000 },
-    { muscle_group: 'Core', sets_count: 15, total_weight: 0, total_sets: 15, total_reps: 150, total_volume: 0 },
-  ] : null, [isGuest]);
-
-  const displayProfile = isGuest ? syntheticProfile : profile;
-  const displayMuscleStats = isGuest ? syntheticMuscleStats : muscleStats;
-
-  const xp = displayProfile?.total_xp || 0;
-  const level = Math.max(1, Math.floor(Math.sqrt(xp / 100)) + 1);
-
-  if (isGuest) {
-    return (
-      <div className="space-y-6">
-        <SampleDataBanner />
-        
-        {/* Quick Stats */}
-        <div className="grid grid-cols-4 gap-2">
-          {[
-            { label: 'SCORE', value: (displayProfile?.total_score || 0).toLocaleString() },
-            { label: 'LEVEL', value: level },
-            { label: 'SETS', value: displayProfile?.total_sets || 0 },
-            { label: 'COMBO', value: `${displayProfile?.max_combo || 0}x` },
-          ].map((stat) => (
-          <div key={stat.label} className="bg-card border border-border rounded p-2 text-center">
-              <div className="font-display text-lg text-foreground">{stat.value}</div>
-              <div className="text-xs text-muted-foreground">{stat.label}</div>
-            </div>
-          ))}
-        </div>
-
-        {/* Body Diagram */}
-        {displayMuscleStats && displayMuscleStats.length > 0 && (
-          <div className="bg-card border border-border rounded-lg p-4">
-            <h3 className="font-display text-sm text-muted-foreground mb-3">// COMBAT ANALYSIS</h3>
-            <BodyDiagram muscleStats={displayMuscleStats} />
-          </div>
-        )}
-
-        {/* Sign In CTA */}
-        <div className="bg-card border border-section-intel/30 rounded-lg p-6 text-center">
-          <Trophy className="w-8 h-8 mx-auto mb-3 text-section-intel" />
-          <p className="text-section-intel font-display mb-2">WANT YOUR OWN STATS?</p>
-          <p className="text-sm text-muted-foreground mb-4">Sign in to track achievements, milestones, and personal records.</p>
-          <button onClick={() => navigate("/auth")} className="px-4 py-2 bg-section-intel text-white font-display rounded hover:opacity-90">SIGN IN</button>
-        </div>
-      </div>
-    );
-  }
-
-  return (
-    <div className="space-y-6">
-      {/* Quick Stats */}
-      <div className="grid grid-cols-4 gap-2">
-        {[
-          { label: 'SCORE', value: (profile?.total_score || 0).toLocaleString() },
-          { label: 'LEVEL', value: level },
-          { label: 'SETS', value: profile?.total_sets || 0 },
-          { label: 'COMBO', value: `${profile?.max_combo || 0}x` },
-        ].map((stat) => (
-        <div key={stat.label} className="bg-card border border-border rounded p-2 text-center">
-            <div className="font-display text-lg text-foreground">{stat.value}</div>
-            <div className="text-xs text-muted-foreground">{stat.label}</div>
-          </div>
-        ))}
-      </div>
-
-      {/* Body Diagram */}
-      {muscleStats && muscleStats.length > 0 && (
-        <div className="bg-card border border-border rounded-lg p-4">
-          <h3 className="font-display text-sm text-muted-foreground mb-3">// COMBAT ANALYSIS</h3>
-          <BodyDiagram muscleStats={muscleStats} />
-        </div>
-      )}
-
-      {/* Achievements */}
-      {achievements && achievements.length > 0 && (
-        <div>
-          <h3 className="font-display text-sm text-muted-foreground mb-3">// ACHIEVEMENTS</h3>
-          <AchievementList achievements={achievements as any} userAchievements={userAchievements as any} />
-        </div>
-      )}
-
-      {/* Milestones */}
-      {userMilestones && userMilestones.length > 0 && (
-        <div>
-          <h3 className="font-display text-sm text-muted-foreground mb-3">// MILESTONES</h3>
-          <MilestoneList userMilestones={userMilestones} />
-        </div>
-      )}
-    </div>
-  );
-};
-
 // ==================== MAIN COMPONENT ====================
-
 const Intel = () => {
-  const navigate = useNavigate();
   const { isAnonymous, user } = useAuth();
-  const [activeTab, setActiveTab] = useState('feed');
-  
+  const [activeTab, setActiveTab] = useState('overview');
   const isGuest = !user || isAnonymous;
 
   return (
     <div className="min-h-screen bg-background relative overflow-hidden">
-      {/* Scanlines overlay */}
       <div className="fixed inset-0 pointer-events-none scanlines opacity-30" />
-      
-      {/* Background grid */}
       <div className="fixed inset-0 opacity-5">
         <div className="absolute inset-0" style={{
-          backgroundImage: `
-            linear-gradient(hsl(var(--primary) / 0.3) 1px, transparent 1px),
-            linear-gradient(90deg, hsl(var(--primary) / 0.3) 1px, transparent 1px)
-          `,
+          backgroundImage: `linear-gradient(hsl(var(--primary) / 0.3) 1px, transparent 1px), linear-gradient(90deg, hsl(var(--primary) / 0.3) 1px, transparent 1px)`,
           backgroundSize: '50px 50px',
         }} />
       </div>
 
       <div className="relative z-10 container mx-auto px-4 py-8 max-w-3xl">
-        {/* Header */}
         <GlobalNav 
           title="INTEL CENTER"
-          subtitle="STATS • FEED • CAMPAIGNS • RANKINGS"
+          subtitle="SITUATIONAL AWARENESS • COMMUNITY • HISTORY"
           section="intel"
         />
 
-        {/* Tabs */}
         <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-          <TabsList className="grid w-full grid-cols-5 mb-6 bg-card border border-section-intel/30">
-            <TabsTrigger 
-              value="feed" 
-              className="font-display text-xs data-[state=active]:bg-section-intel data-[state=active]:text-white"
-            >
-              <Swords className="w-3.5 h-3.5 mr-1" />
+          <TabsList className="grid w-full grid-cols-6 mb-6 bg-card border border-section-intel/30">
+            <TabsTrigger value="overview" className="font-display text-xs data-[state=active]:bg-section-intel data-[state=active]:text-white">
+              <Eye className="w-3.5 h-3.5 mr-1 hidden sm:inline" />
+              OVERVIEW
+            </TabsTrigger>
+            <TabsTrigger value="feed" className="font-display text-xs data-[state=active]:bg-section-intel data-[state=active]:text-white">
+              <Swords className="w-3.5 h-3.5 mr-1 hidden sm:inline" />
               FEED
             </TabsTrigger>
-            <TabsTrigger 
-              value="rivals" 
-              className="font-display text-xs data-[state=active]:bg-section-rivals data-[state=active]:text-black"
-            >
-              <Users className="w-3.5 h-3.5 mr-1" />
-              RIVALS
+            <TabsTrigger value="boss" className="font-display text-xs data-[state=active]:bg-destructive data-[state=active]:text-white">
+              <Skull className="w-3.5 h-3.5 mr-1 hidden sm:inline" />
+              BOSS
             </TabsTrigger>
-            <TabsTrigger 
-              value="campaigns" 
-              className="font-display text-xs data-[state=active]:bg-section-intel data-[state=active]:text-white"
-            >
-              <Flame className="w-3.5 h-3.5 mr-1" />
+            <TabsTrigger value="campaigns" className="font-display text-xs data-[state=active]:bg-section-intel data-[state=active]:text-white">
+              <Flame className="w-3.5 h-3.5 mr-1 hidden sm:inline" />
               CAMPAIGNS
             </TabsTrigger>
-            <TabsTrigger 
-              value="rankings" 
-              className="font-display text-xs data-[state=active]:bg-section-intel data-[state=active]:text-white"
-            >
-              <Trophy className="w-3.5 h-3.5 mr-1" />
-              RANKS
+            <TabsTrigger value="rivals" className="font-display text-xs data-[state=active]:bg-section-rivals data-[state=active]:text-black">
+              <Users className="w-3.5 h-3.5 mr-1 hidden sm:inline" />
+              RIVALS
             </TabsTrigger>
-            <TabsTrigger 
-              value="stats" 
-              className="font-display text-xs data-[state=active]:bg-section-intel data-[state=active]:text-white"
-            >
-              <Target className="w-3.5 h-3.5 mr-1" />
-              STATS
+            <TabsTrigger value="rankings" className="font-display text-xs data-[state=active]:bg-section-intel data-[state=active]:text-white">
+              <Trophy className="w-3.5 h-3.5 mr-1 hidden sm:inline" />
+              RANKS
             </TabsTrigger>
           </TabsList>
 
-          <TabsContent value="feed">
-            <LiveFeedTab isGuest={isGuest} />
-          </TabsContent>
-
-          <TabsContent value="rivals">
-            {isGuest ? (
-              <GuestRivalsTab />
-            ) : (
-              <RivalWidget variant="full" />
-            )}
-          </TabsContent>
-
-          <TabsContent value="campaigns">
-            <CampaignIntelTab isGuest={isGuest} />
-          </TabsContent>
-
-          <TabsContent value="rankings">
-            <RankingsTab isGuest={isGuest} />
-          </TabsContent>
-
-          <TabsContent value="stats">
-            <MyStatsTab isGuest={isGuest} />
-          </TabsContent>
+          <TabsContent value="overview"><OverviewTab isGuest={isGuest} /></TabsContent>
+          <TabsContent value="feed"><FeedTab isGuest={isGuest} /></TabsContent>
+          <TabsContent value="boss"><BossTab isGuest={isGuest} /></TabsContent>
+          <TabsContent value="campaigns"><CampaignsTab isGuest={isGuest} /></TabsContent>
+          <TabsContent value="rivals"><RivalsTab isGuest={isGuest} /></TabsContent>
+          <TabsContent value="rankings"><RankingsTab isGuest={isGuest} /></TabsContent>
         </Tabs>
 
-        {/* Footer */}
         <AppFooter />
       </div>
     </div>
