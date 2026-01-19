@@ -1,77 +1,48 @@
-import { useState, useEffect } from "react";
-import { motion, AnimatePresence } from "framer-motion";
+import { useState } from "react";
+import { motion } from "framer-motion";
 import { useNavigate } from "react-router-dom";
-import {
-  User,
-  Save,
-  AlertCircle,
-  Check,
-  Trophy,
-  Zap,
-  Target,
-  Dumbbell,
-  Trash2,
-  Calendar,
-  X,
-  ChevronDown,
-  ChevronUp,
-  Skull,
-  AlertTriangle,
-  Shield,
-  ChevronRight,
-  Users,
-  ClipboardList,
-  Clock,
-  Eye,
-  FileText,
+import { 
+  LayoutGrid, 
+  ClipboardList, 
+  TrendingUp, 
+  History, 
+  Bell, 
+  Settings 
 } from "lucide-react";
 import { GlobalNav } from "@/components/GlobalNav";
 import { AppFooter } from "@/components/AppFooter";
 import { useAuth } from "@/hooks/useAuth";
-import { useProfile, useUpdateProfile } from "@/hooks/useProfile";
-import { useCompletedSessions, useDeleteSession } from "@/hooks/useWorkoutSessions";
-import { useWipeAllData } from "@/hooks/useWipeData";
-import {
-  useIsHandler,
-  useToggleHandlerMode,
-  useMySquads,
-  useLeaveSquad,
-  useUpdateMemberStats,
-} from "@/hooks/useHandlerMode";
+import { useProfile } from "@/hooks/useProfile";
 import { useMyAssignments } from "@/hooks/useAssignments";
-import { format, formatDistanceToNow } from "date-fns";
-import { validateDisplayName } from "@/lib/displayNameValidation";
+
+import { ProfileHeader } from "@/components/profile/ProfileHeader";
+import { ProfileOverviewTab } from "@/components/profile/ProfileOverviewTab";
+import { ProfileHandlerOpsTab } from "@/components/profile/ProfileHandlerOpsTab";
+import { ProfileProgressTab } from "@/components/profile/ProfileProgressTab";
+import { ProfileHistoryTab } from "@/components/profile/ProfileHistoryTab";
+import { ProfileNotificationsTab } from "@/components/profile/ProfileNotificationsTab";
+import { ProfileSettingsTab } from "@/components/profile/ProfileSettingsTab";
+
+type TabType = 'overview' | 'handler-ops' | 'progress' | 'history' | 'notifications' | 'settings';
+
+const tabs: { id: TabType; label: string; icon: React.ElementType }[] = [
+  { id: 'overview', label: 'Overview', icon: LayoutGrid },
+  { id: 'handler-ops', label: 'Handler Ops', icon: ClipboardList },
+  { id: 'progress', label: 'Progress', icon: TrendingUp },
+  { id: 'history', label: 'History', icon: History },
+  { id: 'notifications', label: 'Notifications', icon: Bell },
+  { id: 'settings', label: 'Settings', icon: Settings },
+];
 
 const ProfilePage = () => {
   const navigate = useNavigate();
-  const { user, isAnonymous } = useAuth();
-  const { data: profile, isLoading } = useProfile();
-  const { data: sessions, isLoading: sessionsLoading } = useCompletedSessions();
-  const { data: isHandler, isLoading: handlerLoading } = useIsHandler();
-  const { data: mySquads, isLoading: squadsLoading } = useMySquads();
-  const { data: myAssignments, isLoading: assignmentsLoading } = useMyAssignments();
-  const updateProfile = useUpdateProfile();
-  const deleteSession = useDeleteSession();
-  const wipeAllData = useWipeAllData();
-  const toggleHandler = useToggleHandlerMode();
-  const leaveSquad = useLeaveSquad();
-  const updateMemberStats = useUpdateMemberStats();
+  const { isAnonymous } = useAuth();
+  const { isLoading } = useProfile();
+  const { data: assignments } = useMyAssignments();
+  const [activeTab, setActiveTab] = useState<TabType>('overview');
 
-  const [displayName, setDisplayName] = useState("");
-  const [error, setError] = useState<string | null>(null);
-  const [success, setSuccess] = useState(false);
-  const [deleteConfirmId, setDeleteConfirmId] = useState<string | null>(null);
-  const [showMissions, setShowMissions] = useState(true);
-  const [showWipeConfirm, setShowWipeConfirm] = useState(false);
-  const [wipeConfirmText, setWipeConfirmText] = useState("");
-  const [showSquads, setShowSquads] = useState(true);
-  const [showOrders, setShowOrders] = useState(true);
-
-  useEffect(() => {
-    if (profile?.display_name) {
-      setDisplayName(profile.display_name);
-    }
-  }, [profile]);
+  // Calculate notification badge (for future use)
+  const activeOrderCount = assignments?.filter((a: any) => a.status !== 'COMPLETED').length || 0;
 
   // Redirect anonymous users to auth
   if (isAnonymous) {
@@ -94,66 +65,6 @@ const ProfilePage = () => {
     );
   }
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    setError(null);
-    setSuccess(false);
-
-    if (displayName.trim()) {
-      const validation = validateDisplayName(displayName.trim());
-      if (!validation.isValid) {
-        setError(validation.error || "Invalid display name");
-        return;
-      }
-    }
-
-    try {
-      await updateProfile.mutateAsync({ display_name: displayName.trim() || null });
-      setSuccess(true);
-      setTimeout(() => setSuccess(false), 3000);
-    } catch (err) {
-      setError("Failed to update profile. Try again.");
-    }
-  };
-
-  const handleDisplayNameChange = (value: string) => {
-    setDisplayName(value);
-    setSuccess(false);
-    if (value.trim()) {
-      const validation = validateDisplayName(value);
-      setError(validation.isValid ? null : validation.error || null);
-    } else {
-      setError(null);
-    }
-  };
-
-  const handleDeleteSession = async (sessionId: string) => {
-    try {
-      await deleteSession.mutateAsync(sessionId);
-      setDeleteConfirmId(null);
-    } catch (err) {
-      console.error("Failed to delete session:", err);
-    }
-  };
-
-  const handleWipeAllData = async () => {
-    if (wipeConfirmText !== "SCORCHED EARTH") return;
-    try {
-      await wipeAllData.mutateAsync();
-      setShowWipeConfirm(false);
-      setWipeConfirmText("");
-    } catch (err) {
-      console.error("Failed to wipe data:", err);
-    }
-  };
-
-  // Calculate level from XP
-  const xp = profile?.total_xp || 0;
-  const level = Math.max(1, Math.floor(Math.sqrt(xp / 100)) + 1);
-  const xpForNextLevel = level * level * 100;
-  const xpProgress =
-    ((xp - (level - 1) * (level - 1) * 100) / (xpForNextLevel - (level - 1) * (level - 1) * 100)) * 100;
-
   return (
     <div className="min-h-screen bg-background relative overflow-hidden">
       {/* Scanlines overlay */}
@@ -163,7 +74,7 @@ const ProfilePage = () => {
         {/* Header - Calmer, reflective tone */}
         <GlobalNav 
           title="SERVICE RECORD"
-          subtitle="YOUR HISTORY • OBLIGATIONS • SETTINGS"
+          subtitle="IDENTITY • OBLIGATIONS • HISTORY"
         />
 
         {isLoading ? (
@@ -171,605 +82,65 @@ const ProfilePage = () => {
             <div className="font-display text-xl text-primary animate-neon-pulse">LOADING...</div>
           </div>
         ) : (
-          <>
-            {/* Level Display - Calm, stable tones */}
-            <motion.div
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: 0.1 }}
-              className="bg-card border border-border rounded-lg p-6 mb-6 text-center"
-            >
-              <div className="font-display text-6xl text-foreground mb-2">{level}</div>
-              <div className="text-sm text-muted-foreground mb-4">LEVEL</div>
-              <div className="h-2 bg-muted rounded-full overflow-hidden">
-                <motion.div
-                  className="h-full bg-gradient-to-r from-muted-foreground to-foreground"
-                  initial={{ width: 0 }}
-                  animate={{ width: `${Math.min(100, xpProgress)}%` }}
-                  transition={{ duration: 0.5, delay: 0.3 }}
-                />
-              </div>
-              <div className="text-xs text-muted-foreground mt-2">
-                {xp.toLocaleString()} / {xpForNextLevel.toLocaleString()} XP
-              </div>
-            </motion.div>
+          <div className="space-y-4">
+            {/* Profile Header (Identity) */}
+            <ProfileHeader />
 
-            {/* Stats Grid - Muted, stable tones for Profile */}
-            <motion.div
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: 0.2 }}
-              className="grid grid-cols-2 gap-3 sm:gap-4 mb-6"
-            >
-              <div className="bg-card border border-border rounded-lg p-3 sm:p-4 text-center">
-                <Trophy className="w-4 h-4 sm:w-5 sm:h-5 mx-auto mb-1.5 sm:mb-2 text-muted-foreground" />
-                <div className="font-display text-lg sm:text-2xl text-foreground">{(profile?.total_score || 0).toLocaleString()}</div>
-                <div className="text-xs text-muted-foreground">TOTAL SCORE</div>
-              </div>
-              <div className="bg-card border border-border rounded-lg p-3 sm:p-4 text-center">
-                <Zap className="w-4 h-4 sm:w-5 sm:h-5 mx-auto mb-1.5 sm:mb-2 text-muted-foreground" />
-                <div className="font-display text-lg sm:text-2xl text-foreground">{profile?.max_combo || 0}x</div>
-                <div className="text-xs text-muted-foreground">MAX COMBO</div>
-              </div>
-              <div className="bg-card border border-border rounded-lg p-3 sm:p-4 text-center">
-                <Target className="w-4 h-4 sm:w-5 sm:h-5 mx-auto mb-1.5 sm:mb-2 text-muted-foreground" />
-                <div className="font-display text-lg sm:text-2xl text-foreground">{profile?.total_sets || 0}</div>
-                <div className="text-xs text-muted-foreground">TOTAL SETS</div>
-              </div>
-              <div className="bg-card border border-border rounded-lg p-3 sm:p-4 text-center">
-                <Dumbbell className="w-4 h-4 sm:w-5 sm:h-5 mx-auto mb-1.5 sm:mb-2 text-muted-foreground" />
-                <div className="font-display text-lg sm:text-2xl text-foreground">
-                  {((profile?.total_weight || 0) / 1000).toFixed(1)}k
-                </div>
-                <div className="text-xs text-muted-foreground">LBS LIFTED</div>
-              </div>
-            </motion.div>
-
-            {/* Edit Display Name */}
-            <motion.form
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: 0.3 }}
-              onSubmit={handleSubmit}
-              className="bg-card border border-border rounded-lg p-6 mb-6"
-            >
-              <h2 className="font-display text-lg text-muted-foreground mb-4">CALL SIGN</h2>
-
-              <div className="space-y-4">
-                <div className="relative">
-                  <User className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-muted-foreground" />
-                  <input
-                    type="text"
-                    value={displayName}
-                    onChange={(e) => handleDisplayNameChange(e.target.value)}
-                    className={`w-full bg-background border rounded pl-11 pr-4 py-3 text-foreground placeholder:text-muted-foreground focus:outline-none transition-colors font-display ${
-                      error ? 'border-destructive focus:border-destructive' : 'border-border focus:border-primary'
-                    }`}
-                    placeholder="GHOST_REAPER"
-                    maxLength={15}
-                  />
-                </div>
-                <p className="text-xs text-muted-foreground">
-                  Public. Do not use your real name. 3-15 characters. Letters, numbers, underscores, dashes.
-                </p>
-
-                {error && (
-                  <div className="flex items-start gap-2 p-3 bg-destructive/10 border border-destructive/30 rounded text-sm text-destructive">
-                    <AlertCircle className="w-4 h-4 mt-0.5 flex-shrink-0" />
-                    <span>{error}</span>
-                  </div>
-                )}
-
-                {success && (
-                  <div className="flex items-center gap-2 p-3 bg-success/10 border border-success/30 rounded text-sm text-success">
-                    <Check className="w-4 h-4" />
-                    <span>Profile updated successfully!</span>
-                  </div>
-                )}
-
-                <button
-                  type="submit"
-                  disabled={updateProfile.isPending}
-                  className="w-full py-3 bg-primary text-primary-foreground font-display rounded hover:box-glow-primary transition-all disabled:opacity-50 flex items-center justify-center gap-2"
-                >
-                  <Save className="w-5 h-5" />
-                  {updateProfile.isPending ? "SAVING..." : "SAVE CHANGES"}
-                </button>
-              </div>
-            </motion.form>
-
-            {/* Handler Mode Toggle */}
-            <motion.section
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: 0.35 }}
-              className="bg-card border border-secondary/50 rounded-lg p-6 mb-6"
-            >
-              <div className="flex items-center justify-between mb-4">
-                <div className="flex items-center gap-3">
-                  <Shield className="w-5 h-5 text-secondary" />
-                  <h2 className="font-display text-lg text-secondary">HANDLER MODE</h2>
-                </div>
-                <button
-                  onClick={() => toggleHandler.mutateAsync(!isHandler)}
-                  disabled={toggleHandler.isPending || handlerLoading}
-                  className={`w-12 h-6 rounded-full transition-colors relative ${
-                    isHandler ? "bg-secondary" : "bg-muted"
-                  }`}
-                >
-                  <div
-                    className={`absolute top-1 w-4 h-4 rounded-full bg-white transition-transform ${
-                      isHandler ? "left-7" : "left-1"
-                    }`}
-                  />
-                </button>
-              </div>
-              <p className="text-xs text-muted-foreground mb-4">
-                Enable to create squads and assign missions to other agents.
-              </p>
-              {isHandler && (
-                <button
-                  onClick={() => navigate("/handler")}
-                  className="w-full py-2 bg-secondary/10 border border-secondary/30 text-secondary font-display text-sm rounded flex items-center justify-center gap-2 hover:bg-secondary/20 transition-colors"
-                >
-                  OPEN HANDLER OPS
-                  <ChevronRight className="w-4 h-4" />
-                </button>
-              )}
-            </motion.section>
-
-            {/* My Squads (as athlete) */}
-            {mySquads && mySquads.length > 0 && (
-              <motion.section
-                initial={{ opacity: 0, y: 20 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ delay: 0.38 }}
-                className="bg-card border border-border rounded-lg p-6 mb-6"
-              >
-                <button
-                  onClick={() => setShowSquads(!showSquads)}
-                  className="w-full flex items-center justify-between font-display text-lg text-muted-foreground mb-4"
-                >
-                  <span className="flex items-center gap-2">
-                    <Users className="w-4 h-4" />
-                    MY SQUADS ({mySquads.length})
-                  </span>
-                  {showSquads ? <ChevronUp className="w-5 h-5" /> : <ChevronDown className="w-5 h-5" />}
-                </button>
-
-                <AnimatePresence>
-                  {showSquads && (
-                    <motion.div
-                      initial={{ height: 0, opacity: 0 }}
-                      animate={{ height: "auto", opacity: 1 }}
-                      exit={{ height: 0, opacity: 0 }}
-                      className="overflow-hidden space-y-2"
-                    >
-                      {mySquads.map((membership: any) => (
-                        <div key={membership.id} className="bg-background border border-border rounded-lg p-3">
-                          <div className="flex items-center justify-between mb-2">
-                            <span className="font-display text-sm text-secondary">{membership.squads?.code_name}</span>
-                            <button
-                              onClick={() => leaveSquad.mutateAsync(membership.squads?.id)}
-                              className="text-xs text-muted-foreground hover:text-destructive"
-                            >
-                              Leave
-                            </button>
-                          </div>
-                          <div className="flex items-center justify-between text-xs">
-                            <span className="text-muted-foreground">
-                              Handler: {membership.squads?.profiles?.display_name || "Unknown"}
-                            </span>
-                            <label className="flex items-center gap-2 cursor-pointer">
-                              <span className="text-muted-foreground">Share stats</span>
-                              <input
-                                type="checkbox"
-                                checked={membership.share_stats}
-                                onChange={(e) =>
-                                  updateMemberStats.mutateAsync({
-                                    squadId: membership.squads?.id,
-                                    shareStats: e.target.checked,
-                                  })
-                                }
-                                className="w-3 h-3 accent-secondary"
-                              />
-                            </label>
-                          </div>
-                        </div>
-                      ))}
-                    </motion.div>
-                  )}
-                </AnimatePresence>
-              </motion.section>
-            )}
-
-            {/* Handler Orders (Assignments TO this user) */}
-            {myAssignments && myAssignments.length > 0 && (
-              <motion.section
-                initial={{ opacity: 0, y: 20 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ delay: 0.39 }}
-                className="bg-card border border-section-orders/30 rounded-lg p-6 mb-6"
-              >
-                <button
-                  onClick={() => setShowOrders(!showOrders)}
-                  className="w-full flex items-center justify-between font-display text-lg text-section-orders mb-4"
-                >
-                  <span className="flex items-center gap-2">
-                    <ClipboardList className="w-4 h-4" />
-                    ORDERS ({myAssignments.length})
-                  </span>
-                  {showOrders ? <ChevronUp className="w-5 h-5" /> : <ChevronDown className="w-5 h-5" />}
-                </button>
-
-                {/* Privacy notice */}
-                <div className="flex items-start gap-2 p-3 bg-muted/30 border border-border rounded-lg mb-4 text-xs text-muted-foreground">
-                  <FileText className="w-4 h-4 mt-0.5 flex-shrink-0" />
-                  <div>
-                    <span className="text-foreground font-medium">What handlers see:</span> Only your call sign and missions completed. No personal data, no tracking.
-                  </div>
-                </div>
-
-                <AnimatePresence>
-                  {showOrders && (
-                    <motion.div
-                      initial={{ height: 0, opacity: 0 }}
-                      animate={{ height: "auto", opacity: 1 }}
-                      exit={{ height: 0, opacity: 0 }}
-                      className="overflow-hidden space-y-2"
-                    >
-                      {/* Quick Stats */}
-                      <div className="grid grid-cols-3 gap-2 mb-3">
-                        <div className="text-center p-2 bg-background border border-border rounded">
-                          <div className="font-display text-lg text-foreground">
-                            {myAssignments.filter((a: any) => a.status !== 'COMPLETED').length}
-                          </div>
-                          <div className="text-xs text-muted-foreground">PENDING</div>
-                        </div>
-                        <div className="text-center p-2 bg-background border border-border rounded">
-                          <div className="font-display text-lg text-foreground">
-                            {myAssignments.filter((a: any) => a.status === 'COMPLETED').length}
-                          </div>
-                          <div className="text-xs text-muted-foreground">DONE</div>
-                        </div>
-                        <div className="text-center p-2 bg-background border border-border rounded">
-                          <div className="font-display text-lg text-foreground">
-                            {myAssignments.length > 0 
-                              ? Math.round((myAssignments.filter((a: any) => a.status === 'COMPLETED').length / myAssignments.length) * 100)
-                              : 0}%
-                          </div>
-                          <div className="text-xs text-muted-foreground">RATE</div>
-                        </div>
-                      </div>
-
-                      {/* Orders List */}
-                      {myAssignments.slice(0, 5).map((assignment: any) => {
-                        const mission = assignment.mission_snapshot;
-                        const isCompleted = assignment.status === 'COMPLETED';
-                        const isInProgress = assignment.status === 'IN_PROGRESS';
+            {/* Tab Navigation */}
+            <div className="relative">
+              <div className="flex overflow-x-auto snap-x snap-mandatory scrollbar-hide -mx-4 px-4">
+                <div className="flex gap-1 min-w-max">
+                  {tabs.map((tab) => {
+                    const Icon = tab.icon;
+                    const isActive = activeTab === tab.id;
+                    const showBadge = tab.id === 'handler-ops' && activeOrderCount > 0;
+                    
+                    return (
+                      <button
+                        key={tab.id}
+                        onClick={() => setActiveTab(tab.id)}
+                        className={`relative flex items-center gap-1.5 px-3 py-2 text-xs font-display rounded-lg transition-all snap-start touch-manipulation ${
+                          isActive
+                            ? 'bg-primary text-primary-foreground'
+                            : 'bg-card text-muted-foreground hover:text-foreground border border-border'
+                        }`}
+                      >
+                        <Icon className="w-4 h-4" />
+                        <span className="hidden sm:inline">{tab.label}</span>
+                        <span className="sm:hidden">
+                          {tab.label === 'Handler Ops' ? 'Orders' : 
+                           tab.label === 'Notifications' ? 'Alerts' :
+                           tab.label}
+                        </span>
                         
-                        return (
-                          <div 
-                            key={assignment.id} 
-                            className={`bg-background border rounded-lg p-3 ${
-                              isCompleted 
-                                ? 'border-border opacity-60' 
-                                : isInProgress 
-                                  ? 'border-secondary/50' 
-                                  : 'border-section-orders/30'
-                            }`}
-                          >
-                            <div className="flex items-start justify-between gap-3">
-                              <div className="flex-1 min-w-0">
-                                <div className="flex items-center gap-2 mb-1">
-                                  {isCompleted && (
-                                    <span className="text-xs bg-muted text-muted-foreground px-1.5 py-0.5 rounded font-display">
-                                      DONE
-                                    </span>
-                                  )}
-                                  {isInProgress && (
-                                    <span className="text-xs bg-secondary/20 text-secondary px-1.5 py-0.5 rounded font-display">
-                                      ACTIVE
-                                    </span>
-                                  )}
-                                  <span className="font-display text-sm text-foreground truncate">
-                                    {mission?.code_name || 'CLASSIFIED'}
-                                  </span>
-                                </div>
-                                
-                                <div className="flex items-center gap-3 text-xs text-muted-foreground">
-                                  <div className="flex items-center gap-1">
-                                    <User className="w-3 h-3" />
-                                    <span>{assignment.handler_name || 'Handler'}</span>
-                                  </div>
-                                  
-                                  {assignment.squad_name && (
-                                    <div className="flex items-center gap-1">
-                                      <Users className="w-3 h-3" />
-                                      <span>{assignment.squad_name}</span>
-                                    </div>
-                                  )}
-                                  
-                                  <div className="flex items-center gap-1">
-                                    <Clock className="w-3 h-3" />
-                                    <span>{formatDistanceToNow(new Date(assignment.assigned_at))} ago</span>
-                                  </div>
-                                </div>
-                              </div>
-
-                              {!isCompleted && (
-                                <button
-                                  onClick={() => {
-                                    if (mission?.is_campaign && mission?.campaign_id) {
-                                      navigate(`/campaign/${mission.campaign_id}`);
-                                    } else if (mission?.id) {
-                                      navigate(`/mission/${mission.id}`);
-                                    }
-                                  }}
-                                  className="flex-shrink-0 p-2 rounded-lg bg-section-orders/10 text-section-orders hover:bg-section-orders/20 transition-all"
-                                  title="Review order"
-                                >
-                                  <Eye className="w-4 h-4" />
-                                </button>
-                              )}
-                            </div>
-                          </div>
-                        );
-                      })}
-                      
-                      {myAssignments.length > 5 && (
-                        <div className="text-center text-xs text-muted-foreground pt-2">
-                          +{myAssignments.length - 5} more orders
-                        </div>
-                      )}
-                    </motion.div>
-                  )}
-                </AnimatePresence>
-              </motion.section>
-            )}
-
-            {/* Completed Missions */}
-            <motion.section
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: 0.4 }}
-              className="bg-card border border-border rounded-lg p-6 mb-6"
-            >
-              <button
-                onClick={() => setShowMissions(!showMissions)}
-                className="w-full flex items-center justify-between font-display text-lg text-muted-foreground mb-4"
-              >
-                <span>MISSION HISTORY ({sessions?.length || 0})</span>
-                {showMissions ? <ChevronUp className="w-5 h-5" /> : <ChevronDown className="w-5 h-5" />}
-              </button>
-
-              <AnimatePresence>
-                {showMissions && (
-                  <motion.div
-                    initial={{ height: 0, opacity: 0 }}
-                    animate={{ height: "auto", opacity: 1 }}
-                    exit={{ height: 0, opacity: 0 }}
-                    className="overflow-hidden"
-                  >
-                    {sessionsLoading ? (
-                      <div className="text-center py-4">
-                        <div className="font-display text-sm text-primary animate-neon-pulse">LOADING...</div>
-                      </div>
-                    ) : !sessions || sessions.length === 0 ? (
-                      <div className="text-center py-4">
-                        <Trophy className="w-8 h-8 mx-auto mb-3 text-muted-foreground" />
-                        <p className="text-muted-foreground text-sm">No completed missions yet.</p>
-                        <p className="text-muted-foreground/60 text-xs mt-1">
-                          Complete workouts to build your history.
-                        </p>
-                      </div>
-                    ) : (
-                      <div className="space-y-3">
-                        {sessions.map((session) => {
-                          const missionName =
-                            session.missions?.name || (session.mission_snapshot as any)?.name || "Unknown Mission";
-                          const missionCodeName =
-                            session.missions?.code_name || (session.mission_snapshot as any)?.code_name || "UNKNOWN";
-
-                          return (
-                            <div key={session.id} className="relative">
-                              <div className="bg-background border border-border rounded-lg p-4">
-                                <div className="flex items-start justify-between">
-                                  <div className="flex-1 min-w-0">
-                                    <div className="font-display text-sm text-primary truncate">{missionCodeName}</div>
-                                    <div className="text-xs text-muted-foreground/80 truncate">{missionName}</div>
-                                    <div className="flex items-center gap-2 mt-2 text-xs text-muted-foreground">
-                                      <Calendar className="w-3 h-3" />
-                                      {session.completed_at
-                                        ? format(new Date(session.completed_at), "MMM d, yyyy • h:mm a")
-                                        : "Unknown date"}
-                                    </div>
-                                    <div className="flex flex-wrap items-center gap-x-4 gap-y-1 mt-2 text-xs">
-                                      <span className="text-accent font-display">
-                                        {session.score_earned.toLocaleString()} pts
-                                      </span>
-                                      <span className="text-success font-display">{session.xp_earned} XP</span>
-                                      <span className="text-secondary">{session.sets_completed} sets</span>
-                                      <span className="flex items-center gap-1 text-primary">
-                                        <Dumbbell className="w-3 h-3" />
-                                        {Number(session.total_weight).toLocaleString()} lbs
-                                      </span>
-                                    </div>
-                                  </div>
-
-                                  <button
-                                    onClick={() => setDeleteConfirmId(session.id)}
-                                    className="p-2 text-muted-foreground hover:text-destructive transition-colors"
-                                    title="Delete this mission"
-                                  >
-                                    <Trash2 className="w-4 h-4" />
-                                  </button>
-                                </div>
-                              </div>
-
-                              {/* Delete Confirmation Modal */}
-                              <AnimatePresence>
-                                {deleteConfirmId === session.id && (
-                                  <motion.div
-                                    initial={{ opacity: 0, scale: 0.95 }}
-                                    animate={{ opacity: 1, scale: 1 }}
-                                    exit={{ opacity: 0, scale: 0.95 }}
-                                    className="absolute inset-0 bg-card border-2 border-destructive rounded-lg p-4 flex flex-col justify-center z-10"
-                                  >
-                                    <div className="text-center">
-                                      <AlertCircle className="w-8 h-8 mx-auto mb-2 text-destructive" />
-                                      <p className="text-sm font-display text-destructive mb-1">DELETE MISSION?</p>
-                                      <p className="text-xs text-muted-foreground mb-4">
-                                        This will remove {session.score_earned.toLocaleString()} pts and{" "}
-                                        {session.xp_earned} XP from your profile. This cannot be undone.
-                                      </p>
-                                      <div className="flex gap-2 justify-center">
-                                        <button
-                                          onClick={() => setDeleteConfirmId(null)}
-                                          className="px-4 py-2 border border-border rounded text-sm hover:bg-muted transition-colors"
-                                        >
-                                          <X className="w-4 h-4" />
-                                        </button>
-                                        <button
-                                          onClick={() => handleDeleteSession(session.id)}
-                                          disabled={deleteSession.isPending}
-                                          className="px-4 py-2 bg-destructive text-destructive-foreground rounded text-sm font-display hover:bg-destructive/90 transition-colors disabled:opacity-50"
-                                        >
-                                          {deleteSession.isPending ? "DELETING..." : "DELETE"}
-                                        </button>
-                                      </div>
-                                    </div>
-                                  </motion.div>
-                                )}
-                              </AnimatePresence>
-                            </div>
-                          );
-                        })}
-                      </div>
-                    )}
-                  </motion.div>
-                )}
-              </AnimatePresence>
-            </motion.section>
-
-            {/* Scorched Earth - Wipe All Data */}
-            <motion.section
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: 0.6 }}
-              className="bg-card border border-destructive/30 rounded-lg p-6 mt-6"
-            >
-              <div className="flex items-center gap-3 mb-4">
-                <Skull className="w-6 h-6 text-destructive" />
-                <h2 className="font-display text-lg text-destructive">SCORCHED EARTH PROTOCOL</h2>
+                        {/* Badge for active orders */}
+                        {showBadge && (
+                          <span className="absolute -top-1 -right-1 w-4 h-4 bg-section-orders text-white text-[10px] font-display rounded-full flex items-center justify-center">
+                            {activeOrderCount > 9 ? '9+' : activeOrderCount}
+                          </span>
+                        )}
+                      </button>
+                    );
+                  })}
+                </div>
               </div>
-              <p className="text-sm text-muted-foreground mb-4">
-                Permanently erase all mission history, custom exercises, weight records, and reset your stats to zero.
-                Your call sign will be preserved. This action cannot be undone.
-              </p>
-              <button
-                onClick={() => setShowWipeConfirm(true)}
-                className="w-full py-3 border-2 border-destructive text-destructive font-display rounded hover:bg-destructive hover:text-destructive-foreground transition-all flex items-center justify-center gap-2"
-              >
-                <AlertTriangle className="w-5 h-5" />
-                INITIATE PROTOCOL
-              </button>
-            </motion.section>
-          </>
+            </div>
+
+            {/* Tab Content */}
+            <div className="min-h-[400px]">
+              {activeTab === 'overview' && <ProfileOverviewTab />}
+              {activeTab === 'handler-ops' && <ProfileHandlerOpsTab />}
+              {activeTab === 'progress' && <ProfileProgressTab />}
+              {activeTab === 'history' && <ProfileHistoryTab />}
+              {activeTab === 'notifications' && <ProfileNotificationsTab />}
+              {activeTab === 'settings' && <ProfileSettingsTab />}
+            </div>
+          </div>
         )}
 
         {/* Footer */}
         <AppFooter />
       </div>
-      <AnimatePresence>
-        {showWipeConfirm && (
-          <motion.div
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
-            className="fixed inset-0 bg-background/90 backdrop-blur-sm z-50 flex items-center justify-center p-4"
-          >
-            <motion.div
-              initial={{ scale: 0.9, opacity: 0 }}
-              animate={{ scale: 1, opacity: 1 }}
-              exit={{ scale: 0.9, opacity: 0 }}
-              className="bg-card border-2 border-destructive rounded-lg p-6 max-w-md w-full"
-            >
-              <div className="text-center mb-6">
-                <div className="w-16 h-16 mx-auto mb-4 rounded-full bg-destructive/20 flex items-center justify-center">
-                  <Skull className="w-10 h-10 text-destructive animate-pulse" />
-                </div>
-                <h2 className="font-display text-2xl text-destructive mb-2">SCORCHED EARTH</h2>
-                <p className="text-muted-foreground text-sm">This will permanently destroy all your progress:</p>
-              </div>
-
-              <div className="space-y-2 mb-6 text-sm">
-                <div className="flex items-center gap-2 text-muted-foreground">
-                  <X className="w-4 h-4 text-destructive" />
-                  <span>{sessions?.length || 0} mission records</span>
-                </div>
-                <div className="flex items-center gap-2 text-muted-foreground">
-                  <X className="w-4 h-4 text-destructive" />
-                  <span>All custom exercises</span>
-                </div>
-                <div className="flex items-center gap-2 text-muted-foreground">
-                  <X className="w-4 h-4 text-destructive" />
-                  <span>{(profile?.total_score || 0).toLocaleString()} total score</span>
-                </div>
-                <div className="flex items-center gap-2 text-muted-foreground">
-                  <X className="w-4 h-4 text-destructive" />
-                  <span>
-                    {(profile?.total_xp || 0).toLocaleString()} XP (Level {level})
-                  </span>
-                </div>
-                <div className="flex items-center gap-2 text-muted-foreground">
-                  <X className="w-4 h-4 text-destructive" />
-                  <span>All weight history records</span>
-                </div>
-              </div>
-
-              <div className="mb-6">
-                <label className="text-xs text-muted-foreground mb-2 block">
-                  Type <span className="text-destructive font-display">SCORCHED EARTH</span> to confirm:
-                </label>
-                <input
-                  type="text"
-                  value={wipeConfirmText}
-                  onChange={(e) => setWipeConfirmText(e.target.value.toUpperCase())}
-                  className="w-full bg-background border border-destructive/50 rounded px-4 py-3 text-foreground placeholder:text-muted-foreground focus:border-destructive focus:outline-none transition-colors font-display text-center tracking-widest"
-                  placeholder="SCORCHED EARTH"
-                />
-              </div>
-
-              <div className="flex gap-3">
-                <button
-                  onClick={() => {
-                    setShowWipeConfirm(false);
-                    setWipeConfirmText("");
-                  }}
-                  className="flex-1 py-3 border border-border rounded font-display hover:bg-muted transition-colors"
-                >
-                  ABORT
-                </button>
-                <button
-                  onClick={handleWipeAllData}
-                  disabled={wipeConfirmText !== "SCORCHED EARTH" || wipeAllData.isPending}
-                  className="flex-1 py-3 bg-destructive text-destructive-foreground font-display rounded hover:bg-destructive/90 transition-all disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
-                >
-                  {wipeAllData.isPending ? (
-                    <>DESTROYING...</>
-                  ) : (
-                    <>
-                      <Skull className="w-5 h-5" />
-                      EXECUTE
-                    </>
-                  )}
-                </button>
-              </div>
-            </motion.div>
-          </motion.div>
-        )}
-      </AnimatePresence>
     </div>
   );
 };
