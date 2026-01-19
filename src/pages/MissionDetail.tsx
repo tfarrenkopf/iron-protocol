@@ -173,6 +173,8 @@ const MissionDetail = () => {
         <GlobalNav 
           backTo={(() => {
             const searchParams = new URLSearchParams(location.search);
+            const returnTo = searchParams.get('returnTo');
+            if (returnTo) return decodeURIComponent(returnTo);
             const campaignId = searchParams.get('campaignId');
             return campaignId ? `/campaign/${campaignId}` : '/command?tab=missions';
           })()}

@@ -212,10 +212,11 @@ function OrderCard({
         {!isCompleted && (
           <button
             onClick={() => {
+              const returnTo = encodeURIComponent('/profile?tab=handler-ops');
               if (mission?.is_campaign && mission?.campaign_id) {
-                navigate(`/campaign/${mission.campaign_id}`);
+                navigate(`/campaign/${mission.campaign_id}?returnTo=${returnTo}`);
               } else if (mission?.id) {
-                navigate(`/mission/${mission.id}`);
+                navigate(`/mission/${mission.id}?returnTo=${returnTo}`);
               }
             }}
             className="flex-shrink-0 p-2 rounded-lg bg-section-orders/10 text-section-orders hover:bg-section-orders/20 transition-all"
