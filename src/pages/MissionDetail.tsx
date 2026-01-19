@@ -196,11 +196,6 @@ const MissionDetail = () => {
                   {mission.description}
                 </p>
               )}
-              {isAnonymous && (
-                <p className="text-xs text-muted-foreground mt-1">
-                  <GuestIndicator variant="minimal" />
-                </p>
-              )}
             </div>
             
             {/* Difficulty indicator - compact */}
