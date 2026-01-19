@@ -1,10 +1,10 @@
-import { motion } from 'framer-motion';
-import { useNavigate } from 'react-router-dom';
-import { Target, Flame, ChevronRight, Zap, Play, Clock, Dumbbell, Crosshair } from 'lucide-react';
-import { useActiveCampaign, useActiveCampaignDetails } from '@/hooks/useActiveCampaign';
-import { useAuth } from '@/hooks/useAuth';
-import { useMemo } from 'react';
-import { formatEquipment } from '@/data/muscleGroups';
+import { motion } from "framer-motion";
+import { useNavigate } from "react-router-dom";
+import { Target, Flame, ChevronRight, Zap, Play, Clock, Dumbbell, Crosshair } from "lucide-react";
+import { useActiveCampaign, useActiveCampaignDetails } from "@/hooks/useActiveCampaign";
+import { useAuth } from "@/hooks/useAuth";
+import { useMemo } from "react";
+import { formatEquipment } from "@/data/muscleGroups";
 
 export function FightNowActions() {
   const navigate = useNavigate();
@@ -15,10 +15,11 @@ export function FightNowActions() {
   const isGuest = !user;
 
   // Find next mission if we have an active campaign
-  const missions = campaign?.collection_missions
-    ?.sort((a: any, b: any) => a.order_index - b.order_index)
-    .map((cm: any) => cm.missions) || [];
-  
+  const missions =
+    campaign?.collection_missions
+      ?.sort((a: any, b: any) => a.order_index - b.order_index)
+      .map((cm: any) => cm.missions) || [];
+
   const nextMission = missions.find((m: any) => !completedMissionIds.has(m.id));
   const hasActiveCampaign = activeCampaignId && campaign && !isLoading;
   const totalMissions = missions.length;
@@ -59,38 +60,44 @@ export function FightNowActions() {
         <button
           onClick={handleContinueCampaign}
           className={`w-full group relative border-2 rounded-lg p-4 text-left transition-all ${
-            isComplete 
-              ? 'bg-gradient-to-r from-secondary/20 via-secondary/10 to-secondary/20 border-secondary hover:box-glow-secondary hover:from-secondary/30 hover:via-secondary/20 hover:to-secondary/30'
-              : 'bg-gradient-to-r from-accent/20 via-accent/10 to-accent/20 border-accent hover:box-glow-accent hover:from-accent/30 hover:via-accent/20 hover:to-accent/30'
+            isComplete
+              ? "bg-gradient-to-r from-secondary/20 via-secondary/10 to-secondary/20 border-secondary hover:box-glow-secondary hover:from-secondary/30 hover:via-secondary/20 hover:to-secondary/30"
+              : "bg-gradient-to-r from-accent/20 via-accent/10 to-accent/20 border-accent hover:box-glow-accent hover:from-accent/30 hover:via-accent/20 hover:to-accent/30"
           }`}
         >
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-4">
-              <div className={`p-2 rounded-lg ${isComplete ? 'bg-secondary/20' : 'bg-accent/20'}`}>
-                <Zap className={`w-8 h-8 ${isComplete ? 'text-secondary' : 'text-accent'}`} />
+              <div className={`p-2 rounded-lg ${isComplete ? "bg-secondary/20" : "bg-accent/20"}`}>
+                <Zap className={`w-8 h-8 ${isComplete ? "text-secondary" : "text-accent"}`} />
               </div>
               <div className="flex-1">
-                <div className={`text-xs font-display tracking-wider mb-0.5 ${isComplete ? 'text-secondary/70' : 'text-accent/70'}`}>
-                  {isComplete ? '✓ CAMPAIGN COMPLETE' : 'ACTIVE CAMPAIGN'}
+                <div
+                  className={`text-xs font-display tracking-wider mb-0.5 ${isComplete ? "text-secondary/70" : "text-accent/70"}`}
+                >
+                  {isComplete ? "✓ CAMPAIGN COMPLETE" : "ACTIVE CAMPAIGN"}
                 </div>
-                <h2 className={`font-display text-xl ${isComplete ? 'text-secondary' : 'text-accent'}`}>{campaign?.code_name}</h2>
+                <h2 className={`font-display text-xl ${isComplete ? "text-secondary" : "text-accent"}`}>
+                  {campaign?.code_name}
+                </h2>
                 <div className="flex items-center gap-3 text-xs text-muted-foreground mt-1">
                   <span className="flex items-center gap-1">
                     <Play className="w-3 h-3" />
                     {completedCount}/{totalMissions}
                   </span>
                   <span className="flex items-center gap-1">
-                    <Clock className="w-3 h-3" />
-                    ~{totalTime}min
+                    <Clock className="w-3 h-3" />~{totalTime}min
                   </span>
                 </div>
                 {/* Equipment preview */}
                 {campaignEquipment.length > 0 && (
                   <div className="flex items-center gap-1.5 mt-2">
-                    <Dumbbell className={`w-3 h-3 ${isComplete ? 'text-secondary/60' : 'text-accent/60'}`} />
+                    <Dumbbell className={`w-3 h-3 ${isComplete ? "text-secondary/60" : "text-accent/60"}`} />
                     <div className="flex gap-1">
-                      {campaignEquipment.map(eq => (
-                        <span key={eq} className={`text-xs px-1.5 py-0.5 rounded ${isComplete ? 'bg-secondary/10 text-muted-foreground' : 'bg-accent/10 text-muted-foreground'}`}>
+                      {campaignEquipment.map((eq) => (
+                        <span
+                          key={eq}
+                          className={`text-xs px-1.5 py-0.5 rounded ${isComplete ? "bg-secondary/10 text-muted-foreground" : "bg-accent/10 text-muted-foreground"}`}
+                        >
                           {formatEquipment(eq)}
                         </span>
                       ))}
@@ -99,12 +106,14 @@ export function FightNowActions() {
                 )}
               </div>
             </div>
-            <ChevronRight className={`w-6 h-6 group-hover:translate-x-1 transition-transform flex-shrink-0 ${isComplete ? 'text-secondary' : 'text-accent'}`} />
+            <ChevronRight
+              className={`w-6 h-6 group-hover:translate-x-1 transition-transform flex-shrink-0 ${isComplete ? "text-secondary" : "text-accent"}`}
+            />
           </div>
           {/* Progress bar */}
-          <div className={`mt-3 h-1 rounded-full overflow-hidden ${isComplete ? 'bg-secondary/20' : 'bg-accent/20'}`}>
-            <div 
-              className={`h-full rounded-full transition-all ${isComplete ? 'bg-secondary' : 'bg-accent'}`}
+          <div className={`mt-3 h-1 rounded-full overflow-hidden ${isComplete ? "bg-secondary/20" : "bg-accent/20"}`}>
+            <div
+              className={`h-full rounded-full transition-all ${isComplete ? "bg-secondary" : "bg-accent"}`}
               style={{ width: `${totalMissions > 0 ? (completedCount / totalMissions) * 100 : 0}%` }}
             />
           </div>
@@ -115,7 +124,7 @@ export function FightNowActions() {
           {isGuest ? (
             /* GUEST: Single primary CTA - go directly to missions */
             <button
-              onClick={() => navigate('/command?tab=missions&source=public')}
+              onClick={() => navigate("/command?tab=missions&source=public")}
               className="w-full group relative bg-gradient-to-r from-primary/20 via-primary/10 to-primary/20 border-2 border-primary rounded-lg p-4 text-left transition-all hover:box-glow-primary hover:from-primary/30 hover:via-primary/20 hover:to-primary/30"
             >
               <div className="flex items-center justify-between">
@@ -124,12 +133,10 @@ export function FightNowActions() {
                     <Crosshair className="w-8 h-8 text-primary" />
                   </div>
                   <div className="flex-1">
-                    <div className="text-xs text-primary/70 font-display tracking-wider mb-0.5">
-                      EXECUTE NOW
-                    </div>
+                    <div className="text-xs text-primary/70 font-display tracking-wider mb-0.5">EXECUTE NOW</div>
                     <h2 className="font-display text-xl text-primary">SELECT YOUR MISSION</h2>
                     <p className="text-xs text-muted-foreground mt-1 max-w-xs">
-                      Browse the full arsenal. Pick a target. Execute.
+                      Join campaigns, run missions, or build your own exercises. Take control.
                     </p>
                   </div>
                 </div>
@@ -140,7 +147,7 @@ export function FightNowActions() {
             /* LOGGED-IN: Campaign as primary, Flashpoint as secondary */
             <>
               <button
-                onClick={() => navigate('/command?tab=campaigns')}
+                onClick={() => navigate("/command?tab=campaigns")}
                 className="w-full group relative bg-gradient-to-r from-accent/20 via-accent/10 to-accent/20 border-2 border-accent rounded-lg p-4 text-left transition-all hover:box-glow-accent hover:from-accent/30 hover:via-accent/20 hover:to-accent/30"
               >
                 <div className="flex items-center justify-between">
@@ -149,9 +156,7 @@ export function FightNowActions() {
                       <Flame className="w-8 h-8 text-accent" />
                     </div>
                     <div className="flex-1">
-                      <div className="text-xs text-accent/70 font-display tracking-wider mb-0.5">
-                        MULTI-MISSION WAR
-                      </div>
+                      <div className="text-xs text-accent/70 font-display tracking-wider mb-0.5">MULTI-MISSION WAR</div>
                       <h2 className="font-display text-xl text-accent">SELECT CAMPAIGN</h2>
                       <p className="text-xs text-muted-foreground mt-1 max-w-xs">
                         Multi-mission runs—raids, extractions, strikes—all back-to-back.
@@ -165,7 +170,7 @@ export function FightNowActions() {
               {/* Secondary Actions Grid for logged-in users */}
               <div className="grid grid-cols-2 gap-3 sm:gap-4">
                 <button
-                  onClick={() => navigate('/command?tab=missions&source=public')}
+                  onClick={() => navigate("/command?tab=missions&source=public")}
                   className="group relative bg-card border-2 border-primary/50 rounded-lg p-4 text-left transition-all hover:border-primary hover:box-glow-primary"
                 >
                   <div className="flex items-center gap-3">
@@ -180,7 +185,7 @@ export function FightNowActions() {
                 </button>
 
                 <button
-                  onClick={() => navigate('/intel')}
+                  onClick={() => navigate("/intel")}
                   className="group relative bg-card border-2 border-secondary/50 rounded-lg p-4 text-left transition-all hover:border-secondary hover:box-glow-secondary"
                 >
                   <div className="flex items-center gap-3">
