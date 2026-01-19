@@ -130,9 +130,15 @@ const Legal = () => {
                 the tavern every time you visit.
               </p>
               <p>
-                <strong className="text-foreground">NO TRACKING COOKIES:</strong> We do not use 
-                third-party analytics or advertising cookies. Your movements are not being watched 
-                by unseen eyes (other than perhaps your gym buddy).
+                <strong className="text-foreground">ANALYTICS:</strong> We use Google Analytics to 
+                understand how warriors use the battlefield. This helps us improve training programs 
+                and identify bugs. We track page views, feature usage, and workout completions - 
+                never personal details beyond your anonymous user ID. You can opt-out via browser 
+                extensions or by disabling JavaScript.
+              </p>
+              <p>
+                <strong className="text-foreground">NO ADVERTISING COOKIES:</strong> We do not use 
+                advertising or remarketing cookies. Your training data is not sold to third parties.
               </p>
             </div>
           </motion.section>
