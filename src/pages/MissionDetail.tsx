@@ -27,19 +27,28 @@ const MissionDetail = () => {
   const [expandedExercise, setExpandedExercise] = useState<string | null>(null);
   const [showLeaderboard, setShowLeaderboard] = useState(false);
   const exerciseRefs = useRef<Map<string, HTMLDivElement>>(new Map());
+  const bottomBarRef = useRef<HTMLDivElement | null>(null);
 
   const handleExpandExercise = useCallback((exerciseId: string) => {
     const isCurrentlyExpanded = expandedExercise === exerciseId;
     setExpandedExercise(isCurrentlyExpanded ? null : exerciseId);
-    
-    // Scroll into view after expansion animation
+
+    // The CTA bar is fixed to the bottom; ensure expanded content isn't hidden behind it.
     if (!isCurrentlyExpanded) {
-      setTimeout(() => {
+      window.setTimeout(() => {
         const element = exerciseRefs.current.get(exerciseId);
-        if (element) {
-          element.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+        if (!element) return;
+
+        const bottomBarHeight = bottomBarRef.current?.getBoundingClientRect().height ?? 0;
+        const safeBottom = Math.min(window.innerHeight * 0.45, bottomBarHeight + 24);
+        const viewportBottom = window.innerHeight - safeBottom;
+
+        const rect = element.getBoundingClientRect();
+        if (rect.bottom > viewportBottom) {
+          const delta = rect.bottom - viewportBottom + 8;
+          window.scrollBy({ top: delta, behavior: 'smooth' });
         }
-      }, 50);
+      }, 240);
     }
   }, [expandedExercise]);
 
@@ -481,6 +490,7 @@ const MissionDetail = () => {
 
         {/* Start Mission Button - Fixed at bottom */}
         <motion.div
+          ref={bottomBarRef}
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.3 }}
