@@ -118,6 +118,9 @@ const Dashboard = () => {
             </motion.button>
           )}
 
+          {/* Incoming Orders - Only for logged-in users, appears after Command Center */}
+          {!isAnonymous && <IncomingOrders />}
+
           {/* Weekly Boss Widget */}
           <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.25 }}>
             <WeeklyBossWidget />
@@ -125,9 +128,6 @@ const Dashboard = () => {
 
           {/* Weekly Summary - Collapsible for logged-in users, expanded for guests */}
           <WeeklySummary collapsible={!isAnonymous} defaultCollapsed={!isAnonymous} />
-
-          {/* Incoming Orders - Only for logged-in users */}
-          {!isAnonymous && <IncomingOrders />}
 
           {/* Rival Mode Widget - Only for logged-in users */}
           {!isAnonymous && (
