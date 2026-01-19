@@ -22,7 +22,8 @@ import {
   AlertDialogTitle,
 } from '@/components/ui/alert-dialog';
 import { toast } from '@/hooks/use-toast';
-import { formatDistanceToNow, startOfWeek, endOfWeek, format } from 'date-fns';
+import { formatDistanceToNow } from 'date-fns';
+import { getWeekRangeText, WEEK_CONFIG } from '@/lib/weekUtils';
 
 interface RivalWidgetProps {
   variant?: 'compact' | 'full';
@@ -49,10 +50,7 @@ export function RivalWidget({ variant = 'compact' }: RivalWidgetProps) {
   const hasRivals = rivals && rivals.length > 0;
 
   // Calculate week range for display
-  const now = new Date();
-  const weekStart = startOfWeek(now, { weekStartsOn: 0 }); // Sunday
-  const weekEnd = endOfWeek(now, { weekStartsOn: 0 }); // Saturday
-  const weekRangeText = `${format(weekStart, 'MMM d')} - ${format(weekEnd, 'MMM d')}`;
+  const weekRangeText = getWeekRangeText();
 
   const shareRivalLink = async () => {
     if (!profile?.rival_code) {
@@ -228,7 +226,7 @@ export function RivalWidget({ variant = 'compact' }: RivalWidgetProps) {
               </div>
               
               <p className="text-xs text-muted-foreground/70 mb-2">
-                Resets every Sunday. Compete for missions completed this week.
+                {WEEK_CONFIG.resetDescription}. Compete for missions completed this week.
               </p>
               
               {statsLoading ? (

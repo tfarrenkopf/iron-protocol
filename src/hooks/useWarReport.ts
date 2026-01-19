@@ -1,5 +1,6 @@
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
+import { getWeekStartDateString } from '@/lib/weekUtils';
 
 interface WarReportSnapshot {
   id: string;
@@ -52,14 +53,9 @@ export const formatLargeNumber = (num: number): string => {
   return num.toString();
 };
 
-// Helper to get week start date
+// Helper to get week start date - now using centralized utility
 function getWeekStart(): string {
-  const now = new Date();
-  const dayOfWeek = now.getDay();
-  const diff = now.getDate() - dayOfWeek + (dayOfWeek === 0 ? -6 : 1);
-  const weekStart = new Date(now.setDate(diff));
-  weekStart.setHours(0, 0, 0, 0);
-  return weekStart.toISOString().split('T')[0];
+  return getWeekStartDateString();
 }
 
 // Fetch live data from campaign_completions when snapshots are empty

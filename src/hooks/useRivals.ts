@@ -1,6 +1,7 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from './useAuth';
+import { getWeekBoundaries } from '@/lib/weekUtils';
 
 export interface Rival {
   id: string;
@@ -86,16 +87,14 @@ export function useRivalWeeklyStats() {
       const allUserIds = [user.id, ...rivals.map(r => r.rival_id)];
 
       // Calculate weekly stats from workout_sessions directly
-      const weekStart = new Date();
-      weekStart.setHours(0, 0, 0, 0);
-      weekStart.setDate(weekStart.getDate() - weekStart.getDay()); // Sunday start
+      const { weekStart } = getWeekBoundaries();
 
       const { data: sessions, error } = await supabase
         .from('workout_sessions')
         .select('user_id, score_earned, total_weight, sets_completed, max_combo, damage_dealt')
         .in('user_id', allUserIds)
         .eq('status', 'COMPLETED')
-        .gte('completed_at', weekStart.toISOString());
+        .gte('completed_at', weekStart);
 
       if (error) throw error;
 
