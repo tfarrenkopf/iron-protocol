@@ -1,16 +1,18 @@
 import { useState, useEffect, useCallback, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useNavigate } from 'react-router-dom';
-import { Play, Pause, RotateCcw, Volume2, VolumeX, Plus, Minus, Zap, ArrowLeft } from 'lucide-react';
+import { Play, Pause, RotateCcw, Volume2, VolumeX, Plus, Minus, Zap, X, Timer, Flame } from 'lucide-react';
 import { useGameStore } from '@/stores/gameStore';
 import { defaultHIITConfigs } from '@/data/missions';
 import { HIITConfig } from '@/types/game';
 import { ExplosionEffect } from '@/components/ExplosionEffect';
-import { KillFeed } from '@/components/KillFeed';
 import { useHIITSounds } from '@/hooks/useHIITSounds';
 import { Progress } from '@/components/ui/progress';
 import { GlobalNav } from '@/components/GlobalNav';
 import { AppFooter } from '@/components/AppFooter';
+import { useAuth } from '@/hooks/useAuth';
+import { useWeeklyBoss } from '@/hooks/useWeeklyBoss';
+import { MissionCompleteScreen } from '@/components/MissionCompleteScreen';
 import {
   AlertDialog,
   AlertDialogAction,
@@ -21,12 +23,6 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from '@/components/ui/alert-dialog';
-
-interface KillFeedItem {
-  id: string;
-  message: string;
-  type: 'round' | 'phase' | 'bonus';
-}
 
 // Custom protocol lore names based on settings
 const getCustomProtocolName = (work: number, rest: number, rounds: number): string => {
@@ -59,13 +55,45 @@ const getCustomProtocolTagline = (name: string): string => {
   return taglines[name] || 'Forge your own path.';
 };
 
+// Calculate HIIT session stats
+const calculateHIITStats = (config: HIITConfig, completedRounds: number) => {
+  const totalWorkTime = config.workDurationSec * completedRounds;
+  const intensity = config.workDurationSec / (config.workDurationSec + config.restDurationSec);
+  
+  // Score: base work time + intensity bonus + round bonus
+  const baseScore = totalWorkTime * 10;
+  const intensityBonus = Math.floor(baseScore * intensity * 0.5);
+  const roundBonus = completedRounds * 50;
+  const score = baseScore + intensityBonus + roundBonus;
+  
+  // XP: simpler calculation based on work time
+  const xp = Math.floor(totalWorkTime / 2) + (completedRounds * 5);
+  
+  // Damage: based on effort (work time × intensity factor)
+  const damage = Math.floor(totalWorkTime * (1 + intensity));
+  
+  // Combo: rounds completed is like combo in HIIT
+  const combo = completedRounds;
+  
+  return {
+    score,
+    xp,
+    damage,
+    combo,
+    totalWorkTime,
+    intensity: Math.round(intensity * 100),
+  };
+};
+
 const HIITTimer = () => {
   const navigate = useNavigate();
+  const { user, isAnonymous } = useAuth();
+  const { data: activeBoss } = useWeeklyBoss();
+  
   const [selectedConfig, setSelectedConfig] = useState<HIITConfig | null>(null);
   const [isPaused, setIsPaused] = useState(false);
   const [soundEnabled, setSoundEnabled] = useState(true);
   const [showExplosion, setShowExplosion] = useState(false);
-  const [killFeedItems, setKillFeedItems] = useState<KillFeedItem[]>([]);
   const [showExitDialog, setShowExitDialog] = useState(false);
   const [showResetDialog, setShowResetDialog] = useState(false);
   const [showCustomCreator, setShowCustomCreator] = useState(false);
@@ -74,6 +102,7 @@ const HIITTimer = () => {
   const [customRounds, setCustomRounds] = useState(8);
   const prevRoundRef = useRef(0);
   const prevPhaseRef = useRef<string>('IDLE');
+  const sessionStartRef = useRef<Date | null>(null);
 
   const { playWorkStart, playRestStart, playComplete, playCountdownTick } = useHIITSounds(soundEnabled);
 
@@ -112,44 +141,29 @@ const HIITTimer = () => {
     };
   }, [timerPhase]);
 
-  // Add to kill feed helper
-  const addKillFeedItem = useCallback((message: string, type: 'round' | 'phase' | 'bonus') => {
-    const id = `${Date.now()}-${Math.random()}`;
-    setKillFeedItems(prev => [...prev, { id, message, type }]);
-  }, []);
-
-  const removeKillFeedItem = useCallback((id: string) => {
-    setKillFeedItems(prev => prev.filter(item => item.id !== id));
-  }, []);
-
-  // Track round changes for kill feed
+  // Track round changes for explosion
   useEffect(() => {
     if (currentRound > prevRoundRef.current && currentRound > 1) {
-      // Round completed - this is the ONLY notification for round completion
-      addKillFeedItem(`ROUND ${currentRound - 1} COMPLETE`, 'round');
       setShowExplosion(true);
     }
     prevRoundRef.current = currentRound;
-  }, [currentRound, addKillFeedItem]);
+  }, [currentRound]);
 
-  // Track phase changes for sounds only (removed duplicate kill feed messages)
+  // Track phase changes for sounds
   useEffect(() => {
     if (prevPhaseRef.current !== timerPhase) {
       if (timerPhase === 'WORK' && prevPhaseRef.current !== 'IDLE') {
         playWorkStart();
-        // Removed: addKillFeedItem('FIGHT!', 'phase') - redundant with phase label
       } else if (timerPhase === 'REST') {
         playRestStart();
-        // Removed: addKillFeedItem('RECOVER', 'phase') - redundant with phase label
       } else if (timerPhase === 'COMPLETED') {
         playComplete();
-        addKillFeedItem('MISSION COMPLETE', 'bonus');
       }
       prevPhaseRef.current = timerPhase;
     }
-  }, [timerPhase, playWorkStart, playRestStart, playComplete, addKillFeedItem]);
+  }, [timerPhase, playWorkStart, playRestStart, playComplete]);
 
-  // Countdown tick sound - now 5 second countdown
+  // Countdown tick sound - 5 second countdown
   useEffect(() => {
     if (timerPhase === 'COUNTDOWN' && timeRemaining <= 5 && timeRemaining > 0) {
       playCountdownTick();
@@ -162,7 +176,6 @@ const HIITTimer = () => {
 
     const interval = setInterval(() => {
       if (timeRemaining <= 1) {
-        // Phase complete
         if (timerPhase === 'COUNTDOWN') {
           setTimerPhase('WORK');
         } else if (timerPhase === 'WORK') {
@@ -186,6 +199,7 @@ const HIITTimer = () => {
     setSelectedConfig(config);
     startHIIT(config);
     setIsPaused(false);
+    sessionStartRef.current = new Date();
     prevPhaseRef.current = 'IDLE';
     prevRoundRef.current = 0;
   }, [startHIIT]);
@@ -194,8 +208,8 @@ const HIITTimer = () => {
     resetHIIT();
     setSelectedConfig(null);
     setIsPaused(false);
-    setKillFeedItems([]);
     setShowCustomCreator(false);
+    sessionStartRef.current = null;
     prevPhaseRef.current = 'IDLE';
     prevRoundRef.current = 0;
   }, [resetHIIT]);
@@ -214,9 +228,7 @@ const HIITTimer = () => {
     setShowCustomCreator(false);
   }, [customWork, customRest, customRounds, handleStart]);
 
-  // Handle back button with confirmation if progress exists
   const handleBackPress = useCallback(() => {
-    // Show confirmation if at least one round has been started
     if (currentRound >= 1 && timerPhase !== 'IDLE' && timerPhase !== 'COMPLETED') {
       setShowExitDialog(true);
     } else {
@@ -232,11 +244,11 @@ const HIITTimer = () => {
 
   const getPhaseColor = () => {
     switch (timerPhase) {
-      case 'WORK': return 'from-destructive to-accent';
-      case 'REST': return 'from-secondary to-primary';
-      case 'COUNTDOWN': return 'from-primary to-secondary';
-      case 'COMPLETED': return 'from-success to-secondary';
-      default: return 'from-muted to-muted';
+      case 'WORK': return 'bg-destructive';
+      case 'REST': return 'bg-secondary';
+      case 'COUNTDOWN': return 'bg-primary';
+      case 'COMPLETED': return 'bg-success';
+      default: return 'bg-muted';
     }
   };
 
@@ -250,13 +262,11 @@ const HIITTimer = () => {
     }
   };
 
-  // Calculate overall progress
   const calculateProgress = () => {
     if (!hiitConfig) return 0;
     const totalRounds = hiitConfig.rounds;
     const completedRounds = currentRound - 1;
     
-    // Calculate progress within current round
     let currentRoundProgress = 0;
     if (timerPhase === 'WORK') {
       const workTotal = hiitConfig.workDurationSec;
@@ -272,7 +282,7 @@ const HIITTimer = () => {
     return Math.min(Math.max(progress, 0), 100);
   };
 
-  // Selection screen
+  // SELECTION SCREEN
   if (timerPhase === 'IDLE') {
     return (
       <div className="min-h-screen bg-background relative">
@@ -280,7 +290,7 @@ const HIITTimer = () => {
         
         <div className="relative z-10 container mx-auto px-4 py-6 max-w-3xl">
           <GlobalNav 
-            title="COMBAT HIIT TIMER"
+            title="COMBAT HIIT"
             subtitle="HIGH INTENSITY INTERVAL WARFARE"
             section="hiit"
           />
@@ -322,7 +332,7 @@ const HIITTimer = () => {
                     <div className="flex items-center gap-3">
                       <button
                         onClick={() => setCustomWork(Math.max(5, customWork - 5))}
-                        className="p-2 bg-background border border-border rounded-lg hover:border-destructive transition-colors"
+                        className="p-2 bg-background border border-border rounded-lg hover:border-destructive transition-colors min-h-[44px] min-w-[44px] flex items-center justify-center"
                       >
                         <Minus className="w-4 h-4" />
                       </button>
@@ -337,7 +347,7 @@ const HIITTimer = () => {
                       />
                       <button
                         onClick={() => setCustomWork(Math.min(120, customWork + 5))}
-                        className="p-2 bg-background border border-border rounded-lg hover:border-destructive transition-colors"
+                        className="p-2 bg-background border border-border rounded-lg hover:border-destructive transition-colors min-h-[44px] min-w-[44px] flex items-center justify-center"
                       >
                         <Plus className="w-4 h-4" />
                       </button>
@@ -353,7 +363,7 @@ const HIITTimer = () => {
                     <div className="flex items-center gap-3">
                       <button
                         onClick={() => setCustomRest(Math.max(5, customRest - 5))}
-                        className="p-2 bg-background border border-border rounded-lg hover:border-primary transition-colors"
+                        className="p-2 bg-background border border-border rounded-lg hover:border-primary transition-colors min-h-[44px] min-w-[44px] flex items-center justify-center"
                       >
                         <Minus className="w-4 h-4" />
                       </button>
@@ -368,7 +378,7 @@ const HIITTimer = () => {
                       />
                       <button
                         onClick={() => setCustomRest(Math.min(120, customRest + 5))}
-                        className="p-2 bg-background border border-border rounded-lg hover:border-primary transition-colors"
+                        className="p-2 bg-background border border-border rounded-lg hover:border-primary transition-colors min-h-[44px] min-w-[44px] flex items-center justify-center"
                       >
                         <Plus className="w-4 h-4" />
                       </button>
@@ -384,7 +394,7 @@ const HIITTimer = () => {
                     <div className="flex items-center gap-3">
                       <button
                         onClick={() => setCustomRounds(Math.max(1, customRounds - 1))}
-                        className="p-2 bg-background border border-border rounded-lg hover:border-section-hiit transition-colors"
+                        className="p-2 bg-background border border-border rounded-lg hover:border-section-hiit transition-colors min-h-[44px] min-w-[44px] flex items-center justify-center"
                       >
                         <Minus className="w-4 h-4" />
                       </button>
@@ -399,7 +409,7 @@ const HIITTimer = () => {
                       />
                       <button
                         onClick={() => setCustomRounds(Math.min(30, customRounds + 1))}
-                        className="p-2 bg-background border border-border rounded-lg hover:border-section-hiit transition-colors"
+                        className="p-2 bg-background border border-border rounded-lg hover:border-section-hiit transition-colors min-h-[44px] min-w-[44px] flex items-center justify-center"
                       >
                         <Plus className="w-4 h-4" />
                       </button>
@@ -416,13 +426,13 @@ const HIITTimer = () => {
                     </div>
                     <div className="text-center">
                       <div className="text-xs text-muted-foreground">WORK TIME</div>
-                      <div className="font-display text-lg text-destructive">
+                      <div className="font-display text-lg text-foreground">
                         {Math.floor(customWork * customRounds / 60)}:{String(customWork * customRounds % 60).padStart(2, '0')}
                       </div>
                     </div>
                     <div className="text-center">
                       <div className="text-xs text-muted-foreground">INTENSITY</div>
-                      <div className="font-display text-lg text-section-hiit">
+                      <div className="font-display text-lg text-foreground">
                         {Math.round((customWork / (customWork + customRest)) * 100)}%
                       </div>
                     </div>
@@ -432,13 +442,13 @@ const HIITTimer = () => {
                   <div className="flex gap-3">
                     <button
                       onClick={() => setShowCustomCreator(false)}
-                      className="flex-1 py-3 bg-muted text-muted-foreground font-display rounded-lg hover:bg-muted/80 transition-colors"
+                      className="flex-1 py-3 bg-muted text-muted-foreground font-display rounded-lg hover:bg-muted/80 transition-colors min-h-[48px]"
                     >
                       CANCEL
                     </button>
                     <button
                       onClick={handleStartCustom}
-                      className="flex-1 py-3 bg-section-hiit text-white font-display rounded-lg hover:box-glow-hiit transition-all flex items-center justify-center gap-2"
+                      className="flex-1 py-3 bg-section-hiit text-white font-display rounded-lg hover:box-glow-hiit transition-all flex items-center justify-center gap-2 min-h-[48px]"
                     >
                       <Play className="w-5 h-5" />
                       ENGAGE
@@ -452,7 +462,7 @@ const HIITTimer = () => {
                 initial={{ opacity: 0, y: -10 }}
                 animate={{ opacity: 1, y: 0 }}
                 onClick={() => setShowCustomCreator(true)}
-                className="w-full mb-6 group bg-section-hiit/10 border-2 border-dashed border-section-hiit/50 rounded-lg p-5 text-center hover:border-section-hiit hover:bg-section-hiit/20 transition-all"
+                className="w-full mb-6 group bg-section-hiit/10 border-2 border-dashed border-section-hiit/50 rounded-lg p-5 text-center hover:border-section-hiit hover:bg-section-hiit/20 transition-all min-h-[80px]"
               >
                 <div className="flex items-center justify-center gap-3">
                   <Zap className="w-6 h-6 text-section-hiit" />
@@ -479,7 +489,7 @@ const HIITTimer = () => {
                   animate={{ opacity: 1, x: 0 }}
                   transition={{ delay: i * 0.1 }}
                   onClick={() => handleStart(config)}
-                  className="w-full group bg-card border border-section-hiit/30 rounded-lg p-5 text-left hover:border-section-hiit transition-all"
+                  className="w-full group bg-card border border-section-hiit/30 rounded-lg p-5 text-left hover:border-section-hiit transition-all min-h-[80px]"
                 >
                   <div className="flex items-start justify-between">
                     <div>
@@ -508,81 +518,104 @@ const HIITTimer = () => {
             </div>
           )}
 
-          {/* Footer */}
           <AppFooter />
         </div>
       </div>
     );
   }
 
-  // Timer screen
+  // COMPLETION SCREEN - Use MissionCompleteScreen for consistent UX
+  if (timerPhase === 'COMPLETED' && selectedConfig) {
+    const completedRounds = currentRound;
+    const sessionStats = calculateHIITStats(selectedConfig, completedRounds);
+    
+    return (
+      <MissionCompleteScreen
+        isGuest={isAnonymous}
+        mission={{
+          id: `hiit-${selectedConfig.id}`,
+          name: selectedConfig.name,
+          code_name: selectedConfig.codeName,
+          outro_lore: `${completedRounds} rounds of ${selectedConfig.workDurationSec}s work / ${selectedConfig.restDurationSec}s rest. Intensity: ${sessionStats.intensity}%.`,
+        }}
+        stats={{
+          score: sessionStats.score,
+          xp: sessionStats.xp,
+          setsCompleted: completedRounds,
+          totalReps: sessionStats.totalWorkTime,
+          totalWeight: 0, // HIIT doesn't track weight
+          maxCombo: sessionStats.combo,
+          damageDealt: sessionStats.damage,
+        }}
+        boss={activeBoss ? {
+          name: activeBoss.name,
+          current_hp: activeBoss.current_hp,
+          max_hp: activeBoss.max_hp,
+          is_defeated: activeBoss.is_defeated,
+          weaknesses: activeBoss.weaknesses || [],
+        } : null}
+        onContinue={handleReset}
+      />
+    );
+  }
+
+  // ACTIVE TIMER SCREEN - Redesigned like WorkoutSession
   return (
-    <div className={`min-h-screen bg-gradient-to-br ${getPhaseColor()} relative flex flex-col`}>
+    <div className="min-h-screen bg-background relative flex flex-col">
       {/* Scanlines */}
-      <div className="fixed inset-0 pointer-events-none scanlines opacity-30" />
-
-      {/* Kill Feed - Only shows round completions now */}
-      <KillFeed items={killFeedItems} onItemComplete={removeKillFeedItem} />
-
-      {/* Header */}
-      <header className="relative z-10 flex items-center justify-between p-4">
-        <div className="flex items-center gap-2">
-          <button 
-            onClick={handleBackPress}
-            className="p-3 bg-background/30 backdrop-blur rounded-full border border-foreground/20"
-            aria-label="Go back"
-          >
-            <ArrowLeft className="w-5 h-5" />
-          </button>
-          <button 
-            onClick={() => setShowResetDialog(true)}
-            className="p-3 bg-background/30 backdrop-blur rounded-full border border-foreground/20 flex items-center gap-1"
-            aria-label="Reset timer"
-            title="Reset timer"
-          >
-            <RotateCcw className="w-4 h-4" />
-            <span className="text-xs font-display hidden sm:inline">RESET</span>
-          </button>
-        </div>
-
-        <div className="font-display text-lg bg-background/30 backdrop-blur px-4 py-2 rounded-full border border-foreground/20">
-          <span className="text-foreground/70 text-sm mr-2">ROUND</span>
-          <span className="text-xl">{currentRound}</span>
-          <span className="text-foreground/50">/{hiitConfig?.rounds}</span>
-        </div>
-
-        <button 
-          onClick={() => setSoundEnabled(!soundEnabled)}
-          className="p-3 bg-background/30 backdrop-blur rounded-full border border-foreground/20"
-          aria-label={soundEnabled ? "Mute sounds" : "Enable sounds"}
-        >
-          {soundEnabled ? <Volume2 className="w-5 h-5" /> : <VolumeX className="w-5 h-5" />}
-        </button>
-      </header>
-
-      {/* Progress Bar - High contrast with shadow for visibility on all backgrounds */}
-      {timerPhase !== 'COMPLETED' && (
-        <div className="relative z-10 px-4">
-          <div className="relative">
-            <Progress 
-              value={calculateProgress()} 
-              className="h-3 bg-black/50 border border-white/20 shadow-lg"
-            />
-            {/* Progress text overlay */}
-            <div className="absolute inset-0 flex items-center justify-center">
-              <span className="text-xs font-display text-white drop-shadow-[0_1px_2px_rgba(0,0,0,0.8)]">
-                {Math.round(calculateProgress())}%
-              </span>
-            </div>
-          </div>
-        </div>
-      )}
+      <div className="fixed inset-0 pointer-events-none scanlines opacity-20" />
 
       {/* Explosion Effect */}
       <ExplosionEffect 
         trigger={showExplosion} 
         onComplete={() => setShowExplosion(false)} 
       />
+
+      {/* Header - Workout-session style */}
+      <header className="relative z-10 bg-card/80 backdrop-blur border-b border-border p-4">
+        <div className="flex items-center justify-between">
+          {/* Left: Exit button */}
+          <button 
+            onClick={handleBackPress}
+            className="p-3 bg-muted/50 rounded-full border border-border hover:border-destructive transition-colors min-h-[48px] min-w-[48px] flex items-center justify-center"
+            aria-label="Exit"
+          >
+            <X className="w-5 h-5" />
+          </button>
+
+          {/* Center: Protocol name + round */}
+          <div className="text-center flex-1 mx-4">
+            <div className="font-display text-sm text-muted-foreground">
+              {selectedConfig?.codeName || 'HIIT'}
+            </div>
+            <div className="font-display text-lg">
+              ROUND <span className="text-section-hiit">{currentRound}</span>
+              <span className="text-muted-foreground">/{hiitConfig?.rounds}</span>
+            </div>
+          </div>
+
+          {/* Right: Sound toggle */}
+          <button 
+            onClick={() => setSoundEnabled(!soundEnabled)}
+            className="p-3 bg-muted/50 rounded-full border border-border hover:border-foreground/50 transition-colors min-h-[48px] min-w-[48px] flex items-center justify-center"
+            aria-label={soundEnabled ? "Mute sounds" : "Enable sounds"}
+          >
+            {soundEnabled ? <Volume2 className="w-5 h-5" /> : <VolumeX className="w-5 h-5" />}
+          </button>
+        </div>
+
+        {/* Progress Bar */}
+        <div className="mt-4">
+          <div className="flex justify-between text-xs text-muted-foreground mb-1">
+            <span>PROGRESS</span>
+            <span>{Math.round(calculateProgress())}%</span>
+          </div>
+          <Progress 
+            value={calculateProgress()} 
+            className="h-2"
+          />
+        </div>
+      </header>
 
       {/* Main timer display */}
       <main className="flex-1 relative z-10 flex flex-col items-center justify-center px-4">
@@ -592,71 +625,112 @@ const HIITTimer = () => {
             initial={{ scale: 0.8, opacity: 0 }}
             animate={{ scale: 1, opacity: 1 }}
             exit={{ scale: 0.8, opacity: 0 }}
-            className="text-center"
+            className="text-center w-full max-w-md"
           >
-            {/* Phase label - single clear status indicator */}
-            <div className="font-display text-3xl mb-4 tracking-widest drop-shadow-lg">
-              {getPhaseLabel()}
-            </div>
+            {/* Phase indicator pill */}
+            <motion.div
+              className={`inline-flex items-center gap-2 px-6 py-2 rounded-full mb-6 ${getPhaseColor()}`}
+            >
+              {timerPhase === 'WORK' && <Flame className="w-5 h-5 text-white" />}
+              {timerPhase === 'REST' && <Timer className="w-5 h-5 text-secondary-foreground" />}
+              <span className="font-display text-xl text-white drop-shadow-md">
+                {getPhaseLabel()}
+              </span>
+            </motion.div>
             
-            {/* Timer - high contrast with shadow */}
+            {/* Timer */}
             <motion.div 
               key={timeRemaining}
-              initial={{ scale: 1.1 }}
+              initial={{ scale: 1.05 }}
               animate={{ scale: 1 }}
-              className={`arcade-number text-[20vw] md:text-[200px] leading-none drop-shadow-[0_4px_8px_rgba(0,0,0,0.5)] ${
-                timeRemaining <= 3 && timerPhase === 'WORK' ? 'animate-shake text-glow-primary' : ''
+              className={`arcade-number text-[25vw] md:text-[180px] leading-none ${
+                timeRemaining <= 3 && timerPhase === 'WORK' ? 'text-destructive animate-pulse' : 'text-foreground'
               }`}
             >
               {timeRemaining}
             </motion.div>
 
-            {timerPhase === 'COMPLETED' && (
-              <motion.div
-                initial={{ opacity: 0, y: 20 }}
-                animate={{ opacity: 1, y: 0 }}
-                className="mt-8 space-y-4"
-              >
-                <div className="font-display text-3xl text-foreground drop-shadow-lg">
-                  {hiitConfig?.rounds} ROUNDS COMPLETE
-                </div>
-                <button
-                  onClick={handleReset}
-                  className="mt-6 px-8 py-4 bg-background text-foreground font-display text-xl rounded hover:opacity-90 transition-opacity"
-                >
-                  CONTINUE
-                </button>
-              </motion.div>
-            )}
+            {/* Next up preview */}
+            <div className="mt-4 text-sm text-muted-foreground">
+              {timerPhase === 'WORK' && currentRound < (hiitConfig?.rounds || 0) && (
+                <span>Next: <span className="text-primary font-display">RECOVER</span> ({hiitConfig?.restDurationSec}s)</span>
+              )}
+              {timerPhase === 'WORK' && currentRound >= (hiitConfig?.rounds || 0) && (
+                <span className="text-success font-display">FINAL ROUND</span>
+              )}
+              {timerPhase === 'REST' && (
+                <span>Next: <span className="text-destructive font-display">FIGHT</span> ({hiitConfig?.workDurationSec}s)</span>
+              )}
+              {timerPhase === 'COUNTDOWN' && (
+                <span>First up: <span className="text-destructive font-display">FIGHT</span></span>
+              )}
+            </div>
+
+            {/* Round indicators */}
+            <div className="flex justify-center gap-1.5 mt-6">
+              {Array.from({ length: hiitConfig?.rounds || 0 }).map((_, i) => (
+                <div 
+                  key={i}
+                  className={`h-2 w-6 rounded-full transition-all ${
+                    i < currentRound - 1 
+                      ? 'bg-success' 
+                      : i === currentRound - 1 
+                        ? getPhaseColor()
+                        : 'bg-muted'
+                  }`}
+                />
+              ))}
+            </div>
           </motion.div>
         </AnimatePresence>
       </main>
 
-      {/* Controls */}
-      {timerPhase !== 'COMPLETED' && (
-        <footer className="relative z-10 p-6">
+      {/* Controls - Workout-session style footer */}
+      <footer className="relative z-10 bg-card/80 backdrop-blur border-t border-border p-4 space-y-3">
+        {/* Main pause/resume button */}
+        <button
+          onClick={() => setIsPaused(!isPaused)}
+          className={`w-full py-5 rounded-lg font-display text-xl flex items-center justify-center gap-3 min-h-[64px] transition-all ${
+            isPaused 
+              ? 'bg-success text-success-foreground hover:bg-success/90' 
+              : 'bg-muted text-foreground hover:bg-muted/80'
+          }`}
+        >
+          {isPaused ? (
+            <>
+              <Play className="w-7 h-7" /> RESUME
+            </>
+          ) : (
+            <>
+              <Pause className="w-7 h-7" /> PAUSE
+            </>
+          )}
+        </button>
+
+        {/* Secondary actions row */}
+        <div className="flex gap-3">
           <button
-            onClick={() => setIsPaused(!isPaused)}
-            className="w-full py-6 bg-background/30 backdrop-blur rounded-lg font-display text-xl flex items-center justify-center gap-3 border border-foreground/20"
+            onClick={() => setShowResetDialog(true)}
+            className="flex-1 py-3 bg-card border border-border text-foreground font-display text-sm rounded-lg hover:border-section-hiit/50 transition-colors flex items-center justify-center gap-2 min-h-[48px]"
           >
-            {isPaused ? (
-              <>
-                <Play className="w-8 h-8" /> RESUME
-              </>
-            ) : (
-              <>
-                <Pause className="w-8 h-8" /> PAUSE
-              </>
-            )}
+            <RotateCcw className="w-4 h-4" />
+            RESET
           </button>
-        </footer>
-      )}
+          <button
+            onClick={handleBackPress}
+            className="flex-1 py-3 bg-card border border-border text-foreground font-display text-sm rounded-lg hover:border-destructive/50 transition-colors flex items-center justify-center gap-2 min-h-[48px]"
+          >
+            <X className="w-4 h-4" />
+            FORFEIT
+          </button>
+        </div>
+      </footer>
 
       {/* Exit Confirmation Dialog */}
       <AlertDialog open={showExitDialog} onOpenChange={setShowExitDialog}>
         <AlertDialogContent className="bg-card border-border">
           <AlertDialogHeader>
-            <AlertDialogTitle className="font-display text-secondary">ABORT MISSION?</AlertDialogTitle>
+            <AlertDialogTitle className="font-display text-destructive">ABORT MISSION?</AlertDialogTitle>
             <AlertDialogDescription className="text-muted-foreground">
               You have completed {currentRound > 1 ? currentRound - 1 : 0} round{currentRound > 2 ? 's' : ''}. 
               Leaving now will discard your progress.
@@ -689,10 +763,8 @@ const HIITTimer = () => {
             <AlertDialogAction 
               onClick={() => {
                 if (selectedConfig) {
-                  // Restart the same protocol
                   startHIIT(selectedConfig);
                   setIsPaused(false);
-                  setKillFeedItems([]);
                   prevPhaseRef.current = 'IDLE';
                   prevRoundRef.current = 0;
                 }
