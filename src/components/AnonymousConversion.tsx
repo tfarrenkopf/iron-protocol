@@ -25,16 +25,39 @@ export function GuestIndicator({ variant = 'minimal', className = '' }: GuestInd
   }
   
   return (
-    <motion.button
+    <motion.div
       initial={{ opacity: 0, y: -5 }}
       animate={{ opacity: 1, y: 0 }}
-      onClick={() => navigate('/auth')}
-      className={`flex items-center gap-2 px-3 py-1.5 bg-warning/10 border border-warning/30 rounded text-warning text-xs hover:bg-warning/20 transition-colors ${className}`}
+      className={`p-3 bg-card border border-border rounded-lg ${className}`}
     >
-      <Ghost className="w-3 h-3" />
-      <span className="font-display">GUEST RUN</span>
-      <span className="text-warning/60">• Progress not saved</span>
-    </motion.button>
+      {/* Status */}
+      <div className="flex items-center gap-2 mb-2">
+        <Ghost className="w-4 h-4 text-warning" />
+        <span className="font-display text-sm text-warning">GUEST MODE</span>
+        <span className="text-xs text-muted-foreground">• Progress not saved</span>
+      </div>
+      
+      {/* Privacy message */}
+      <p className="text-xs text-muted-foreground mb-3">
+        No tracking. No ads. Your data stays yours.
+      </p>
+      
+      {/* Action buttons */}
+      <div className="flex gap-2">
+        <button
+          onClick={() => navigate('/auth?mode=signup')}
+          className="flex-1 py-2 bg-primary text-primary-foreground text-xs font-display rounded hover:box-glow-primary transition-all"
+        >
+          CREATE ACCOUNT
+        </button>
+        <button
+          onClick={() => navigate('/auth?mode=signin')}
+          className="flex-1 py-2 bg-card border border-border text-foreground text-xs font-display rounded hover:border-primary transition-colors"
+        >
+          SIGN IN
+        </button>
+      </div>
+    </motion.div>
   );
 }
 
@@ -266,25 +289,38 @@ interface ConversionNudgeProps {
   className?: string;
 }
 
-export function ConversionNudge({ message = "Sign up to save your progress", className = '' }: ConversionNudgeProps) {
+export function ConversionNudge({ message = "Create an account to save progress", className = '' }: ConversionNudgeProps) {
   const navigate = useNavigate();
   
   return (
     <motion.div
       initial={{ opacity: 0, y: 10 }}
       animate={{ opacity: 1, y: 0 }}
-      className={`flex items-center justify-between p-3 bg-warning/10 border border-warning/30 rounded ${className}`}
+      className={`p-3 bg-card border border-border rounded-lg ${className}`}
     >
-      <div className="flex items-center gap-2">
-        <Ghost className="w-4 h-4 text-warning" />
-        <span className="text-xs text-warning">{message}</span>
+      <div className="flex items-center justify-between mb-2">
+        <div className="flex items-center gap-2">
+          <Ghost className="w-4 h-4 text-warning" />
+          <span className="text-xs text-warning font-display">{message}</span>
+        </div>
       </div>
-      <button
-        onClick={() => navigate('/auth')}
-        className="px-3 py-1 bg-primary text-primary-foreground text-xs font-display rounded hover:box-glow-primary transition-all"
-      >
-        SIGN UP
-      </button>
+      <p className="text-xs text-muted-foreground mb-3">
+        No tracking. No ads. Your data stays yours.
+      </p>
+      <div className="flex gap-2">
+        <button
+          onClick={() => navigate('/auth?mode=signup')}
+          className="flex-1 py-1.5 bg-primary text-primary-foreground text-xs font-display rounded hover:box-glow-primary transition-all"
+        >
+          CREATE ACCOUNT
+        </button>
+        <button
+          onClick={() => navigate('/auth?mode=signin')}
+          className="px-3 py-1.5 bg-card border border-border text-foreground text-xs font-display rounded hover:border-primary transition-colors"
+        >
+          SIGN IN
+        </button>
+      </div>
     </motion.div>
   );
 }

@@ -186,7 +186,7 @@ const AuthPage = () => {
         <motion.header 
           initial={{ opacity: 0, y: -20 }}
           animate={{ opacity: 1, y: 0 }}
-          className="mb-10"
+          className="mb-8"
         >
           <button 
             onClick={() => navigate('/')}
@@ -194,17 +194,41 @@ const AuthPage = () => {
           >
             <ArrowLeft className="w-5 h-5" />
           </button>
-          <div className="flex items-baseline gap-2">
-            <h1 className="font-display text-3xl text-foreground">
-              {isSignUp ? 'Create Account' : 'Sign In'}
-            </h1>
-            <span className="text-muted-foreground">
-              {isSignUp ? (
-                <>Already have an account? <button type="button" onClick={() => { setIsSignUp(false); setError(null); }} className="text-secondary hover:underline">Sign In</button></>
-              ) : (
-                <>Don't have an account? <button type="button" onClick={() => { setIsSignUp(true); setError(null); }} className="text-secondary hover:underline">Sign Up</button></>
-              )}
-            </span>
+          
+          {/* Title */}
+          <h1 className="font-display text-3xl text-foreground mb-2">
+            {isSignUp ? 'Join the Protocol' : 'Welcome Back'}
+          </h1>
+          
+          {/* Privacy-first message */}
+          <p className="text-sm text-muted-foreground mb-4">
+            No tracking. No ads. No subscriptions. Your data stays yours.
+          </p>
+          
+          {/* Toggle tabs */}
+          <div className="flex border border-border rounded-lg overflow-hidden">
+            <button
+              type="button"
+              onClick={() => { setIsSignUp(true); setError(null); }}
+              className={`flex-1 py-2.5 text-sm font-display transition-colors ${
+                isSignUp 
+                  ? 'bg-primary text-primary-foreground' 
+                  : 'bg-card text-muted-foreground hover:text-foreground'
+              }`}
+            >
+              CREATE ACCOUNT
+            </button>
+            <button
+              type="button"
+              onClick={() => { setIsSignUp(false); setError(null); }}
+              className={`flex-1 py-2.5 text-sm font-display transition-colors ${
+                !isSignUp 
+                  ? 'bg-primary text-primary-foreground' 
+                  : 'bg-card text-muted-foreground hover:text-foreground'
+              }`}
+            >
+              SIGN IN
+            </button>
           </div>
         </motion.header>
 
