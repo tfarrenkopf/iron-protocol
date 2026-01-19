@@ -19,6 +19,7 @@ export interface RivalWeeklyStats {
   weekly_sessions: number;
   weekly_sets: number;
   weekly_max_combo: number;
+  weekly_damage: number;
 }
 
 export function useRivals() {
@@ -91,7 +92,7 @@ export function useRivalWeeklyStats() {
 
       const { data: sessions, error } = await supabase
         .from('workout_sessions')
-        .select('user_id, score_earned, total_weight, sets_completed, max_combo')
+        .select('user_id, score_earned, total_weight, sets_completed, max_combo, damage_dealt')
         .in('user_id', allUserIds)
         .eq('status', 'COMPLETED')
         .gte('completed_at', weekStart.toISOString());
@@ -122,6 +123,7 @@ export function useRivalWeeklyStats() {
           weekly_sessions: userSessions.length,
           weekly_sets: userSessions.reduce((sum, s) => sum + (s.sets_completed || 0), 0),
           weekly_max_combo: Math.max(0, ...userSessions.map(s => s.max_combo || 0)),
+          weekly_damage: userSessions.reduce((sum, s) => sum + (s.damage_dealt || 0), 0),
         });
       }
 
