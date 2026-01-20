@@ -11,7 +11,7 @@ export function AppFooter() {
       transition={{ delay: 0.5 }}
       className="mt-12 pb-6 text-center space-y-3"
     >
-      <div className="flex items-center justify-center gap-4 text-sm">
+      <div className="flex items-center justify-center gap-4 text-sm flex-wrap">
         <button
           onClick={() => navigate("/guide")}
           className="text-muted-foreground hover:text-secondary transition-colors"
@@ -24,6 +24,13 @@ export function AppFooter() {
           className="text-muted-foreground hover:text-primary transition-colors"
         >
           ♥ Support
+        </button>
+        <span className="text-muted-foreground/30">|</span>
+        <button
+          onClick={() => navigate("/feedback")}
+          className="text-muted-foreground hover:text-primary transition-colors"
+        >
+          ✉ Feedback
         </button>
         <span className="text-muted-foreground/30">|</span>
         <button
