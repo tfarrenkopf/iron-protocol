@@ -22,6 +22,7 @@ import AssignMission from "./pages/AssignMission";
 import CampaignDetail from "./pages/CampaignDetail";
 import RivalInvite from "./pages/RivalInvite";
 import NotFound from "./pages/NotFound";
+import Feedback from "./pages/Feedback";
 import { useGoogleAnalytics } from "@/hooks/useGoogleAnalytics";
 
 const queryClient = new QueryClient();
@@ -57,6 +58,7 @@ function AppContent() {
         <Route path="/handler/assign/:squadId" element={<AssignMission />} />
         <Route path="/join/:inviteCode" element={<JoinSquad />} />
         <Route path="/rival/:rivalCode" element={<RivalInvite />} />
+        <Route path="/feedback" element={<Feedback />} />
         {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
         <Route path="*" element={<NotFound />} />
       </Routes>
