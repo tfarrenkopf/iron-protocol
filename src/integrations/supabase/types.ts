@@ -374,6 +374,7 @@ export type Database = {
       }
       feedback: {
         Row: {
+          contact_email: string | null
           created_at: string
           id: string
           message: string
@@ -381,6 +382,7 @@ export type Database = {
           user_id: string
         }
         Insert: {
+          contact_email?: string | null
           created_at?: string
           id?: string
           message: string
@@ -388,6 +390,7 @@ export type Database = {
           user_id: string
         }
         Update: {
+          contact_email?: string | null
           created_at?: string
           id?: string
           message?: string

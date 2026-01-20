@@ -4,18 +4,35 @@ import { motion } from 'framer-motion';
 import { Send, MessageSquare, ArrowLeft } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
+import { Input } from '@/components/ui/input';
 import { useAuth } from '@/hooks/useAuth';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
 import { GlobalNav } from '@/components/GlobalNav';
 import { AppFooter } from '@/components/AppFooter';
+import { z } from 'zod';
+
+const emailSchema = z.string().email().max(255).optional().or(z.literal(''));
 
 export default function Feedback() {
   const { user, isAnonymous } = useAuth();
   const navigate = useNavigate();
   const [message, setMessage] = useState('');
+  const [contactEmail, setContactEmail] = useState('');
+  const [emailError, setEmailError] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [submitted, setSubmitted] = useState(false);
+
+  const validateEmail = (email: string): boolean => {
+    if (!email.trim()) return true; // Optional field
+    const result = emailSchema.safeParse(email.trim());
+    if (!result.success) {
+      setEmailError('Please enter a valid email address');
+      return false;
+    }
+    setEmailError('');
+    return true;
+  };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -25,11 +42,19 @@ export default function Feedback() {
       return;
     }
 
+    if (!validateEmail(contactEmail)) {
+      return;
+    }
+
     setIsSubmitting(true);
     
     const { error } = await supabase
       .from('feedback')
-      .insert({ user_id: user!.id, message: message.trim() });
+      .insert({ 
+        user_id: user!.id, 
+        message: message.trim(),
+        contact_email: contactEmail.trim() || null
+      });
     
     setIsSubmitting(false);
     
@@ -145,6 +170,32 @@ export default function Feedback() {
               <p className="text-xs text-muted-foreground text-right">
                 {message.length}/2000
               </p>
+            </div>
+
+            <div className="space-y-2">
+              <label htmlFor="email" className="font-mono text-sm uppercase tracking-wider text-muted-foreground">
+                Email (Optional)
+              </label>
+              <Input
+                id="email"
+                type="email"
+                value={contactEmail}
+                onChange={(e) => {
+                  setContactEmail(e.target.value);
+                  if (emailError) validateEmail(e.target.value);
+                }}
+                onBlur={() => validateEmail(contactEmail)}
+                placeholder="your@email.com"
+                className="bg-muted/50 border-border focus:border-primary"
+                maxLength={255}
+              />
+              {emailError ? (
+                <p className="text-xs text-destructive">{emailError}</p>
+              ) : (
+                <p className="text-xs text-muted-foreground">
+                  Leave your email if you'd like us to follow up
+                </p>
+              )}
             </div>
 
             <Button
