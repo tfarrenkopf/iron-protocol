@@ -108,7 +108,7 @@ export function ProfileOverviewTab() {
           <span className="text-xs text-muted-foreground font-display">BOSS DAMAGE (THIS CYCLE)</span>
         </div>
         <div className="font-display text-2xl text-foreground">
-          {weeklySessions.reduce((acc, s) => acc + (s.score_earned || 0), 0).toLocaleString()}
+          {weeklySessions.reduce((acc, s) => acc + (s.damage_dealt || 0), 0).toLocaleString()}
         </div>
         <div className="text-xs text-muted-foreground">
           damage dealt

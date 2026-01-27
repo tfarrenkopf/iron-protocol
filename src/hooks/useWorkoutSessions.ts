@@ -21,6 +21,7 @@ export function useCompletedSessions() {
           total_reps,
           total_weight,
           max_combo,
+          damage_dealt,
           mission_id,
           mission_snapshot,
           missions (
