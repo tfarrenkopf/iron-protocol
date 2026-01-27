@@ -34,6 +34,9 @@ export interface DamageResult {
   weaknessHits: string[];
 }
 
+// Bodyweight exercises use a proxy weight of 50 lbs for damage calculation
+const BODYWEIGHT_PROXY_WEIGHT = 50;
+
 // Calculate damage from workout stats
 export function calculateBossDamage(
   sets: number,
@@ -43,8 +46,11 @@ export function calculateBossDamage(
   weaknesses: string[],
   weaknessMultiplier: number = 1.25
 ): DamageResult {
-  // Base damage: sets × reps + weight/10
-  const baseDamage = Math.floor(sets * reps + totalWeight / 10);
+  // Use proxy weight for bodyweight exercises (when weight is 0)
+  const effectiveWeight = totalWeight > 0 ? totalWeight : sets * reps * BODYWEIGHT_PROXY_WEIGHT;
+  
+  // Base damage: sets × reps + effectiveWeight/10
+  const baseDamage = Math.floor(sets * reps + effectiveWeight / 10);
   
   // Check for weakness hits
   const weaknessHits = focusAreas.filter(area => 
