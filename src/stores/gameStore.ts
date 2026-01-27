@@ -1,6 +1,8 @@
 import { create } from 'zustand';
 import { GameStats, WorkoutSession, ExerciseSet, HIITConfig, TimerPhase } from '@/types/game';
 
+// Bodyweight exercises use a proxy weight of 50 lbs for damage calculation
+const BODYWEIGHT_PROXY_WEIGHT = 50;
 // Database mission exercise type
 export interface DBMissionExercise {
   exercise_id: string;
@@ -129,10 +131,12 @@ export const useGameStore = create<GameState>((set, get) => ({
     };
     
     // Calculate score
-    const baseScore = actualReps * weight;
+    // Use proxy weight for bodyweight exercises
+    const effectiveWeight = weight > 0 ? weight : BODYWEIGHT_PROXY_WEIGHT;
+    const baseScore = actualReps * effectiveWeight;
     const comboMultiplier = 1 + (stats.combo * 0.1);
     const setScore = Math.floor(baseScore * comboMultiplier);
-    const damage = Math.floor(weight * (actualReps / 10));
+    const damage = Math.floor(effectiveWeight * (actualReps / 10));
     
     const updatedExercises = [...currentSession.exercises];
     updatedExercises[currentExerciseIndex].sets.push(newSet);
