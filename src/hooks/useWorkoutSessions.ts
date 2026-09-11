@@ -243,7 +243,7 @@ async function updateCampaignProgressInternal(
     } else {
       await supabase
         .from('user_campaign_progress')
-        .update(updates)
+        .update(updates as any)
         .eq('id', existingProgress.id);
     }
   } else {
