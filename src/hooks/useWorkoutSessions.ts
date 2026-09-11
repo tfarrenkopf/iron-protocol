@@ -200,7 +200,7 @@ async function updateCampaignProgressInternal(
 
   if (existingProgress) {
     // Update existing progress
-    const updates: Record<string, unknown> = {
+    const updates: Partial<Tables<'user_campaign_progress'>> = {
       missions_completed_count: completedCount,
       total_missions_count: totalMissions,
       updated_at: new Date().toISOString(),
@@ -225,7 +225,7 @@ async function updateCampaignProgressInternal(
 
       await supabase
         .from('user_campaign_progress')
-        .update(updates)
+        .update(updates as any)
         .eq('id', existingProgress.id);
 
       // Record completion
