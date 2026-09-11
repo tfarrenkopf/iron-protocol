@@ -1,6 +1,7 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from './useAuth';
+import { Tables } from '@/integrations/supabase/types';
 
 export interface Assignment {
   id: string;
@@ -154,7 +155,7 @@ export function useUpdateAssignmentStatus() {
       status: 'IN_PROGRESS' | 'COMPLETED'; 
       sessionId?: string;
     }) => {
-      const updateData: Record<string, unknown> = { status };
+      const updateData: Partial<Tables<'mission_assignments'>> = { status };
       
       if (status === 'IN_PROGRESS') {
         updateData.started_at = new Date().toISOString();
@@ -167,7 +168,7 @@ export function useUpdateAssignmentStatus() {
       
       const { error } = await supabase
         .from('mission_assignments')
-        .update(updateData)
+        .update(updateData as any)
         .eq('id', assignmentId);
       
       if (error) throw error;

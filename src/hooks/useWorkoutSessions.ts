@@ -1,6 +1,7 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from './useAuth';
+import { Tables } from '@/integrations/supabase/types';
 
 export function useCompletedSessions() {
   const { user } = useAuth();
@@ -199,7 +200,7 @@ async function updateCampaignProgressInternal(
 
   if (existingProgress) {
     // Update existing progress
-    const updates: Record<string, unknown> = {
+    const updates: Partial<Tables<'user_campaign_progress'>> = {
       missions_completed_count: completedCount,
       total_missions_count: totalMissions,
       updated_at: new Date().toISOString(),
@@ -224,7 +225,7 @@ async function updateCampaignProgressInternal(
 
       await supabase
         .from('user_campaign_progress')
-        .update(updates)
+        .update(updates as any)
         .eq('id', existingProgress.id);
 
       // Record completion
@@ -242,7 +243,7 @@ async function updateCampaignProgressInternal(
     } else {
       await supabase
         .from('user_campaign_progress')
-        .update(updates)
+        .update(updates as any)
         .eq('id', existingProgress.id);
     }
   } else {

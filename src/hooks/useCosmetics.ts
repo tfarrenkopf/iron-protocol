@@ -1,6 +1,7 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from './useAuth';
+import { Tables } from '@/integrations/supabase/types';
 
 export interface Cosmetic {
   id: string;
@@ -129,9 +130,11 @@ export function useEquipCosmetic() {
       // Update profile with equipped cosmetic
       const updateField = type === 'title' ? 'equipped_title_id' : 'equipped_icon_id';
       
+      const updateData: Partial<Tables<'profiles'>> = { [updateField]: cosmeticId };
+      
       const { error } = await supabase
         .from('profiles')
-        .update({ [updateField]: cosmeticId })
+        .update(updateData as any)
         .eq('id', user.id);
       
       if (error) throw error;
@@ -153,9 +156,11 @@ export function useUnequipCosmetic() {
       
       const updateField = type === 'title' ? 'equipped_title_id' : 'equipped_icon_id';
       
+      const updateData: Partial<Tables<'profiles'>> = { [updateField]: null };
+      
       const { error } = await supabase
         .from('profiles')
-        .update({ [updateField]: null })
+        .update(updateData as any)
         .eq('id', user.id);
       
       if (error) throw error;
