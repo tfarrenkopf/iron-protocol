@@ -130,9 +130,11 @@ export function useEquipCosmetic() {
       // Update profile with equipped cosmetic
       const updateField = type === 'title' ? 'equipped_title_id' : 'equipped_icon_id';
       
+      const updateData: Partial<Tables<'profiles'>> = { [updateField]: cosmeticId };
+      
       const { error } = await supabase
         .from('profiles')
-        .update({ [updateField]: cosmeticId })
+        .update(updateData as any)
         .eq('id', user.id);
       
       if (error) throw error;
