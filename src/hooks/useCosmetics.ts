@@ -156,9 +156,11 @@ export function useUnequipCosmetic() {
       
       const updateField = type === 'title' ? 'equipped_title_id' : 'equipped_icon_id';
       
+      const updateData: Partial<Tables<'profiles'>> = { [updateField]: null };
+      
       const { error } = await supabase
         .from('profiles')
-        .update({ [updateField]: null })
+        .update(updateData as any)
         .eq('id', user.id);
       
       if (error) throw error;
